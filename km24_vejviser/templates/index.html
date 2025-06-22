@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="da" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KM24 Vejviser</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    <style>
+        body {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        main.container {
+            max-width: 800px;
+        }
+        #result h4, #result h5 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        #result {
+            border: 1px solid var(--pico-muted-border-color);
+            padding: 1rem;
+            border-radius: var(--pico-border-radius);
+            margin-top: 1rem;
+            min-height: 100px;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #recipe-output {
+            white-space: pre-wrap;
+            background-color: #f7f7f7;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid #e1e1e1;
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>KM24 Vejviser</h1>
+            <p class="lead">Din guide til datadrevet journalistik</p>
+        </header>
+        <form id="recipe-form">
+            <label for="goal">Beskriv dit journalistiske mål eller dækningsområde:</label>
+            <textarea id="goal" name="goal" rows="5" required placeholder="Jeg vil gerne undersøge, hvem der systematisk opkøber ejendomme i Skagen-området..."></textarea>
+            <button type="submit" aria-busy="false">Generér Opskrift</button>
+        </form>
+        <section>
+            <h2>Din Opskrift:</h2>
+            <div id="result">
+                <p>Resultatet af din forespørgsel vil blive vist her.</p>
+            </div>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('recipe-form');
+            const resultDiv = document.getElementById('result');
+            const submitButton = form.querySelector('button');
+            const showdownConverter = new showdown.Converter({
+                headerLevelStart: 4, // Start H-tags at h4
+                simplifiedAutoLink: true,
+                strikethrough: true,
+                tables: true
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const goal = document.getElementById('goal').value;
+
+                // Show loading state
+                submitButton.setAttribute('aria-busy', 'true');
+                submitButton.disabled = true;
+                resultDiv.innerHTML = ''; // Clear previous results
+
+                try {
+                    const response = await fetch('/generate-recipe/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ goal: goal })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let fullRecipeText = '';
+                    
+                    // Start reading the stream
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) {
+                            break;
+                        }
+                        fullRecipeText += decoder.decode(value, { stream: true });
+                        const htmlContent = showdownConverter.makeHtml(fullRecipeText);
+                        resultDiv.innerHTML = htmlContent;
+                    }
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    resultDiv.innerHTML = `<p style="color: red;"><strong>Fejl:</strong> Kunne ikke hente opskriften. Tjek konsollen for detaljer.</p>`;
+                } finally {
+                    // Hide loading state
+                    submitButton.setAttribute('aria-busy', 'false');
+                    submitButton.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
