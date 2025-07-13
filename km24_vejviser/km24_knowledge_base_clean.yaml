@@ -1,0 +1,320 @@
+# KM24 Verificeret Modul Database (Opdateret Version)
+# Indeholder udelukkende verificeret, officiel information fra KM24 dokumentation.
+
+metadata:
+  database_name: "KM24 Verified Modules"
+  total_official_modules: 45
+  creation_date: "2025-01-17"
+  sources:
+    primary: "KM24 Aktive moduler liste (seneste version)"
+    secondary: "KM24 Brugermanual"
+  data_standard: "Only verified, official information included"
+
+search_syntax_guide:
+  title: "Avanceret Guide til KM24 Søgesyntax"
+  description: "Lær at mestre KM24's søgemaskine med disse avancerede teknikker. Inspireret af ekspert-demonstrationer."
+  operators:
+    - operator: "~frase~"
+      name: "Eksakt Frase-søgning"
+      description: "Tvinger systemet til kun at finde resultater, hvor den eksakte frase optræder. Ideel til fagtermer og specifikke koncepter."
+      example: "Søg på `~kritisk sygdom~` i 'Klagenævn' for kun at få afgørelser, der indeholder præcis dén frase."
+    - operator: "~ord"
+      name: "Positionel Søgning"
+      description: "Kræver at søgeordet står i starten af et afsnit eller en titel, hvilket øger relevansen markant. Indikerer, at ordet er hovedemnet."
+      example: "I 'Retslister' vil `~parkering` finde sager, hvor 'parkering' er det første ord, og dermed sandsynligvis hovedemnet."
+    - operator: "søgeord1;søgeord2"
+      name: "Kombination af Søgevariationer"
+      description: "Kombinerer flere uafhængige søgninger for at fange forskellige stavemåder eller variationer af et navn eller begreb."
+      example: "Ved overvågning af nye selskaber kan `~mink;-mink` fange både navne, der starter med 'mink', og navne, hvor 'mink' kommer efter en bindestreg."
+    - operator: "OR"
+      name: "ELLER-søgning"
+      description: "Søger efter et af flere ord. Skal skrives med store bogstaver."
+      example: "`Novo Nordisk OR Novozymes`"
+    - operator: "AND"
+      name: "OG-søgning"
+      description: "Finder dokumenter, der indeholder begge ord. Er standardadfærden, men kan bruges for klarhed."
+      example: "`Mærsk AND opkøb`"
+
+strategic_principles:
+  title: "Strategiske Principper for Effektiv Overvågning"
+  principles:
+    - name: "Målretning af Kilder og Brancher"
+      description: "Den mest effektive overvågning starter med at afgrænse, HVOR man leder, før man definerer, HVAD man leder efter."
+      method: "Brug platformens indbyggede filtre til at forhåndsudvælge specifikke instanser (f.eks. 'Ankenævnet for Forsikring' i stedet for alle klagenævn), geografiske områder (f.eks. 'Retten i Odense'), eller brancher (via branchekoder) for at reducere støj og øge relevansen drastisk."
+    - name: "Strategisk Notifikations-kadence"
+      description: "Timingen af notifikationer skal afspejle informationens vigtighed og den påkrævede reaktionstid."
+      method: "Vælg bevidst mellem 'Løbende' (straks-besked) for 'need-to-know-now' information (f.eks. nye konkurser, klagesager) og 'Interval' (daglig/ugentlig opsamling) for 'nice-to-know' information (f.eks. retslister) for at skabe et håndterbart workflow."
+
+advanced_techniques:
+  title: "Avancerede Teknikker for Power-Users"
+  techniques:
+    - name: "Hitlogik (Betingelser for hits)"
+      description: "Styr præcist hvordan dine overvågningskriterier kombineres for at skabe komplekse og præcise søgninger."
+      method: "Vælg mellem 'OG' (alle kriterier skal være opfyldt) og 'ELLER' (mindst ét kriterie skal være opfyldt). Du kan bygge avancerede logiske kæder, f.eks. 'kommune OG ejendomstype OG (branche ELLER beløb)'."
+    - name: "'+1' Tricket (Parallelle Overvågninger)"
+      description: "Omgå platformens begrænsning på én logik pr. modul pr. bruger for at køre flere, modstridende overvågninger parallelt."
+      method: "Opret en 'ny' bruger ved at tilføje '+1' til dit brugernavn i din email (f.eks. 'dit.navn+1@firma.dk'). Systemet ser det som en ny konto, men alle mails lander i din normale indbakke."
+
+troubleshooting:
+  title: "Værd at vide & Fejlkilder"
+  points:
+    - issue: "Ingen resultater i web-baserede moduler"
+      reason: "I moduler som 'Danske medier', 'Kommuner', 'Webstedsovervågning' etc. er det *nødvendigt* at vælge en eller flere specifikke kilder (f.eks. et medie eller en kommune). En søgeords-overvågning alene vil ikke give hits."
+      solution: "Sørg altid for at vælge mindst én kilde i filter-indstillingerne for disse moduler."
+    - issue: "Manglende hits på virksomhedsnavne"
+      reason: "Platformen identificerer primært virksomheder på CVR-nummer. I kilder uden CVR-numre (f.eks. medietekster) bruges firmanavnet, hvilket kan føre til fejl pga. staveforskelle eller ukomplette navne."
+      solution: "Kombiner overvågning på CVR-nummer med søgninger på navnevariationer for at sikre fuld dækning."
+    - issue: "Direkte virksomhedsovervågning ignorerer filtre"
+      reason: "Når du overvåger en specifik virksomhed direkte (via CVR-nummer), vil denne overvågning *altid* generere et hit ved ny information. Den ignorerer og overstyrer alle andre indstillinger i modulet, inklusiv 'Hitlogik'."
+      solution: "Vær bevidst om denne regel. Hvis du kun vil have hits under specifikke betingelser, skal du bruge en søgeordsbaseret overvågning i stedet for en direkte CVR-overvågning."
+
+modules:
+  # === EJENDOM OG FAST EJENDOM ===
+  - module_name: "Andelsboligbogen"
+    category: "Ejendom og Fast Ejendom"
+    official_description: "Pant og udlæg i Andelsboligforeninger."
+    keywords: ["andelsbolig", "pant", "udlæg", "andelsboligforening"]
+
+  - module_name: "Boligsiden"
+    category: "Ejendom og Fast Ejendom"
+    official_description: "Alle nye boliger til salg i Danmark."
+    keywords: ["boligsiden", "bolig", "salg", "ejendomsmægler"]
+
+  - module_name: "Tinglysning"
+    category: "Ejendom og Fast Ejendom"
+    official_description: "Nye tinglyste ejendomshandler fra Tinglysningen. Følg ejendomshandler og samlehandler over en beløbsgrænse, som du selv definerer."
+    keywords: ["tinglysning", "ejendomshandel", "køb", "salg", "ejendom"]
+
+  # === ERHVERV OG ØKONOMI ===
+  - module_name: "Bilbogen"
+    category: "Erhverv og Økonomi"
+    official_description: "Pant i køretøjer."
+    keywords: ["bilbogen", "pant", "køretøj", "bil", "gæld"]
+
+  - module_name: "Børsmeddelelser"
+    category: "Erhverv og Økonomi"
+    official_description: "Nye børsmeddelelser fra Nasdaq."
+    keywords: ["børsmeddelelse", "nasdaq", "aktier", "finans"]
+
+  - module_name: "Finanstilsynet"
+    category: "Erhverv og Økonomi"
+    official_description: "Tilsynsreaktioner fra Finanstilsynet."
+    keywords: ["finanstilsynet", "tilsyn", "påbud", "finans"]
+
+  - module_name: "Gældssanering"
+    category: "Erhverv og Økonomi"
+    official_description: "Gældssanering fra Statstidende."
+    keywords: ["gældssanering", "gæld", "statstidende"]
+
+  - module_name: "Kapitalændring"
+    category: "Erhverv og Økonomi"
+    official_description: "Kapitalændringer i selskaber - hentet fra VIRK."
+    keywords: ["kapitalændring", "kapitalforhøjelse", "kapitalnedsættelse", "virk", "selskab"]
+
+  - module_name: "Personbogen"
+    category: "Erhverv og Økonomi"
+    official_description: "Pant i løsøre, virksomhedspant, årets høst samt ægtepagter og afgørelser om værgemål."
+    keywords: ["personbogen", "pant", "løsøre", "virksomhedspant", "værgemål"]
+
+  - module_name: "Registrering"
+    category: "Erhverv og Økonomi"
+    official_description: "Nye registreringer fra VIRK."
+    keywords: ["registrering", "virk", "selskab", "stiftelse"]
+
+  - module_name: "Regnskaber"
+    category: "Erhverv og Økonomi"
+    official_description: "Alle nye regnskaber offentliggjort på VIRK."
+    keywords: ["regnskab", "årsrapport", "virk", "økonomi"]
+
+  - module_name: "Skibsregistret"
+    category: "Erhverv og Økonomi"
+    official_description: "Nye registreringer om danske skibe."
+    keywords: ["skibsregistret", "skib", "registrering"]
+
+  - module_name: "Status"
+    category: "Erhverv og Økonomi"
+    official_description: "Statusændringer for virksomheder."
+    keywords: ["status", "virksomhed", "tvangsopløst", "konkurs"]
+
+  # === RETSSYSTEM OG JURA ===
+  - module_name: "Arbejdsretten"
+    category: "Retssystem og Jura"
+    official_description: "Domme og kendelser fra Arbejdsretten, der behandler arbejdsretlige konflikter."
+    keywords: ["arbejdsret", "dom", "kendelse", "fagforening", "konflikt"]
+
+  - module_name: "Domme"
+    category: "Retssystem og Jura"
+    official_description: "Nye domme fra den offentlige domsdatabase."
+    keywords: ["dom", "kendelse", "retsafgørelse", "domstol", "retssag"]
+
+  - module_name: "Klagenævn"
+    category: "Retssystem og Jura"
+    official_description: "Nye kendelser fra 17 forskellige anke- og klagenævn."
+    keywords: ["klagenævn", "kendelse", "anke", "klage"]
+
+  - module_name: "Retslister"
+    category: "Retssystem og Jura"
+    official_description: "Nye retslister fra Danmarks Domstole publiceres af de enkelte retter."
+    keywords: ["retsliste", "domstol", "retsmøde", "sag"]
+
+  - module_name: "Sø- og Handelsretten"
+    category: "Retssystem og Jura"
+    official_description: "Nye domme fra Sø- og Handelsretten. Disse domme er ikke medtaget under modulet Domme."
+    keywords: ["sø- og handelsret", "dom", "handelssag", "søret"]
+
+  - module_name: "Stævninger"
+    category: "Retssystem og Jura"
+    official_description: "Stævninger fra Statstidende."
+    keywords: ["stævning", "statstidende", "retssag"]
+
+  # === MYNDIGHEDER OG OFFENTLIG SEKTOR ===
+  - module_name: "Centraladministrationen"
+    category: "Myndigheder og Offentlig Sektor"
+    official_description: "Nyt indhold fra danske ministerier og styrelser."
+    keywords: ["centraladministration", "ministerie", "styrelse", "regering"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Kommuner"
+    category: "Myndigheder og Offentlig Sektor"
+    official_description: "Nyt indhold på websites fra de 98 kommuner, fem regioner, KL og Danske Regioner."
+    keywords: ["kommune", "region", "kommunal", "lokal"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Lokalpolitik"
+    category: "Myndigheder og Offentlig Sektor"
+    official_description: "Dagsordener og referater fra kommuner og regioner."
+    keywords: ["lokalpolitik", "dagsorden", "referat", "byråd", "kommunalbestyrelse"]
+
+  - module_name: "Politi"
+    category: "Myndigheder og Offentlig Sektor"
+    official_description: "Nyheder, døgnrapporter, beredskabsmeddelelser og mere fra den danske rigspolitistyrke."
+    keywords: ["politi", "døgnrapport", "beredskab", "kriminalitet"]
+
+  - module_name: "Udbud"
+    category: "Myndigheder og Offentlig Sektor"
+    official_description: "Alle nye danske offentlige udbud fra udbud.dk."
+    keywords: ["udbud", "offentlig", "licitation", "kontrakt"]
+
+  - module_name: "Borgerforslag"
+    category: "Myndigheder og Offentlig Sektor"
+    official_description: "Borgerforslag og antal stemmer på dem."
+    keywords: ["borgerforslag", "stemmer", "demokrati", "forslag"]
+
+  - module_name: "Lovforslag"
+    category: "Myndigheder og Offentlig Sektor"
+    official_description: "Lovforslag fra Folketinget."
+    keywords: ["lovforslag", "folketinget", "lov", "politik"]
+
+  # === TILSYN OG COMPLIANCE ===
+  - module_name: "Arbejdstilsyn"
+    category: "Tilsyn og Compliance"
+    official_description: "Arbejdstilsynets kritik af virksomheder."
+    keywords: ["arbejdstilsyn", "kritik", "arbejdsmiljø", "påbud"]
+
+  - module_name: "Fødevaresmiley"
+    category: "Tilsyn og Compliance"
+    official_description: "Nye smileys (de to sureste typer) fra Fødevarestyrelsen til butikker, kantiner, institutionskøkkener mv."
+    keywords: ["fødevaresmiley", "smiley", "fødevarestyrelsen", "hygiejne"]
+
+  - module_name: "Sundhedstilsyn"
+    category: "Tilsyn og Compliance"
+    official_description: "Styrelsen for Patientsikkerheds tilsyn med behandlingssteder i sundhedsvæsenet."
+    keywords: ["sundhedstilsyn", "patientsikkerhed", "behandlingssted", "sundhed"]
+
+  - module_name: "Tilbudsportalen"
+    category: "Tilsyn og Compliance"
+    official_description: "Flere end 4.000 tilbud, som regioner har til udsatte grupper."
+    keywords: ["tilbudsportalen", "sociale tilbud", "udsatte", "region"]
+
+  - module_name: "Kritik af sundhedspersoner"
+    category: "Tilsyn og Compliance"
+    official_description: "Udvalgte afgørelser fra Sundhedsvæsenets Disciplinærnævn samt indhold fra Autorisationsregistret."
+    keywords: ["disciplinærnævn", "sundhedsperson", "kritik", "autorisation"]
+
+  - module_name: "Lægemiddelindustrien"
+    category: "Tilsyn og Compliance"
+    official_description: "Etisk Nævn for Lægemiddelindustrien (ENLI) har siden 2011 offentliggjort afgørelser om etiske forhold i lægemiddelindustrien."
+    keywords: ["lægemiddelindustri", "ENLI", "etik", "lægemiddel"]
+
+  # === MILJØ OG KLIMA ===
+  - module_name: "Miljø-annonceringer"
+    category: "Miljø og Klima"
+    official_description: "Annonceringer fra Miljøstyrelsen."
+    keywords: ["miljøstyrelsen", "miljø", "annoncering", "godkendelse"]
+
+  - module_name: "Miljøsager"
+    category: "Miljø og Klima"
+    official_description: "Offentliggørelser på Digital Miljøadministration fra landets 99 miljømyndigheder."
+    keywords: ["miljøsag", "miljømyndighed", "miljøadministration", "miljø"]
+
+  - module_name: "Klima"
+    category: "Miljø og Klima"
+    official_description: "Nyt indhold på klima- og energikilder."
+    keywords: ["klima", "energi", "miljø", "bæredygtighed"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Kystdirektoratet"
+    category: "Miljø og Klima"
+    official_description: "Alle nye afgørelser og høringer fra Kystdirektoratet."
+    keywords: ["kystdirektoratet", "kyst", "afgørelse", "høring"]
+
+  # === MEDIER OG SAMFUND ===
+  - module_name: "Danske medier"
+    category: "Medier og Samfund"
+    official_description: "Nyt indhold på danske mediesites."
+    keywords: ["medieomtale", "artikler", "nyheder", "presse"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Udenlandske medier"
+    category: "Medier og Samfund"
+    official_description: "Nyt indhold på udenlandske mediesites."
+    keywords: ["udenlandske medier", "international", "nyheder", "global"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "EU"
+    category: "Medier og Samfund"
+    official_description: "Nyt fra EU-organer."
+    keywords: ["eu", "europa", "direktiv", "forordning", "bruxelles"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Forskning"
+    category: "Medier og Samfund"
+    official_description: "Nyt indhold på danske og udenlandske sites med relation til forskning."
+    keywords: ["forskning", "videnskab", "universitet", "studie"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Sundhed"
+    category: "Medier og Samfund"
+    official_description: "Nyt indhold på sites med relation til sygdom og sundhed."
+    keywords: ["sundhed", "sygdom", "medicin", "behandling"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Dødsfald"
+    category: "Medier og Samfund"
+    official_description: "Nye dødsfald fra Datafordeleren og Statstidende."
+    keywords: ["dødsfald", "død", "datafordeleren", "statstidende"]
+
+  - module_name: "Konflikt"
+    category: "Medier og Samfund"
+    official_description: "Sympatikonflikter i fagforeninger."
+    keywords: ["konflikt", "sympatikonflik", "fagforening", "strejke"]
+
+  - module_name: "Webstedsovervågning"
+    category: "Medier og Samfund"
+    official_description: "Her kan indtastes URL'er på sites, der ønskes overvåget for nyt indhold."
+    keywords: ["websted", "url", "overvågning", "custom"]
+    module_type: "webkilde"
+    requires_source_selection: true
+
+  - module_name: "Domæner"
+    category: "Medier og Samfund"
+    official_description: "Nye dk-internetdomæner."
+    keywords: ["domæne", "dk", "internet", "website"]

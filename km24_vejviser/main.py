@@ -4,8 +4,14 @@ KM24 Vejviser: En intelligent assistent til journalister.
 Dette FastAPI-program fungerer som backend for "KM24 Vejviser".
 Det leverer en web-brugerflade, modtager et journalistisk mål,
 og bruger Anthropic's Claude 3.5 Sonnet-model til at generere en
-strategisk "opskrift" for, hvordan man bedst bruger KM24-platformen
-til at undersøge målet. Svaret streames til brugerfladen i realtid.
+strategisk "opskrift" i et struktureret JSON-format.
+
+Arkitekturen er designet til at være robust:
+1.  En detaljeret systemprompt instruerer modellen til at returnere et JSON-objekt.
+2.  Backend-koden kalder modellen og venter på det fulde svar.
+3.  Svaret valideres og kompletteres programmatisk for at sikre, at kritiske
+    pædagogiske felter altid er til stede.
+4.  Det endelige, komplette JSON-objekt sendes til frontend for rendering.
 """
 import yaml
 import os
@@ -15,7 +21,9 @@ import anthropic
 from dotenv import load_dotenv
 from pathlib import Path
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+import asyncio
+import json
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
@@ -35,28 +43,24 @@ app = FastAPI(
     description="En intelligent assistent til at skabe effektive overvågnings-opskrifter for KM24-platformen.",
     version="1.0.0",
 )
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # --- Data Models ---
 class RecipeRequest(BaseModel):
     """Data model for indkommende anmodninger fra brugerfladen."""
     goal: str
 
-# RecipeResponse is no longer needed for streaming
-# class RecipeResponse(BaseModel):
-#     recipe: str
-
 # --- Helper Functions ---
 def load_knowledge_base() -> str:
     """
-    Indlæser videnbasen fra YAML-filen.
+    Indlæser videnbasen fra den rensede YAML-fil.
 
     Returns:
         En streng med indholdet af videnbase-filen.
     """
     try:
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        file_path = os.path.join(dir_path, "km24_knowledge_base_v2.yaml")
+        file_path = os.path.join(dir_path, "km24_knowledge_base_clean.yaml")
         with open(file_path, "r") as f:
             return f.read()
     except FileNotFoundError:
@@ -64,124 +68,203 @@ def load_knowledge_base() -> str:
 
 knowledge_base_content = load_knowledge_base()
 
-# System prompt version 1.6: Final expert persona
+# System prompt version 2.8: The final attempt with an explicit IF-THEN rule for the +1 trick.
 system_prompt = """
-[SYSTEM PROMPT V1.6 FINAL]
+[SYSTEM PROMPT V2.8 - FINAL ULTIMATUM]
 
-**Del 1: Rolle og Personlighed**
+**1. ROLLE OG MÅL**
+Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
+Din opgave er at omdanne et komplekst journalistisk mål til en **pædagogisk og struktureret efterforskningsplan i JSON-format**, der lærer brugeren at mestre KM24-platformens avancerede funktioner.
 
-Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner. Din rolle er at agere som en **proaktiv, kreativ og skeptisk graver-journalist**. Du forstår og anvender det korrekte fagsprog ("lingo") inden for de områder, du rådgiver om, præcis som en erfaren fagjournalist ville gøre. Du tager ikke brugerens spørgsmål for pålydende, men analyserer det dybere journalistiske potentiale. Dit mål er at inspirere til undersøgende journalistik ved at pege på uventede vinkler, skjulte sammenhænge og innovative måder at kombinere KM24's moduler på.
+**2. KERNEREGLER (AFGØRENDE)**
+- **TOP-REGLER:**
+    1.  **HVIS-SÅ-REGEL FOR '+1'-TRICKET:** Dette er din mest specifikke regel. **HVIS** en brugerforespørgsel kræver to eller flere separate overvågninger, der bruger **forskellige typer af for-filtrering** (f.eks. én overvågning filtreret på geografi og en anden filtreret på branchekode), **SÅ SKAL** du dedikere et specifikt trin i din plan til at forklare og anbefale **"+1"-tricket** som den optimale løsning for at holde disse overvågninger adskilt og rene.
+    2.  **KRÆV NOTIFIKATIONS-ANBEFALING:** Din næstvigtigste regel. For **hvert** overvågningstrin (`search` eller `cvr_monitoring`) **SKAL** du inkludere feltet `recommended_notification` (`løbende` eller `interval`) og kort begrunde dit valg.
+    3.  **ADVAR OM KILDEVALG:** Hvis et modul har `requires_source_selection: true`, **SKAL** du tilføje en `strategic_note`, der advarer brugeren om, at de manuelt skal vælge kilder for at få resultater.
+- **AVANCEREDE TEKNIKKER:**
+    - **HITLOGIK:** Ved komplekse søgninger med flere kriterier, forklar brugeren om muligheden for at bruge `Hitlogik` (OG/ELLER) til at definere betingelserne for et hit.
+- **GRUNDLÆGGENDE REGLER:**
+    - **STRENGT VIDENSGRUNDLAG:** Baser alt på `KNOWLEDGE_BASE`. Ingen hallucination.
+    - **ALTID JSON:** Returner kun et validt, komplet JSON-objekt.
+    - **ANVEND AVANCERET SØGESYNTAKS:** Brug `~frase~`, `~ord`, og `;` korrekt og forklar hvorfor.
+    - **GEOGRAFISK PRÆCISION:** Omsæt regioner til specifikke kommuner.
+    - **MODULNAVNE:** Brug altid de eksakte modulnavne.
 
----
+**3. OUTPUT-STRUKTUR (JSON-SKEMA)**
+Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatoriske** advarsler og anbefalinger.
 
-**Del 2: Den Journalistiske Metode**
+```json
+{{
+  "title": "Kort og fængende titel for efterforskningen",
+  "strategy_summary": "En kort opsummering af den overordnede strategi, der fremhæver brugen af præcis kilde-målretning og søgesyntaks.",
+  "investigation_steps": [
+    {{
+      "step": 1,
+      "title": "Power-User Teknik: Opdel Overvågning med '+1'-Tricket",
+      "type": "manual_research",
+      "rationale": "Dit mål kræver to separate overvågninger med forskellige filtre (én geografisk, én på branchekode). For at undgå at disse filtre konflikter, er den bedste løsning at oprette en separat brugerprofil til hver overvågning.",
+      "output": "Opret to nye bruger-profiler: 'dit.navn+byggeri@firma.dk' til byggetilladelser og 'dit.navn+konkurs@firma.dk' til konkurser. Alle notifikationer vil stadig lande i din normale indbakke. Brug de følgende trin for hver profil."
+    }},
+    {{
+      "step": 2,
+      "title": "Overvågning af Byggetilladelser i Aarhus (>10 mio.)",
+      "type": "search",
+      "module": "Lokalpolitik",
+      "rationale": "På din '+byggeri'-profil: Opsæt en overvågning for store byggetilladelser. Da det er et web-modul, skal kilden vælges manuelt.",
+      "details": {{
+        "strategic_note": "ADVARSEL: På din '+byggeri' profil skal du manuelt udvælge 'Aarhus Kommune' som kilde i modulet for at få resultater.",
+        "search_string": "byggetilladelse AND (>10.000.000 OR >10mio)",
+        "explanation": "Vi kombinerer søgeordet med en søgning på beløb. Brug Hitlogik (OG) for at sikre, at begge betingelser er opfyldt.",
+        "recommended_notification": "interval"
+      }}
+    }},
+     {{
+      "step": 3,
+      "title": "Overvågning af Konkurser i Byggebranchen",
+      "type": "search",
+      "module": "Status",
+      "rationale": "På din '+konkurs'-profil: Opsæt en landsdækkende overvågning af konkurser i byggebranchen ved at for-filtrere på branchekoder.",
+      "details": {{
+        "strategic_note": "På din '+konkurs' profil skal du bruge KM24's filter til at vælge de relevante branchekoder for byggeri før du søger.",
+        "search_string": "~konkurs",
+        "explanation": "Positionel søgning (`~ord`) sikrer, at kun sager, hvor 'konkurs' er hovedemnet, fanges.",
+        "recommended_notification": "løbende"
+      }}
+    }}
+  ],
+  "next_level_questions": [
+    "Hvilke firmaer går igen i både store byggeprojekter og efterfølgende konkurser?",
+    "Er der specifikke under-brancher i byggeriet, der er overrepræsenteret i konkurser?"
+  ]
+}}
+```
 
-Din tilgang er altid strategisk. Anvend disse metoder:
+**4. KONTEKST**
 
-1.  **Analysér det Underliggende Mål:** Hvad er den reelle historie, brugeren leder efter? Handler det om magtmisbrug, økonomiske tendenser, netværksafdækning eller systemfejl? Din strategi skal afspejle dette.
-2.  **Formulér en Hypotese:** Før du bygger opskriften, så overvej den sandsynlige hypotese. Eksempel: Hvis brugeren spørger til "udenlandske opkøb af landbrugsjord", er hypotesen måske "at specifikke udenlandske fonde udnytter et hul i lovgivningen". Din opskrift skal designes til at teste hypotesen.
-3.  **Prioritér "Aktør-Først":** Som hovedregel er det stærkest at identificere og overvåge **aktørerne** (selskaber/personer) frem for at lede efter brede **hændelser** (søgeord). Start med at få brugeren til at definere en liste af relevante aktører.
-4.  **Tænk i Data-Kombinationer:** Din største værdi er at foreslå, hvordan data fra forskellige moduler kan **kombineres** for at skabe en ny, unik indsigt, som intet modul kan levere alene.
-5.  **Anvend Korrekt Fagsprog:** Din troværdighed som ekspert afhænger af, at du bruger den korrekte terminologi. Demonstrer din ekspertise ved konsekvent at anvende det sprog, fagfolk selv bruger. I politi- og retssager betyder det f.eks., at du bruger termer som "drab", "manddrab" eller "vold med døden til følge", og **altid undgår** upræcise, ladede eller journalistisk skabte begreber som "mord". Dette princip gælder for alle fagområder, du rådgiver om.
-
----
-
-**Del 3: Kontekst og Vidensgrundlag**
-
-Din viden om KM24 er **udelukkende baseret på følgende**. Du må IKKE finde på moduler eller funktioner, der ikke er beskrevet her.
-
-**3.1: TILGÆNGELIGE KM24 MODULER:**
+**KNOWLEDGE_BASE (YAML):**
 ```yaml
 {knowledge_base_content}
 ```
 
-**3.2: SÅDAN BRUGES SØGEORDENE (SYTAKS-VEJLEDNING):**
-*   **Case-insensitive:** `iphone` og `iPhone` giver samme resultat.
-*   **Substring match:** `superliga` matcher `superligaen`.
-*   **Sammenhængende ord:** `Mette Frederiksen` kræver, at ordene står sammen i den rækkefølge.
-*   **ET af flere ord (OR):** Adskil med semikolon. `facebook;instagram;tiktok` matcher dokumenter, der indeholder mindst ét af ordene.
-*   **Eksakt ord-match:** Brug `~` omkring ordet. `~arla~` matcher "arla" som et helt ord, men ikke "parlament" eller "arlas".
-*   **Global udelukkelse:** Brug `!global` i NOT-strengen for at fjerne et dokument, hvis ordet optræder *bare ét sted* i hele teksten. `(bornholm, ―, ritzau!global)`.
-*   **Flere globale udelukkelser:** `!global` skrives kun én gang til sidst. `(bornholm, ―, havvind;ritzau!global)`.
-*   **Format:** Søgestrenge angives som `(første søgestreng, anden søgestreng, NOT-søgestreng)`. Brug `―` for at signalere en tom søgestreng.
+**USER_GOAL:**
+"{user_goal}"
 
----
-
-**Del 3.5: Avancerede Strategier og Vigtig Platform-Logik**
-
-Dette er avancerede regler og indsigter i KM24's virkemåde, som du **skal** bruge til at skabe endnu skarpere opskrifter.
-
-*   **CVR-Overvågning er Konge:** Hvis en bruger opretter en overvågning på en specifik virksomhed (via CVR-nummer), vil denne overvågning **altid** give et hit i et modul, hvis virksomheden nævnes. Andre kriterier i modulet (som søgeord eller geografi) ignoreres for den specifikke virksomhed. Dette er den mest robuste overvågningsform.
-*   **Advarsel ved Tekst-Moduler:** Moduler som `Centraladministrationen`, `Danske medier`, `EU`, `Forskning` og lignende **kræver**, at brugeren aktivt vælger én eller flere kilder at overvåge. En opskrift, der kun indeholder søgeord i disse moduler uden at specificere en kilde, er **ubrugelig**. Du skal altid instruere brugeren i at vælge relevante kilder.
-*   **Husk "Fejlkilder":** Ikke alle kilder bruger CVR-numre. I medier, dagsordener og klagenævn kan en virksomhed være nævnt ved navn. En god opskrift bør derfor ofte kombinere en CVR-baseret overvågning med en supplerende søgning på virksomhedens navn for at fange disse "fejlkilder".
-*   **Avanceret trick til "Næste Niveau":** Hvis en bruger har brug for meget komplekse og differentierede overvågninger (f.eks. én regel for ejendomme over 10 mio. kr. og en anden for erhvervsejendomme over 100 mio. kr. i samme modul), kan du foreslå "+1 E-mail Tricket": Opret en ekstra bruger ved at tilføje `+1`, `+2` etc. til den eksisterende e-mail (f.eks. `journalist+1@medie.dk`). Dette lader systemet oprette separate overvågningslogikker, mens alle mails stadig lander i den samme indbakke.
-
----
-
-**Del 4: Output-formatering og Krav**
-
-Struktur ALTID dit svar på følgende måde:
-
-1.  **Strategi-overblik:** Start med en kort opsummering af den efterforskningsstrategi, du foreslår, og **hvilken hypotese den tester**. (F.eks. "Strategien er at teste hypotesen om, at... Vi bruger en 'Aktør-Først' tilgang...").
-2.  **Opskrift-Titel:** Giv en klar overskrift (Markdown H4).
-3.  **Logiske Skridt:** Opdel opskriften i nummererede "Dele". Del 1 skal ofte være den manuelle research for at finde aktørerne.
-4.  **Detaljer for hvert skridt:**
-    *   **Modul:** Navnet på KM24-modulet eller "Manuel Research".
-    *   For søgninger, brug ALTID følgende tre punkter:
-        *   **Søgestreng:** Den konkrete, copy-paste-venlige søgestreng i formatet `(første, anden, NOT)`.
-        *   **Forklaring:** En pædagogisk forklaring på, hvad strengen teknisk gør. F.eks. "Søger efter dokumenter der indeholder 'Mette Frederiksen' og hvor ordet 'statsminister' også optræder, men kun hvis ordet 'Sverige' IKKE findes."
-        *   **Formål:** Den journalistiske begrundelse for, hvorfor dette skridt er afgørende for at teste hypotesen.
-    *   For CVR-baserede overvågninger, skriv "Logik: Anvend CVR-liste fra Del 1".
-5.  **(OBLIGATORISK) Næste Niveau:** Efter opskriften, tilføj et afsnit med overskriften `#### Næste Niveau:`. Her **skal** du udfordre journalisten med et eller to dybdegående, kritiske spørgsmål, der kan løfte historien.
-
-[SYSTEM PROMPT V1.6 FINAL END]
+**5. UDFØRELSE**
+Generér nu den komplette JSON-plan baseret på `USER_GOAL` og `KNOWLEDGE_BASE`.
 """
 
-async def stream_anthropic_response(goal: str):
+async def get_anthropic_response(goal: str) -> dict:
     """
-    Asynkron generator, der streamer svaret fra Anthropic API'en.
+    Kalder Anthropic API'en for at få en komplet JSON-plan.
 
-    Denne funktion opretter en streaming-forbindelse til Claude og sender
-    tekst-stykker tilbage (yields), efterhånden som de genereres.
+    Funktionen sender den fulde systemprompt og brugerens mål til Claude,
+    venter på det komplette svar og parser det som JSON.
+    Implementerer en simpel retry-mekanisme for at håndtere midlertidige API-fejl.
 
     Args:
-        goal: Det journalistiske mål, som brugeren har indtastet.
+        goal: Det journalistiske mål fra brugeren.
+
+    Returns:
+        Et dictionary med det parsede JSON-svar fra Claude eller en fejlbesked.
     """
     if not client:
-        yield "Fejl: ANTHROPIC_API_KEY er ikke konfigureret. Indtast venligst din nøgle i .env"
-        return
+        return {"error": "ANTHROPIC_API_KEY er ikke konfigureret."}
 
-    try:
-        full_system_prompt = system_prompt.format(knowledge_base_content=knowledge_base_content)
-        
-        async with client.messages.stream(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=4096,
-            system=full_system_prompt,
-            messages=[
-                {"role": "user", "content": goal}
-            ]
-        ) as stream:
-            async for delta in stream.text_stream:
-                yield delta
+    full_system_prompt = system_prompt.format(
+        knowledge_base_content=knowledge_base_content,
+        user_goal=goal
+    )
+    retries = 3
+    delay = 2
 
-    except Exception as e:
-        print(f"An error occurred during streaming: {e}")
-        yield f"Der opstod en fejl under kommunikation med Anthropic API: {e}"
+    for attempt in range(retries):
+        try:
+            response = await client.messages.create(
+                model="claude-3-5-sonnet-20240620",
+                max_tokens=4096,
+                system=full_system_prompt,
+                messages=[
+                    {"role": "user", "content": "Generér JSON-planen som anmodet."}
+                ]
+            )
+            # Få fat i tekst-indholdet fra responsen
+            raw_json = response.content[0].text
+            return json.loads(raw_json)
+
+        except anthropic.APIError as e:
+            print(f"Anthropic API error on attempt {attempt + 1}: {e}")
+            if attempt < retries - 1:
+                await asyncio.sleep(delay)
+                delay *= 2
+            else:
+                return {"error": f"Der opstod en fejl efter {retries} forsøg. Fejl: {e}"}
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error on attempt {attempt + 1}: {e}")
+            print(f"Raw response was: {raw_json}")
+            if attempt < retries - 1:
+                await asyncio.sleep(delay)
+                delay *= 2
+            else:
+                return {"error": f"Kunne ikke parse JSON fra API'en. Svar: {raw_json}"}
+    return {"error": "Ukendt fejl."}
+
+
+def complete_recipe(recipe: dict) -> dict:
+    """
+    Sikrer at den genererede opskrift er komplet og robust.
+
+    Denne funktion fungerer som et sikkerhedsnet. Hvis AI-modellen "glemmer" at
+    inkludere de pædagogiske felter 'strategic_note' eller 'recommended_notification',
+    tilføjer denne funktion dem med en fornuftig standardværdi.
+    Dette garanterer en konsistent og brugervenlig oplevelse i frontend.
+    """
+    if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
+        for step in recipe["investigation_steps"]:
+            if "details" in step and isinstance(step["details"], dict):
+                if "strategic_note" not in step["details"]:
+                    step["details"]["strategic_note"] = "Ingen specifik strategisk note til dette trin."
+                if "recommended_notification" not in step["details"]:
+                    step["details"]["recommended_notification"] = "interval" # Default til interval
+    return recipe
 
 # --- API Endpoints ---
 @app.post("/generate-recipe/")
 async def generate_recipe_api(request: RecipeRequest):
     """
-    API-endepunkt til at generere en opskrift baseret på et journalistisk mål.
+    API-endepunkt der orkestrerer genereringen af en opskrift.
 
-    Modtager en POST-anmodning, kalder den asynkrone streaming-generator
-    og returnerer svaret som en `StreamingResponse`.
-
-    Args:
-        request: En anmodning, der indeholder brugerens mål.
+    1. Modtager en POST-anmodning med et journalistisk mål.
+    2. Kalder `get_anthropic_response` for at få et JSON-svar fra Claude.
+    3. Validerer og kompletterer svaret med `complete_recipe`.
+    4. Returnerer det endelige, komplette JSON-objekt til frontend.
     """
-    return StreamingResponse(stream_anthropic_response(request.goal), media_type="text/event-stream")
+    raw_recipe = await get_anthropic_response(request.goal)
+
+    if "error" in raw_recipe:
+        return JSONResponse(status_code=500, content=raw_recipe)
+
+    completed_recipe = complete_recipe(raw_recipe)
+    return JSONResponse(content=completed_recipe)
+
+# --- Inspiration Prompts ---
+inspiration_prompts = [
+    {
+        "title": "Systematisk opkøb",
+        "prompt": "Jeg vil undersøge, om en specifik udenlandsk kapitalfond systematisk opkøber og sammenlægger landbrugsejendomme i Vestjylland for at omgå reglerne."
+    },
+    {
+        "title": "Inhabilitet i kommunen",
+        "prompt": "Undersøg om byrådsmedlemmer i [indsæt by] kommune har personlige økonomiske interesser i sager, de stemmer om, specifikt inden for byudvikling og salg af kommunale grunde."
+    },
+    {
+        "title": "Social dumping",
+        "prompt": "Afdæk om der er et mønster, hvor specifikke transportfirmaer, der vinder offentlige udbud, systematisk er involveret i sager om social dumping eller konkurser."
+    },
+    {
+        "title": "Forurening",
+        "prompt": "Er der en sammenhæng mellem klager over lugtgener fra en bestemt fabrik og fabrikkens ansøgninger om nye miljøgodkendelser eller ændringer i produktionen?"
+    }
+]
 
 @app.get("/", response_class=HTMLResponse)
 async def read_item(request: Request):
@@ -194,4 +277,4 @@ async def read_item(request: Request):
     Returns:
         En TemplateResponse, der renderer HTML-siden.
     """
-    return templates.TemplateResponse("index.html", {"request": request}) 
+    return templates.TemplateResponse("index.html", {"request": request, "prompts": inspiration_prompts}) 

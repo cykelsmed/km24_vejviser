@@ -3,4 +3,5 @@ uvicorn[standard]
 python-dotenv
 PyYAML
 anthropic
-Jinja2 
+Jinja2
+pydantic 
