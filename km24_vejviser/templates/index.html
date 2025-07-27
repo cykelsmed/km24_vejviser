@@ -149,6 +149,37 @@
             height: 20px;
         }
 
+        /* Styles for geo advice */
+        .geo-advice {
+            background: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        /* Styles for power tip og supplementary modules */
+        .power-tip {
+            background: #fffbe6;
+            border-left: 4px solid #faad14;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .supplementary-modules {
+            background: #f6ffed;
+            border-left: 4px solid #52c41a;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            list-style: none;
+        }
+        .supplementary-modules li {
+            margin-bottom: 0.5rem;
+        }
+
     </style>
 </head>
 <body>
@@ -242,7 +273,7 @@
                     html += `<p><strong>Formål:</strong> ${step.rationale}</p>`;
                     
                     if (step.details) {
-                         if(step.details.strategic_note) {
+                        if(step.details.strategic_note) {
                             html += `
                                 <div class="strategic-note">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11M12 18.75v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11m-9.58 3.28a13.5 13.5 0 0 1 2.083-1.611m-2.083 1.611a13.5 13.5 0 0 0 2.083-1.611M3.75 6.75A2.25 2.25 0 0 1 6 4.5h12A2.25 2.25 0 0 1 20.25 6.75v10.5A2.25 2.25 0 0 1 18 19.5H6A2.25 2.25 0 0 1 3.75 17.25V6.75Z" /></svg>
@@ -275,6 +306,20 @@
                                     <div>${notificationText}</div>
                                 </div>`;
                         }
+                        if (step.details.geo_advice) {
+                            html += `
+                                <div class="geo-advice">
+                                    🌍 <strong>Geo-råd:</strong> ${step.details.geo_advice}
+                                </div>
+                            `;
+                        }
+                        if (step.details.power_tip) {
+                            html += `
+                                <div class="power-tip">
+                                    ⚡ <strong>${step.details.power_tip.title}:</strong> ${step.details.power_tip.explanation}
+                                </div>
+                            `;
+                        }
                     } else if (step.type === 'manual_research') {
                         html += `<strong>Forventet output:</strong> <p>${step.output}</p>`;
                     }
@@ -286,6 +331,14 @@
                     html += `<h4>Næste Niveau</h4><ul>`;
                     data.next_level_questions.forEach(q => {
                         html += `<li>${q}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+
+                if (data.supplementary_modules && data.supplementary_modules.length > 0) {
+                    html += `<h4>Supplerende moduler at overveje</h4><ul class="supplementary-modules">`;
+                    data.supplementary_modules.forEach(mod => {
+                        html += `<li><strong>${mod.module}</strong>: ${mod.reason}</li>`;
                     });
                     html += `</ul>`;
                 }

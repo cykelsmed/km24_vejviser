@@ -156,6 +156,7 @@ modules:
     category: "Retssystem og Jura"
     official_description: "Nye retslister fra Danmarks Domstole publiceres af de enkelte retter."
     keywords: ["retsliste", "domstol", "retsmøde", "sag"]
+    requires_source_selection: true
 
   - module_name: "Sø- og Handelsretten"
     category: "Retssystem og Jura"
@@ -186,6 +187,7 @@ modules:
     category: "Myndigheder og Offentlig Sektor"
     official_description: "Dagsordener og referater fra kommuner og regioner."
     keywords: ["lokalpolitik", "dagsorden", "referat", "byråd", "kommunalbestyrelse"]
+    requires_source_selection: true
 
   - module_name: "Politi"
     category: "Myndigheder og Offentlig Sektor"

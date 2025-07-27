@@ -24,6 +24,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 import asyncio
 import json
+from km24_vejviser import advisor
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
@@ -210,21 +211,44 @@ async def get_anthropic_response(goal: str) -> dict:
 
 
 def complete_recipe(recipe: dict) -> dict:
-    """
-    Sikrer at den genererede opskrift er komplet og robust.
-
-    Denne funktion fungerer som et sikkerhedsnet. Hvis AI-modellen "glemmer" at
-    inkludere de pædagogiske felter 'strategic_note' eller 'recommended_notification',
-    tilføjer denne funktion dem med en fornuftig standardværdi.
-    Dette garanterer en konsistent og brugervenlig oplevelse i frontend.
-    """
+    import json as _json
+    print("\nDEBUG RAW RECIPE INPUT:", _json.dumps(recipe, indent=2, ensure_ascii=False))
     if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
-        for step in recipe["investigation_steps"]:
+        for idx, step in enumerate(recipe["investigation_steps"]):
+            module = step.get("module") or (step.get("details", {}).get("module"))
+            step_title = step.get("title", "")
+            search_string = step.get("details", {}).get("search_string") if step.get("details") else None
             if "details" in step and isinstance(step["details"], dict):
+                # Strategic note
                 if "strategic_note" not in step["details"]:
-                    step["details"]["strategic_note"] = "Ingen specifik strategisk note til dette trin."
+                    warning = advisor.get_warning(module) if module else None
+                    step["details"]["strategic_note"] = warning or "Ingen specifik strategisk note til dette trin."
+                # Recommended notification
                 if "recommended_notification" not in step["details"]:
-                    step["details"]["recommended_notification"] = "interval" # Default til interval
+                    notif = advisor.determine_notification_type(module) if module else "interval"
+                    step["details"]["recommended_notification"] = notif
+                # Power tip (altid evaluer og tilføj hvis relevant)
+                tip = advisor.get_power_tip(module, search_string)
+                print(f"DEBUG power_tip for step '{step_title}':", tip)
+                if tip:
+                    step["details"]["power_tip"] = tip
+                # Warning (eksplicit felt hvis ønsket)
+                warn = advisor.get_warning(module) if module else None
+                print(f"DEBUG warning for step '{step_title}':", warn)
+                if warn:
+                    step["details"]["warning"] = warn
+                # Geo advice (altid evaluer og tilføj i trin 1 hvis relevant)
+                if idx == 0:
+                    geo = advisor.get_geo_advice(step_title)
+                    print(f"DEBUG geo_advice for step '{step_title}':", geo)
+                    if geo:
+                        step["details"]["geo_advice"] = geo
+    # Supplementary modules (altid evaluer og tilføj hvis relevant)
+    suggestions = advisor.get_supplementary_modules(recipe.get("goal", ""))
+    print("DEBUG supplementary_modules:", suggestions)
+    if suggestions:
+        recipe["supplementary_modules"] = suggestions
+    print("\nDEBUG FINAL RECIPE OUTPUT:", _json.dumps(recipe, indent=2, ensure_ascii=False))
     return recipe
 
 # --- API Endpoints ---
