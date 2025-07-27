@@ -5,3 +5,5 @@ PyYAML
 anthropic
 Jinja2
 pydantic 
+pytest 
+slowapi 

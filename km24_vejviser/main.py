@@ -16,7 +16,7 @@ Arkitekturen er designet til at være robust:
 import yaml
 import os
 from fastapi import FastAPI, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 import anthropic
 from dotenv import load_dotenv
 from pathlib import Path
@@ -24,11 +24,24 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 import asyncio
 import json
-from km24_vejviser import advisor
+import advisor
+import logging
+from datetime import datetime
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from typing import Any
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
+
+# Konfigurer struktureret logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s',
+)
+logger = logging.getLogger("km24_vejviser")
 
 # --- Configure Anthropic API ---
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
@@ -46,10 +59,30 @@ app = FastAPI(
 )
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
+# Rate limiter setup
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # --- Data Models ---
 class RecipeRequest(BaseModel):
-    """Data model for indkommende anmodninger fra brugerfladen."""
-    goal: str
+    """Data model for indkommende anmodninger fra brugerfladen.
+
+    Eksempel:
+        {
+            "goal": "Undersøg store byggeprojekter i Aarhus og konkurser i byggebranchen"
+        }
+    """
+    goal: str = Field(
+        ..., min_length=10, max_length=1000, description="Journalistisk mål",
+        example="Undersøg store byggeprojekter i Aarhus og konkurser i byggebranchen"
+    )
+
+    @validator('goal')
+    def validate_goal(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Mål kan ikke være tomt eller kun whitespace')
+        return v.strip()
 
 # --- Helper Functions ---
 def load_knowledge_base() -> str:
@@ -190,29 +223,37 @@ async def get_anthropic_response(goal: str) -> dict:
             )
             # Få fat i tekst-indholdet fra responsen
             raw_json = response.content[0].text
+            logger.info(f"Anthropic API response received on attempt {attempt + 1}")
             return json.loads(raw_json)
 
         except anthropic.APIError as e:
-            print(f"Anthropic API error on attempt {attempt + 1}: {e}")
+            logger.error(f"Anthropic API error on attempt {attempt + 1}: {e}", exc_info=True)
             if attempt < retries - 1:
                 await asyncio.sleep(delay)
                 delay *= 2
             else:
-                return {"error": f"Der opstod en fejl efter {retries} forsøg. Fejl: {e}"}
+                return {"error": f"Anthropic API fejl efter {retries} forsøg: {e}"}
         except json.JSONDecodeError as e:
-            print(f"JSON decode error on attempt {attempt + 1}: {e}")
-            print(f"Raw response was: {raw_json}")
+            logger.error(f"JSON decode error on attempt {attempt + 1}: {e}", exc_info=True)
+            logger.error(f"Raw response was: {locals().get('raw_json', '<no raw_json>')}")
             if attempt < retries - 1:
                 await asyncio.sleep(delay)
                 delay *= 2
             else:
-                return {"error": f"Kunne ikke parse JSON fra API'en. Svar: {raw_json}"}
-    return {"error": "Ukendt fejl."}
+                return {"error": f"Kunne ikke parse JSON fra API'en. Svar: {locals().get('raw_json', '<no raw_json>')}"}
+        except Exception as e:
+            logger.error(f"Uventet fejl i get_anthropic_response på attempt {attempt + 1}: {e}", exc_info=True)
+            if attempt < retries - 1:
+                await asyncio.sleep(delay)
+                delay *= 2
+            else:
+                return {"error": f"Uventet fejl efter {retries} forsøg: {e}"}
+    return {"error": "Ukendt fejl i get_anthropic_response."}
 
 
 def complete_recipe(recipe: dict) -> dict:
     import json as _json
-    print("\nDEBUG RAW RECIPE INPUT:", _json.dumps(recipe, indent=2, ensure_ascii=False))
+    logger.info("Modtog recipe til komplettering: %s", _json.dumps(recipe, ensure_ascii=False))
     if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
         for idx, step in enumerate(recipe["investigation_steps"]):
             module = step.get("module") or (step.get("details", {}).get("module"))
@@ -229,46 +270,71 @@ def complete_recipe(recipe: dict) -> dict:
                     step["details"]["recommended_notification"] = notif
                 # Power tip (altid evaluer og tilføj hvis relevant)
                 tip = advisor.get_power_tip(module, search_string)
-                print(f"DEBUG power_tip for step '{step_title}':", tip)
+                logger.debug(f"Power_tip for step '{step_title}': {tip}")
                 if tip:
                     step["details"]["power_tip"] = tip
                 # Warning (eksplicit felt hvis ønsket)
                 warn = advisor.get_warning(module) if module else None
-                print(f"DEBUG warning for step '{step_title}':", warn)
+                logger.debug(f"Warning for step '{step_title}': {warn}")
                 if warn:
                     step["details"]["warning"] = warn
                 # Geo advice (altid evaluer og tilføj i trin 1 hvis relevant)
                 if idx == 0:
                     geo = advisor.get_geo_advice(step_title)
-                    print(f"DEBUG geo_advice for step '{step_title}':", geo)
+                    logger.debug(f"Geo_advice for step '{step_title}': {geo}")
                     if geo:
                         step["details"]["geo_advice"] = geo
     # Supplementary modules (altid evaluer og tilføj hvis relevant)
     suggestions = advisor.get_supplementary_modules(recipe.get("goal", ""))
-    print("DEBUG supplementary_modules:", suggestions)
-    if suggestions:
-        recipe["supplementary_modules"] = suggestions
-    print("\nDEBUG FINAL RECIPE OUTPUT:", _json.dumps(recipe, indent=2, ensure_ascii=False))
+    logger.debug(f"Supplementary_modules: {suggestions}")
+    recipe["supplementary_modules"] = suggestions
+    logger.info("Returnerer kompletteret recipe")
     return recipe
 
 # --- API Endpoints ---
-@app.post("/generate-recipe/")
-async def generate_recipe_api(request: RecipeRequest):
-    """
-    API-endepunkt der orkestrerer genereringen af en opskrift.
-
-    1. Modtager en POST-anmodning med et journalistisk mål.
-    2. Kalder `get_anthropic_response` for at få et JSON-svar fra Claude.
-    3. Validerer og kompletterer svaret med `complete_recipe`.
-    4. Returnerer det endelige, komplette JSON-objekt til frontend.
-    """
-    raw_recipe = await get_anthropic_response(request.goal)
+@app.post(
+    "/generate-recipe/",
+    response_model=Any,
+    responses={
+        200: {"description": "Struktureret JSON-plan for journalistisk mål."},
+        422: {"description": "Ugyldig input."},
+        429: {"description": "Rate limit exceeded."},
+        500: {"description": "Intern serverfejl."}
+    },
+    summary="Generér strategisk opskrift for journalistisk mål",
+    description="Modtag et journalistisk mål og returnér en pædagogisk, struktureret JSON-plan."
+)
+@limiter.limit("5/minute")
+async def generate_recipe_api(request: Request, body: RecipeRequest):
+    logger.info(f"Modtog generate-recipe request: {body}")
+    # Ekstra defensiv sanitering
+    goal = body.goal
+    if not isinstance(goal, str):
+        logger.warning("goal er ikke en streng")
+        return JSONResponse(status_code=422, content={"error": "goal skal være en streng"})
+    goal = goal.strip()
+    if not goal:
+        logger.warning("goal er tom efter strip")
+        return JSONResponse(status_code=422, content={"error": "goal må ikke være tom"})
+    raw_recipe = await get_anthropic_response(goal)
 
     if "error" in raw_recipe:
+        logger.warning(f"Fejl fra get_anthropic_response: {raw_recipe['error']}")
         return JSONResponse(status_code=500, content=raw_recipe)
 
     completed_recipe = complete_recipe(raw_recipe)
+    logger.info("Returnerer completed_recipe til frontend")
     return JSONResponse(content=completed_recipe)
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint til monitoring."""
+    logger.info("Health check endpoint kaldt")
+    return {
+        "status": "healthy",
+        "anthropic_configured": client is not None,
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 # --- Inspiration Prompts ---
 inspiration_prompts = [
@@ -290,15 +356,15 @@ inspiration_prompts = [
     }
 ]
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Uventet fejl: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Der opstod en intern serverfejl"}
+    )
+
 @app.get("/", response_class=HTMLResponse)
 async def read_item(request: Request):
-    """
-    Serverer web-brugerfladen (index.html).
-
-    Args:
-        request: FastAPI Request-objekt.
-
-    Returns:
-        En TemplateResponse, der renderer HTML-siden.
-    """
+    logger.info("Serverer index.html til bruger")
     return templates.TemplateResponse("index.html", {"request": request, "prompts": inspiration_prompts}) 
