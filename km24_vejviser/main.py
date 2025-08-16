@@ -187,6 +187,57 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
 Generér nu den komplette JSON-plan baseret på `USER_GOAL` og `KNOWLEDGE_BASE`.
 """
 
+def clean_json_response(raw_response: str) -> str:
+    """
+    Ekstrahér JSON-indhold fra et Claude-svar, selv hvis det er indlejret i
+    markdown-codefence (```json ... ```) eller har præfikstekst før/efter.
+
+    Args:
+        raw_response: Den rå tekst fra modellen
+
+    Returns:
+        En streng, der forventes at være valid JSON eller så tæt på som muligt
+        (mellem første '{' og sidste '}' hvis nødvendigt).
+    """
+    text = (raw_response or "").strip()
+
+    # 1) Forsøg at finde ```json ... ```-blok
+    if "```json" in text:
+        try:
+            start_marker = text.find("```json")
+            if start_marker != -1:
+                start = text.find("\n", start_marker)
+                if start != -1:
+                    start += 1
+                    end = text.find("```", start)
+                    if end != -1:
+                        return text[start:end].strip()
+        except Exception:
+            pass
+
+    # 2) Generisk ``` ... ```-blok
+    if text.count("```") >= 2:
+        try:
+            first = text.find("```")
+            if first != -1:
+                start = text.find("\n", first)
+                if start != -1:
+                    start += 1
+                    end = text.find("```", start)
+                    if end != -1:
+                        return text[start:end].strip()
+        except Exception:
+            pass
+
+    # 3) Fald tilbage: Tag substring mellem første '{' og sidste '}'
+    left = text.find("{")
+    right = text.rfind("}")
+    if left != -1 and right != -1 and right > left:
+        return text[left : right + 1]
+
+    # 4) Som sidste udvej, returnér original tekst
+    return text
+
 async def get_anthropic_response(goal: str) -> dict:
     """
     Kalder Anthropic API'en for at få en komplet JSON-plan.
@@ -222,9 +273,11 @@ async def get_anthropic_response(goal: str) -> dict:
                 ]
             )
             # Få fat i tekst-indholdet fra responsen
-            raw_json = response.content[0].text
+            raw_text = response.content[0].text
             logger.info(f"Anthropic API response received on attempt {attempt + 1}")
-            return json.loads(raw_json)
+
+            cleaned = clean_json_response(raw_text)
+            return json.loads(cleaned)
 
         except anthropic.APIError as e:
             logger.error(f"Anthropic API error on attempt {attempt + 1}: {e}", exc_info=True)
@@ -235,12 +288,12 @@ async def get_anthropic_response(goal: str) -> dict:
                 return {"error": f"Anthropic API fejl efter {retries} forsøg: {e}"}
         except json.JSONDecodeError as e:
             logger.error(f"JSON decode error on attempt {attempt + 1}: {e}", exc_info=True)
-            logger.error(f"Raw response was: {locals().get('raw_json', '<no raw_json>')}")
+            logger.error(f"Raw response was: {locals().get('raw_text', '<no raw_text>')}")
             if attempt < retries - 1:
                 await asyncio.sleep(delay)
                 delay *= 2
             else:
-                return {"error": f"Kunne ikke parse JSON fra API'en. Svar: {locals().get('raw_json', '<no raw_json>')}"}
+                return {"error": f"Kunne ikke parse JSON fra API'en. Svar: {locals().get('raw_text', '<no raw_text>')}"}
         except Exception as e:
             logger.error(f"Uventet fejl i get_anthropic_response på attempt {attempt + 1}: {e}", exc_info=True)
             if attempt < retries - 1:
