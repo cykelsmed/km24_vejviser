@@ -32,6 +32,10 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from typing import Any
 
+# KM24 API Integration
+from km24_client import get_km24_client, KM24APIResponse
+from module_validator import get_module_validator, ModuleMatch
+
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
@@ -304,43 +308,112 @@ async def get_anthropic_response(goal: str) -> dict:
     return {"error": "Ukendt fejl i get_anthropic_response."}
 
 
-def complete_recipe(recipe: dict) -> dict:
+async def complete_recipe(recipe: dict, goal: str = "") -> dict:
     import json as _json
     logger.info("Modtog recipe til komplettering: %s", _json.dumps(recipe, ensure_ascii=False))
+    
+    # Module validation with KM24 API
+    module_validator = get_module_validator()
+    recommended_modules = []
+    
     if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
         for idx, step in enumerate(recipe["investigation_steps"]):
             module = step.get("module") or (step.get("details", {}).get("module"))
+            if module:
+                recommended_modules.append(module)
+            
             step_title = step.get("title", "")
             search_string = step.get("details", {}).get("search_string") if step.get("details") else None
+            
             if "details" in step and isinstance(step["details"], dict):
                 # Strategic note
                 if "strategic_note" not in step["details"]:
                     warning = advisor.get_warning(module) if module else None
                     step["details"]["strategic_note"] = warning or "Ingen specifik strategisk note til dette trin."
+                
                 # Recommended notification
                 if "recommended_notification" not in step["details"]:
                     notif = advisor.determine_notification_type(module) if module else "interval"
                     step["details"]["recommended_notification"] = notif
+                
                 # Power tip (altid evaluer og tilføj hvis relevant)
                 tip = advisor.get_power_tip(module, search_string)
                 logger.debug(f"Power_tip for step '{step_title}': {tip}")
                 if tip:
                     step["details"]["power_tip"] = tip
+                
                 # Warning (eksplicit felt hvis ønsket)
                 warn = advisor.get_warning(module) if module else None
                 logger.debug(f"Warning for step '{step_title}': {warn}")
                 if warn:
                     step["details"]["warning"] = warn
+                
                 # Geo advice (altid evaluer og tilføj i trin 1 hvis relevant)
                 if idx == 0:
                     geo = advisor.get_geo_advice(step_title)
                     logger.debug(f"Geo_advice for step '{step_title}': {geo}")
                     if geo:
                         step["details"]["geo_advice"] = geo
+    
+    # Validate recommended modules against KM24 API
+    validation_warnings = []
+    module_suggestions = []
+    
+    try:
+        if recommended_modules:
+            validation_result = await module_validator.validate_recommended_modules(recommended_modules)
+            
+            # Add warnings for invalid modules
+            if validation_result.invalid_modules:
+                validation_warnings.append({
+                    "type": "invalid_modules",
+                    "message": f"Følgende moduler blev ikke fundet i KM24: {', '.join(validation_result.invalid_modules)}",
+                    "suggestions": [
+                        {
+                            "module": match.module_title,
+                            "reason": match.match_reason,
+                            "confidence": match.confidence
+                        }
+                        for match in validation_result.suggestions
+                    ]
+                })
+            
+            # Log validation results
+            logger.info(f"Module validation: {len(validation_result.valid_modules)}/{len(recommended_modules)} valid")
+        
+        # Get intelligent module suggestions for the goal
+        if goal:
+            suggested_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=3)
+            module_suggestions = [
+                {
+                    "module": match.module_title,
+                    "slug": match.module_slug,
+                    "reason": match.match_reason,
+                    "confidence": match.confidence,
+                    "description": match.description
+                }
+                for match in suggested_matches
+            ]
+    
+    except Exception as e:
+        logger.error(f"Error during module validation: {e}", exc_info=True)
+        validation_warnings.append({
+            "type": "validation_error",
+            "message": "Kunne ikke validere moduler mod KM24 API - fortsætter med statiske anbefalinger"
+        })
+    
+    # Add validation results to recipe
+    if validation_warnings:
+        recipe["validation_warnings"] = validation_warnings
+    
+    if module_suggestions:
+        recipe["km24_module_suggestions"] = module_suggestions
+    
     # Supplementary modules (altid evaluer og tilføj hvis relevant)
-    suggestions = advisor.get_supplementary_modules(recipe.get("goal", ""))
+    suggestions = advisor.get_supplementary_modules(recipe.get("goal", goal))
     logger.debug(f"Supplementary_modules: {suggestions}")
     recipe["supplementary_modules"] = suggestions
+    
     logger.info("Returnerer kompletteret recipe")
     return recipe
 
@@ -375,7 +448,7 @@ async def generate_recipe_api(request: Request, body: RecipeRequest):
         logger.warning(f"Fejl fra get_anthropic_response: {raw_recipe['error']}")
         return JSONResponse(status_code=500, content=raw_recipe)
 
-    completed_recipe = complete_recipe(raw_recipe)
+    completed_recipe = await complete_recipe(raw_recipe, goal)
     logger.info("Returnerer completed_recipe til frontend")
     return JSONResponse(content=completed_recipe)
 
@@ -383,11 +456,63 @@ async def generate_recipe_api(request: Request, body: RecipeRequest):
 async def health_check():
     """Health check endpoint til monitoring."""
     logger.info("Health check endpoint kaldt")
+    
+    # Get KM24 API health status
+    km24_client = get_km24_client()
+    km24_status = await km24_client.get_health_status()
+    
     return {
         "status": "healthy",
         "anthropic_configured": client is not None,
+        "km24_api_status": km24_status,
         "timestamp": datetime.utcnow().isoformat()
     }
+
+@app.get("/api/km24-status")
+async def km24_status():
+    """KM24 API connection status endpoint."""
+    logger.info("KM24 status endpoint kaldt")
+    km24_client = get_km24_client()
+    status = await km24_client.get_health_status()
+    return JSONResponse(content=status)
+
+@app.post("/api/km24-refresh-cache")
+async def refresh_km24_cache():
+    """Manuel opdatering af KM24 cache."""
+    logger.info("Manuel cache opdatering anmodet")
+    km24_client = get_km24_client()
+    
+    # Force refresh modules
+    result = await km24_client.get_modules_basic(force_refresh=True)
+    
+    if result.success:
+        return JSONResponse(content={
+            "success": True,
+            "message": "Cache opdateret succesfuldt",
+            "cached": result.cached,
+            "cache_age": result.cache_age
+        })
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "message": "Fejl ved cache opdatering",
+                "error": result.error
+            }
+        )
+
+@app.delete("/api/km24-clear-cache")
+async def clear_km24_cache():
+    """Ryd KM24 cache."""
+    logger.info("Cache rydning anmodet")
+    km24_client = get_km24_client()
+    result = await km24_client.clear_cache()
+    
+    if result["success"]:
+        return JSONResponse(content=result)
+    else:
+        return JSONResponse(status_code=500, content=result)
 
 # --- Inspiration Prompts ---
 inspiration_prompts = [

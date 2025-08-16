@@ -55,7 +55,7 @@ def test_generate_recipe_invalid_json():
 
 def test_internal_server_error(monkeypatch):
     # Simulerer exception i complete_recipe
-    def broken_complete_recipe(recipe):
+    async def broken_complete_recipe(recipe, goal=""):
         raise RuntimeError("Simuleret fejl")
     monkeypatch.setattr("main.complete_recipe", broken_complete_recipe)
     response = client.post("/generate-recipe/", json={"goal": "Dette er et langt testmål"})
@@ -63,7 +63,8 @@ def test_internal_server_error(monkeypatch):
     data = response.json()
     assert "error" in data
 
-def test_complete_recipe_adds_fields():
+@pytest.mark.asyncio
+async def test_complete_recipe_adds_fields():
     # Minimal input med investigation_steps og detaljer
     input_recipe = {
         "goal": "Test mål med mere end ti tegn",
@@ -79,7 +80,7 @@ def test_complete_recipe_adds_fields():
             }
         ]
     }
-    output = complete_recipe(input_recipe)
+    output = await complete_recipe(input_recipe)
     step = output["investigation_steps"][0]
     # Tjek at felter er tilføjet
     assert "strategic_note" in step["details"]

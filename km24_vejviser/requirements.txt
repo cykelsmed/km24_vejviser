@@ -6,4 +6,5 @@ anthropic
 Jinja2
 pydantic 
 pytest 
-slowapi 
+slowapi
+requests
