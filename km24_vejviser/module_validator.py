@@ -120,16 +120,35 @@ class ModuleValidator:
         title_lower = title.lower()
         slug_lower = slug.lower()
         
-        if similarity >= 0.9:
-            return "Næsten eksakt match"
+        # Kreative begrundelser baseret på modul type og funktionalitet
+        if "udbud" in query_lower and "udbud" in title_lower:
+            return "Relevant for at følge offentlige kontrakter og udbudsprocesser"
+        elif "konkurs" in query_lower and "status" in title_lower:
+            return "Relevant for at følge om firmaerne går konkurs eller skifter status"
+        elif "miljø" in query_lower and "miljø" in title_lower:
+            return "Relevant for at overvåge miljøsager og -godkendelser"
+        elif "politik" in query_lower and "lokalpolitik" in title_lower:
+            return "Relevant for at følge kommunale beslutninger og politiske processer"
+        elif "medier" in query_lower and "medier" in title_lower:
+            return "Relevant for at overvåge medieomtale og nyhedsdækning"
+        elif "virksomhed" in query_lower and "registrering" in title_lower:
+            return "Relevant for at følge nye virksomhedsregistreringer"
+        elif "ejendom" in query_lower and "tinglysning" in title_lower:
+            return "Relevant for at overvåge ejendomshandler og tinglysninger"
+        elif "arbejde" in query_lower and "arbejdstilsyn" in title_lower:
+            return "Relevant for at følge arbejdsmiljøkontrol og kritik"
+        elif "finans" in query_lower and "finanstilsynet" in title_lower:
+            return "Relevant for at overvåge finansiel regulering og tilsyn"
+        elif similarity >= 0.9:
+            return "Næsten eksakt match med modulnavn"
         elif similarity >= 0.7:
-            return "Høj lighed med modulnavn"
+            return "Høj lighed med modulnavn og funktionalitet"
         elif query_lower in title_lower or query_lower in slug_lower:
-            return "Modulnavn indeholder søgeterm"
+            return f"Modulnavn indeholder søgeterm '{query}'"
         elif title_lower in query_lower or slug_lower in query_lower:
-            return "Søgeterm indeholder modulnavn"
+            return f"Søgeterm indeholder modulnavn '{title}'"
         else:
-            return "Delvis lighed med modulnavn"
+            return "Delvis lighed med modulnavn og potentielt relevant funktionalitet"
     
     async def validate_recommended_modules(self, modules: List[str]) -> ValidationResult:
         """Valider en liste af foreslåede moduler."""
@@ -191,6 +210,70 @@ class ModuleValidator:
         # Returnér top matches
         sorted_matches = sorted(unique_matches.values(), key=lambda x: x.confidence, reverse=True)
         return sorted_matches[:limit]
+    
+    def get_search_examples_for_module(self, module_title: str) -> List[str]:
+        """Få eksempel-søgestrenge for et specifikt modul."""
+        module_lower = module_title.lower()
+        
+        # Modulspecifikke søge-eksempler
+        search_examples = {
+            "udbud": [
+                "vinder OR tildelt OR valgt",
+                "kontraktværdi > 1000000",
+                "offentlig OR kommunal OR statlig"
+            ],
+            "miljøsager": [
+                "forurening OR miljøskade",
+                "godkendelse OR tilladelse",
+                "kritik OR påbud"
+            ],
+            "registrering": [
+                "ny OR oprettet OR registreret",
+                "branchekode: 47.11.10",
+                "~holding~ OR ~capital~"
+            ],
+            "status": [
+                "konkurs OR opløst",
+                "statusændring OR ophør",
+                "tvangsopløsning OR likvidation"
+            ],
+            "tinglysning": [
+                "ejendomshandel OR salg",
+                "beløb > 5000000",
+                "~landbrugsejendom~ OR ~gård~"
+            ],
+            "lokalpolitik": [
+                "byrådsbeslutning OR kommunal",
+                "politisk OR beslutning",
+                "udvikling OR planlægning"
+            ],
+            "arbejdstilsyn": [
+                "kritik OR påbud",
+                "arbejdsmiljø OR sikkerhed",
+                "overtrædelse OR bøde"
+            ],
+            "finanstilsynet": [
+                "advarsel OR påbud",
+                "finansiel OR økonomisk",
+                "tilsyn OR kontrol"
+            ]
+        }
+        
+        # Find relevante eksempler
+        examples = []
+        for key, value in search_examples.items():
+            if key in module_lower:
+                examples.extend(value)
+        
+        # Generiske eksempler hvis ingen specifikke fundet
+        if not examples:
+            examples = [
+                "relevant OR vigtig OR central",
+                "~søgeterm~ OR ~nøgleord~",
+                "AND (kritisk OR problem)"
+            ]
+        
+        return examples[:5]  # Returnér max 5 eksempler
     
     def _extract_keywords_from_goal(self, goal: str) -> List[str]:
         """Ekstraher relevante nøgleord fra et journalistisk mål."""

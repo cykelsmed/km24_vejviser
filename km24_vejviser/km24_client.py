@@ -161,6 +161,22 @@ class KM24APIClient:
         """Hent detaljer for et specifikt modul."""
         return await self._make_request(f"/api/modules/{module_slug}", force_refresh)
     
+    async def get_branch_codes(self, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent branchekode-lister med beskrivelser."""
+        return await self._make_request("/api/branch-codes", force_refresh)
+    
+    async def get_filter_options(self, module_slug: str, filter_type: str, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent filtreringsmuligheder for et specifikt modul og filter type."""
+        return await self._make_request(f"/api/modules/{module_slug}/filters/{filter_type}", force_refresh)
+    
+    async def get_media_sources(self, media_type: str = "danish", force_refresh: bool = False) -> KM24APIResponse:
+        """Hent lister over mediekilder (Landsdækkende, Lokale, etc.)."""
+        return await self._make_request(f"/api/media-sources/{media_type}", force_refresh)
+    
+    async def get_search_examples(self, module_slug: str, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent eksempel-søgestrenge for et specifikt modul."""
+        return await self._make_request(f"/api/modules/{module_slug}/search-examples", force_refresh)
+    
     async def get_health_status(self) -> Dict[str, Any]:
         """Tjek KM24 API status."""
         if not self.api_key:

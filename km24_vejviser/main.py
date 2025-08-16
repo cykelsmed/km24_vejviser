@@ -162,6 +162,14 @@ async def get_anthropic_response(goal: str) -> dict:
 Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
 Din opgave er at omdanne et komplekst journalistisk mål til en **pædagogisk og struktureret efterforskningsplan i JSON-format**, der lærer brugeren at mestre KM24-platformens avancerede funktioner.
 
+**KREATIV OG NYSGERRIK TILGANG:**
+Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skjulte sammenhænge, potentielle misbrug eller nye dagsordener**. Din rolle er ikke kun at give struktureret vejledning, men også at:
+- **Identificere uventede vinkler** og potentielle historier der kan afdækkes
+- **Foreslå kreative kombinationer** af moduler og filtre
+- **Stille provokerende spørgsmål** der udfordrer brugerens oprindelige mål
+- **Afdække systemiske mønstre** og strukturelle problemer
+- **Inspirere til dybere undersøgelser** med "ud af boksen"-tilgang
+
 **2. KERNEREGLER (AFGØRENDE)**
 - **TOP-REGLER:**
     1.  **HVIS-SÅ-REGEL FOR '+1'-TRICKET:** Dette er din mest specifikke regel. **HVIS** en brugerforespørgsel kræver to eller flere separate overvågninger, der bruger **forskellige typer af for-filtrering** (f.eks. én overvågning filtreret på geografi og en anden filtreret på branchekode), **SÅ SKAL** du dedikere et specifikt trin i din plan til at forklare og anbefale **"+1"-tricket** som den optimale løsning for at holde disse overvågninger adskilt og rene.
@@ -232,6 +240,14 @@ Din opgave er at omdanne et komplekst journalistisk mål til en **pædagogisk og
 - **Systematisk tilgang**: CVR → Aktivitet → Kontekst
 - **Fejlhåndtering**: Advær om stavemåder og fejlkilder
 
+**7. KREATIV MODULANVENDELSE:**
+Du skal **overveje, hvordan tilsyneladende urelaterede moduler kan kaste nyt lys over et emne** og om der kan **krydsrefereres data fra meget forskellige kilder for at afdække mønstre, der ellers ville være skjulte**. Eksempler:
+- **Kombiner Miljøsager med Tinglysning** for at afdække miljøkriminelle ejendomshandler
+- **Krydsreference Arbejdstilsyn med Registrering** for at finde virksomheder der opretter nye selskaber efter kritik
+- **Sammenlign Udbud med Status** for at identificere virksomheder der vinder kontrakter men går konkurs
+- **Kombiner Personbogen med Lokalpolitik** for at afdække politiske interesser i ejendomshandler
+- **Krydsreference Børsmeddelelser med Finanstilsynet** for at finde mønstre i finansielle sager
+
 **4. OUTPUT-STRUKTUR (JSON-SKEMA)**
 Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatoriske** advarsler og anbefalinger.
 
@@ -239,6 +255,7 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
 {{
   "title": "Kort og fængende titel for efterforskningen",
   "strategy_summary": "En kort opsummering af den overordnede strategi, der fremhæver brugen af CVR først-princippet, branchekode-filtrering og systematisk tilgang.",
+  "creative_approach": "Beskrivelse af den kreative og 'ud af boksen'-tilgang til målet",
   "investigation_steps": [
     {{
       "step": 1,
@@ -251,7 +268,9 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
         "search_string": "slik OR candy OR konfekture OR chokolade",
         "explanation": "Vi kombinerer branchekode-filtrering med søgeord som finjustering. Branchekoden fanger alle relevante virksomheder, mens søgeordet hjælper med at identificere specifikke typer.",
         "recommended_notification": "løbende",
-        "hitlogik_note": "Brug 'OG' logik mellem branchekode og geografisk filter for præcision."
+        "hitlogik_note": "Brug 'OG' logik mellem branchekode og geografisk filter for præcision.",
+        "creative_insights": "Kreative observationer og uventede vinkler for dette trin",
+        "advanced_tactics": "Avancerede taktikker og kreative måder at kombinere filtre på"
       }}
     }},
     {{
@@ -286,6 +305,16 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
     "Hvordan kan vi identificere mønstre i åbning og lukning af virksomheder i specifikke brancher?",
     "Er der tegn på, at større kæder eller udenlandske aktører er ved at overtage markedet?",
     "Hvordan påvirker ændringer i lokalpolitik eller regulering virksomhedernes forretningsmodel?"
+  ],
+  "potential_story_angles": [
+    "Konkrete, dristige hypoteser og narrative rammer der kan testes med data",
+    "Worst-case scenarios og systemiske fejl der kan afdækkes",
+    "Uventede sammenhænge og mønstre der kan udforskes"
+  ],
+  "creative_cross_references": [
+    "Forslag til krydsreferering af data fra forskellige moduler",
+    "Kreative kombinationer af filtre og søgekriterier",
+    "Uventede vinkler og historier der kan afdækkes"
   ]
 }}
 ```
@@ -297,6 +326,13 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
 
 **6. UDFØRELSE**
 Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske principper som CVR først-princippet, branchekode-filtrering, hitlogik og systematisk tilgang.
+
+**VIGTIGT:** Husk at inkludere alle nye felter:
+- `creative_approach`: Beskriv den kreative tilgang til målet
+- `creative_insights`: Kreative observationer for hvert trin
+- `advanced_tactics`: Avancerede taktikker og kreative filtre
+- `potential_story_angles`: Dristige hypoteser og worst-case scenarios
+- `creative_cross_references`: Kreative krydsrefereringer mellem moduler
 """.format(user_goal=goal)
     retries = 3
     delay = 2
@@ -437,6 +473,24 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
     except Exception as e:
         logger.error(f"Error getting supplementary modules: {e}", exc_info=True)
         recipe["supplementary_modules"] = []
+    
+    # Add dynamic search examples and live data
+    try:
+        if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
+            for step in recipe["investigation_steps"]:
+                if "details" in step and isinstance(step["details"], dict):
+                    module = step.get("module")
+                    if module:
+                        # Add search examples for the module
+                        search_examples = module_validator.get_search_examples_for_module(module)
+                        if search_examples:
+                            step["details"]["search_examples"] = search_examples
+                        
+                        # Add live data indicators
+                        step["details"]["live_data_available"] = True
+                        step["details"]["data_source"] = "KM24 API"
+    except Exception as e:
+        logger.error(f"Error adding dynamic data: {e}", exc_info=True)
     
     logger.info("Returnerer kompletteret recipe")
     return recipe

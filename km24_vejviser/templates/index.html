@@ -257,6 +257,75 @@
             margin-bottom: 0.5rem;
         }
 
+        /* Styles for new creative sections */
+        .creative-approach {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .potential-story-angles {
+            background: #fff2e8;
+            border-left: 4px solid #fa541c;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+        }
+
+        .creative-cross-references {
+            background: #f0f5ff;
+            border-left: 4px solid #2f54eb;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+        }
+
+        .creative-insights {
+            background: #f6ffed;
+            border-left: 4px solid #52c41a;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            font-style: italic;
+        }
+
+        .advanced-tactics {
+            background: #fff7e6;
+            border-left: 4px solid #fa8c16;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+        }
+
+        .search-examples {
+            background: #f9f0ff;
+            border-left: 4px solid #722ed1;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+        }
+
+        .live-data-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #e6f7ff;
+            color: #1890ff;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .live-data-indicator::before {
+            content: "●";
+            color: #52c41a;
+            font-size: 1.2rem;
+        }
+
     </style>
 </head>
 <body>
@@ -267,7 +336,7 @@
         </header>
         <form id="recipe-form">
             <label for="goal">Beskriv dit journalistiske mål eller dækningsområde:</label>
-            <textarea id="goal" name="goal" rows="5" required placeholder="Jeg vil gerne undersøge, hvem der systematisk opkøber ejendomme i Skagen-området..."></textarea>
+            <textarea id="goal" name="goal" rows="5" required placeholder="Jeg vil gerne undersøge, hvem der systematisk opkøber ejendomme i Skagen-området... (minimum 10 tegn)"></textarea>
             
             {% if prompts %}
             <div class="inspiration-container">
@@ -289,13 +358,25 @@
     </main>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing script');
             const form = document.getElementById('recipe-form');
             const resultDiv = document.getElementById('result');
             const submitButton = form.querySelector('button');
+            console.log('Form found:', form);
+            console.log('Submit button found:', submitButton);
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                console.log('Form submitted');
                 const goal = document.getElementById('goal').value;
+                console.log('Goal:', goal);
+                
+                // Valider input længde
+                if (goal.length < 10) {
+                    resultDiv.innerHTML = `<p style="color: red;"><strong>Fejl:</strong> Dit mål skal være mindst 10 tegn langt. Du har skrevet ${goal.length} tegn.</p>`;
+                    return;
+                }
+                
                 submitButton.setAttribute('aria-busy', 'true');
                 submitButton.disabled = true;
                 resultDiv.innerHTML = '<div class="loading"><progress></progress></div>';
@@ -326,7 +407,10 @@
 
             document.querySelectorAll('.inspiration-prompt').forEach(button => {
                 button.addEventListener('click', () => {
-                    document.getElementById('goal').value = button.getAttribute('data-prompt');
+                    console.log('Inspiration prompt clicked');
+                    const prompt = button.getAttribute('data-prompt');
+                    console.log('Prompt:', prompt);
+                    document.getElementById('goal').value = prompt;
                 });
             });
 
@@ -383,6 +467,24 @@
                                     <div>${notificationText}</div>
                                 </div>`;
                         }
+                        
+                        // Add new creative sections
+                        if (step.details.creative_insights) {
+                            html += `<div class="creative-insights"><strong>💡 Kreativ Indsigt:</strong> ${step.details.creative_insights}</div>`;
+                        }
+                        
+                        if (step.details.advanced_tactics) {
+                            html += `<div class="advanced-tactics"><strong>🎯 Avancerede Taktikker:</strong> ${step.details.advanced_tactics}</div>`;
+                        }
+                        
+                        if (step.details.search_examples) {
+                            html += `<div class="search-examples"><strong>🔍 Søge-eksempler:</strong><ul>${step.details.search_examples.map(ex => `<li><code>${ex}</code></li>`).join('')}</ul></div>`;
+                        }
+                        
+                        if (step.details.live_data_available) {
+                            html += `<div class="live-data-indicator">${step.details.data_source || 'Live data tilgængelig'}</div>`;
+                        }
+                    }
                         if (step.details.geo_advice) {
                             html += `
                                 <div class="geo-advice">
@@ -452,6 +554,38 @@
                         html += `</li>`;
                     });
                     html += `</ul>`;
+                }
+
+                // NEW: Creative Approach
+                if (data.creative_approach) {
+                    html += `<div class="creative-approach">`;
+                    html += `<h4>🎨 Kreativ Tilgang</h4>`;
+                    html += `<p>${data.creative_approach}</p>`;
+                    html += `</div>`;
+                }
+
+                // NEW: Potential Story Angles
+                if (data.potential_story_angles && data.potential_story_angles.length > 0) {
+                    html += `<div class="potential-story-angles">`;
+                    html += `<h4>📰 Potentielle Historievinkler</h4>`;
+                    html += `<ul>`;
+                    data.potential_story_angles.forEach(angle => {
+                        html += `<li>${angle}</li>`;
+                    });
+                    html += `</ul>`;
+                    html += `</div>`;
+                }
+
+                // NEW: Creative Cross References
+                if (data.creative_cross_references && data.creative_cross_references.length > 0) {
+                    html += `<div class="creative-cross-references">`;
+                    html += `<h4>🔗 Kreative Krydsrefereringer</h4>`;
+                    html += `<ul>`;
+                    data.creative_cross_references.forEach(ref => {
+                        html += `<li>${ref}</li>`;
+                    });
+                    html += `</ul>`;
+                    html += `</div>`;
                 }
 
                 resultDiv.innerHTML = html;
