@@ -16,6 +16,11 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 import requests
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +37,7 @@ class KM24APIClient:
     """KM24 API client med intelligent caching og fejlhåndtering."""
     
     def __init__(self):
-        self.base_url = "https://api.km24.dk"
+        self.base_url = "https://km24.dk"  # External KM24 API server (base URL)
         self.api_key = os.getenv("KM24_API_KEY")
         self.cache_dir = Path(__file__).parent / "cache"
         self.cache_dir.mkdir(exist_ok=True)
@@ -117,7 +122,7 @@ class KM24APIClient:
         # Lav API request
         try:
             headers = {
-                'Authorization': f'Bearer {self.api_key}',
+                'X-API-Key': self.api_key,
                 'Content-Type': 'application/json'
             }
             

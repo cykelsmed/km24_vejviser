@@ -17,6 +17,83 @@
         #result h4, #result h5 {
             margin-top: 1.5em;
             margin-bottom: 0.5em;
+            color: #333;
+        }
+        #result p {
+            margin-bottom: 1em;
+            line-height: 1.6;
+        }
+        #result ul {
+            margin-bottom: 1em;
+            padding-left: 1.5em;
+        }
+        #result li {
+            margin-bottom: 0.5em;
+        }
+        .power-tip {
+            background: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+        .warning {
+            background: #fff2e8;
+            border-left: 4px solid #fa541c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+        .geo-advice {
+            background: #f6ffed;
+            border-left: 4px solid #52c41a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+
+        /* NEW: Styles for KM24 validation warnings */
+        .validation-warning {
+            background: #fff2e8;
+            border-left: 4px solid #fa541c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+        .validation-warning ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+        .validation-warning li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* NEW: Styles for KM24 module suggestions */
+        .km24-suggestions {
+            background: #f0f5ff;
+            border-left: 4px solid #1890ff;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+            list-style: none;
+        }
+        .km24-suggestions li {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #d9d9d9;
+        }
+        .km24-suggestions strong {
+            color: #1890ff;
+        }
+        .km24-suggestions em {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .km24-suggestions small {
+            color: #999;
+            font-size: 0.8rem;
         }
         #result {
             border: 1px solid var(--pico-muted-border-color);
@@ -339,6 +416,40 @@
                     html += `<h4>Supplerende moduler at overveje</h4><ul class="supplementary-modules">`;
                     data.supplementary_modules.forEach(mod => {
                         html += `<li><strong>${mod.module}</strong>: ${mod.reason}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+
+                // NEW: KM24 Module Validation Warnings
+                if (data.validation_warnings && data.validation_warnings.length > 0) {
+                    html += `<h4>⚠️ KM24 Modul Validering</h4>`;
+                    data.validation_warnings.forEach(warning => {
+                        html += `<div class="validation-warning">`;
+                        html += `<p><strong>${warning.message}</strong></p>`;
+                        if (warning.suggestions && warning.suggestions.length > 0) {
+                            html += `<p><strong>Forslag til alternative moduler:</strong></p><ul>`;
+                            warning.suggestions.forEach(suggestion => {
+                                html += `<li><strong>${suggestion.module}</strong> (${Math.round(suggestion.confidence * 100)}% match): ${suggestion.reason}</li>`;
+                            });
+                            html += `</ul>`;
+                        }
+                        html += `</div>`;
+                    });
+                }
+
+                // NEW: KM24 Module Suggestions
+                if (data.km24_module_suggestions && data.km24_module_suggestions.length > 0) {
+                    html += `<h4>🔍 KM24 Modul Forslag</h4>`;
+                    html += `<p>Baseret på dit mål foreslår vi følgende KM24 moduler:</p>`;
+                    html += `<ul class="km24-suggestions">`;
+                    data.km24_module_suggestions.forEach(suggestion => {
+                        html += `<li>`;
+                        html += `<strong>${suggestion.module}</strong> (${Math.round(suggestion.confidence * 100)}% relevans)`;
+                        html += `<br><em>${suggestion.reason}</em>`;
+                        if (suggestion.description) {
+                            html += `<br><small>${suggestion.description}</small>`;
+                        }
+                        html += `</li>`;
                     });
                     html += `</ul>`;
                 }

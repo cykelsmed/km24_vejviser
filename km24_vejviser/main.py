@@ -13,7 +13,6 @@ Arkitekturen er designet til at være robust:
     pædagogiske felter altid er til stede.
 4.  Det endelige, komplette JSON-objekt sendes til frontend for rendering.
 """
-import yaml
 import os
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field, validator
@@ -24,7 +23,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 import asyncio
 import json
-import advisor
 import logging
 from datetime import datetime
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -59,7 +57,7 @@ else:
 app = FastAPI(
     title="KM24 Vejviser",
     description="En intelligent assistent til at skabe effektive overvågnings-opskrifter for KM24-platformen.",
-    version="1.0.0",
+    version="1.0.r",
 )
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
@@ -89,108 +87,6 @@ class RecipeRequest(BaseModel):
         return v.strip()
 
 # --- Helper Functions ---
-def load_knowledge_base() -> str:
-    """
-    Indlæser videnbasen fra den rensede YAML-fil.
-
-    Returns:
-        En streng med indholdet af videnbase-filen.
-    """
-    try:
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        file_path = os.path.join(dir_path, "km24_knowledge_base_clean.yaml")
-        with open(file_path, "r") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "Videnbase ikke fundet."
-
-knowledge_base_content = load_knowledge_base()
-
-# System prompt version 2.8: The final attempt with an explicit IF-THEN rule for the +1 trick.
-system_prompt = """
-[SYSTEM PROMPT V2.8 - FINAL ULTIMATUM]
-
-**1. ROLLE OG MÅL**
-Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
-Din opgave er at omdanne et komplekst journalistisk mål til en **pædagogisk og struktureret efterforskningsplan i JSON-format**, der lærer brugeren at mestre KM24-platformens avancerede funktioner.
-
-**2. KERNEREGLER (AFGØRENDE)**
-- **TOP-REGLER:**
-    1.  **HVIS-SÅ-REGEL FOR '+1'-TRICKET:** Dette er din mest specifikke regel. **HVIS** en brugerforespørgsel kræver to eller flere separate overvågninger, der bruger **forskellige typer af for-filtrering** (f.eks. én overvågning filtreret på geografi og en anden filtreret på branchekode), **SÅ SKAL** du dedikere et specifikt trin i din plan til at forklare og anbefale **"+1"-tricket** som den optimale løsning for at holde disse overvågninger adskilt og rene.
-    2.  **KRÆV NOTIFIKATIONS-ANBEFALING:** Din næstvigtigste regel. For **hvert** overvågningstrin (`search` eller `cvr_monitoring`) **SKAL** du inkludere feltet `recommended_notification` (`løbende` eller `interval`) og kort begrunde dit valg.
-    3.  **ADVAR OM KILDEVALG:** Hvis et modul har `requires_source_selection: true`, **SKAL** du tilføje en `strategic_note`, der advarer brugeren om, at de manuelt skal vælge kilder for at få resultater.
-- **AVANCEREDE TEKNIKKER:**
-    - **HITLOGIK:** Ved komplekse søgninger med flere kriterier, forklar brugeren om muligheden for at bruge `Hitlogik` (OG/ELLER) til at definere betingelserne for et hit.
-- **GRUNDLÆGGENDE REGLER:**
-    - **STRENGT VIDENSGRUNDLAG:** Baser alt på `KNOWLEDGE_BASE`. Ingen hallucination.
-    - **ALTID JSON:** Returner kun et validt, komplet JSON-objekt.
-    - **ANVEND AVANCERET SØGESYNTAKS:** Brug `~frase~`, `~ord`, og `;` korrekt og forklar hvorfor.
-    - **GEOGRAFISK PRÆCISION:** Omsæt regioner til specifikke kommuner.
-    - **MODULNAVNE:** Brug altid de eksakte modulnavne.
-
-**3. OUTPUT-STRUKTUR (JSON-SKEMA)**
-Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatoriske** advarsler og anbefalinger.
-
-```json
-{{
-  "title": "Kort og fængende titel for efterforskningen",
-  "strategy_summary": "En kort opsummering af den overordnede strategi, der fremhæver brugen af præcis kilde-målretning og søgesyntaks.",
-  "investigation_steps": [
-    {{
-      "step": 1,
-      "title": "Power-User Teknik: Opdel Overvågning med '+1'-Tricket",
-      "type": "manual_research",
-      "rationale": "Dit mål kræver to separate overvågninger med forskellige filtre (én geografisk, én på branchekode). For at undgå at disse filtre konflikter, er den bedste løsning at oprette en separat brugerprofil til hver overvågning.",
-      "output": "Opret to nye bruger-profiler: 'dit.navn+byggeri@firma.dk' til byggetilladelser og 'dit.navn+konkurs@firma.dk' til konkurser. Alle notifikationer vil stadig lande i din normale indbakke. Brug de følgende trin for hver profil."
-    }},
-    {{
-      "step": 2,
-      "title": "Overvågning af Byggetilladelser i Aarhus (>10 mio.)",
-      "type": "search",
-      "module": "Lokalpolitik",
-      "rationale": "På din '+byggeri'-profil: Opsæt en overvågning for store byggetilladelser. Da det er et web-modul, skal kilden vælges manuelt.",
-      "details": {{
-        "strategic_note": "ADVARSEL: På din '+byggeri' profil skal du manuelt udvælge 'Aarhus Kommune' som kilde i modulet for at få resultater.",
-        "search_string": "byggetilladelse AND (>10.000.000 OR >10mio)",
-        "explanation": "Vi kombinerer søgeordet med en søgning på beløb. Brug Hitlogik (OG) for at sikre, at begge betingelser er opfyldt.",
-        "recommended_notification": "interval"
-      }}
-    }},
-     {{
-      "step": 3,
-      "title": "Overvågning af Konkurser i Byggebranchen",
-      "type": "search",
-      "module": "Status",
-      "rationale": "På din '+konkurs'-profil: Opsæt en landsdækkende overvågning af konkurser i byggebranchen ved at for-filtrere på branchekoder.",
-      "details": {{
-        "strategic_note": "På din '+konkurs' profil skal du bruge KM24's filter til at vælge de relevante branchekoder for byggeri før du søger.",
-        "search_string": "~konkurs",
-        "explanation": "Positionel søgning (`~ord`) sikrer, at kun sager, hvor 'konkurs' er hovedemnet, fanges.",
-        "recommended_notification": "løbende"
-      }}
-    }}
-  ],
-  "next_level_questions": [
-    "Hvilke firmaer går igen i både store byggeprojekter og efterfølgende konkurser?",
-    "Er der specifikke under-brancher i byggeriet, der er overrepræsenteret i konkurser?"
-  ]
-}}
-```
-
-**4. KONTEKST**
-
-**KNOWLEDGE_BASE (YAML):**
-```yaml
-{knowledge_base_content}
-```
-
-**USER_GOAL:**
-"{user_goal}"
-
-**5. UDFØRELSE**
-Generér nu den komplette JSON-plan baseret på `USER_GOAL` og `KNOWLEDGE_BASE`.
-"""
-
 def clean_json_response(raw_response: str) -> str:
     """
     Ekstrahér JSON-indhold fra et Claude-svar, selv hvis det er indlejret i
@@ -259,10 +155,149 @@ async def get_anthropic_response(goal: str) -> dict:
     if not client:
         return {"error": "ANTHROPIC_API_KEY er ikke konfigureret."}
 
-    full_system_prompt = system_prompt.format(
-        knowledge_base_content=knowledge_base_content,
-        user_goal=goal
-    )
+    full_system_prompt = """
+[SYSTEM PROMPT V3.3 - COMPREHENSIVE KM24 EXPERTISE]
+
+**1. ROLLE OG MÅL**
+Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
+Din opgave er at omdanne et komplekst journalistisk mål til en **pædagogisk og struktureret efterforskningsplan i JSON-format**, der lærer brugeren at mestre KM24-platformens avancerede funktioner.
+
+**2. KERNEREGLER (AFGØRENDE)**
+- **TOP-REGLER:**
+    1.  **HVIS-SÅ-REGEL FOR '+1'-TRICKET:** Dette er din mest specifikke regel. **HVIS** en brugerforespørgsel kræver to eller flere separate overvågninger, der bruger **forskellige typer af for-filtrering** (f.eks. én overvågning filtreret på geografi og en anden filtreret på branchekode), **SÅ SKAL** du dedikere et specifikt trin i din plan til at forklare og anbefale **"+1"-tricket** som den optimale løsning for at holde disse overvågninger adskilt og rene.
+    2.  **KRÆV NOTIFIKATIONS-ANBEFALING:** Din næstvigtigste regel. For **hvert** overvågningstrin (`search` eller `cvr_monitoring`) **SKAL** du inkludere feltet `recommended_notification` (`løbende` eller `interval`) og kort begrunde dit valg.
+    3.  **ADVAR OM KILDEVALG:** Hvis et modul har `requires_source_selection: true`, **SKAL** du tilføje en `strategic_note`, der advarer brugeren om, at de manuelt skal vælge kilder for at få resultater.
+
+**3. JOURNALISTISKE PRINCIPLER OG STRATEGIER**
+
+**CVR FØRST-PRINCIP:**
+- **Start altid med CVR-data**: Brug Registrering og Status moduler først for at identificere virksomheder
+- **Branchekoder før søgeord**: Filtrer først på relevante branchekoder, derefter søgeord
+- **Systematisk tilgang**: Identificer virksomheder → Overvåg deres aktiviteter → Krydsreference med andre kilder
+
+**HITLOGIK OG AVANCEREDE FILTRERINGER:**
+- **Hitlogik**: Forklar "både og / enten eller" logik for hver overvågning
+- **Afgræns eller drukne**: Altid vælg kommuner/kilder for at undgå for mange hits
+- **Virksomhed først**: Virksomhedsovervågning overrider alle andre filtre
+- **Webkilder kræver kildevalg**: Centraladministrationen, Danske medier, EU, Forskning, Klima, Kommuner, Sundhed, Udenlandske medier, Webstedsovervågning
+
+**+1-TRICKET (DETALJERET):**
+- **Hvornår bruges**: Når du ikke kan lave forskellige regler i samme modul
+- **Hvordan**: Opret bruger med +1 efter brugernavn (f.eks. line.jensen+1@firma.dk)
+- **Praktiske eksempler**: Tinglysning: Landejendomme >10 mio. OG erhvervsejendomme >100 mio.
+
+**MODULSPECIFIKKE STRATEGIER:**
+- **Fødevaresmiley og Sø- og Handelsretten**: Sæt notifikationer til "Aldrig" for at fravælge
+- **99/100 kommuner**: Christiansø og "andet" kategorier inkluderet
+- **Fejlkilder**: CVR-nummer vs. tekstbaseret identificering - advær om stavemåder
+
+**NOTIFIKATIONSSTRATEGIER:**
+- **Løbende**: For tidskritiske overvågninger (få hits)
+- **Interval**: For mindre presserende overvågninger (mange hits)
+- **Aldrig**: For at fravælge specifikke moduler
+
+**AVANCERET SØGESYNTAKS:**
+- **`~frase~`**: Eksakt frasesøgning - fanger kun den præcise frase
+- **`~ord`**: Positionel søgning - ordet skal være centralt i teksten
+- **`term1;term2`**: Semikolon-separeret - fanger begge termer i ét modul
+- **`AND`, `OR`, `NOT`**: Booleske operatorer for komplekse søgninger
+- **`"eksakt frase"`**: Anførselstegn for præcis frasesøgning
+
+**MODUL UNDERKATEGORIER:**
+- **`company`**: Filtrer efter specifikke virksomheder (multi-select)
+- **`industry`**: Filtrer efter virksomhedsbranche (multi-select) - **BRUG DETTE FØRST**
+- **`municipality`**: Geografisk filtrering efter kommune (multi-select)
+- **`search_string`**: Tekstbaseret søgning (multi-select) - **BRUG DETTE SIDST**
+- **`hit_logic`**: Kontrol over notifikationer
+- **`amount_selection`**: Beløbsfiltrering (kontraktværdi, ejendomshandel, etc.)
+- **`generic_value`**: Modulspecifikke kategorier (multi-select)
+
+**VIGTIGE MODULER OG DERES FUNKTIONER:**
+- **Tinglysning**: Ejendomshandler, beløbsfiltrering mulig
+- **Status**: Virksomhedsstatusændringer, konkurser, etc.
+- **Registrering**: Nye virksomhedsregistreringer - **START HER**
+- **Lokalpolitik**: Kommunale beslutninger, kræver kildevalg
+- **Udbud**: Offentlige udbud, kontraktværdi filtrering
+- **Miljøsager**: Miljøgodkendelser og -sager
+- **Personbogen**: Pant i løsøre, årets høst, relevant for landbrug
+- **Danske medier**: Lokale og landsdækkende medier
+- **Udenlandske medier**: Internationale medier og EU-kilder
+
+**STRATEGISKE PRINCIPLER:**
+- **Geografisk præcision**: Omsæt regioner til specifikke kommuner
+- **Branchefiltrering**: Brug branchekoder for præcis målretning - **KRITISK**
+- **Beløbsgrænser**: Sæt relevante beløbsgrænser for at fokusere på større sager
+- **Kildevalg**: Advær om nødvendighed af manuelt kildevalg
+- **Hitlogik**: Forklar brugen af OG/ELLER for komplekse søgninger
+- **Systematisk tilgang**: CVR → Aktivitet → Kontekst
+- **Fejlhåndtering**: Advær om stavemåder og fejlkilder
+
+**4. OUTPUT-STRUKTUR (JSON-SKEMA)**
+Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatoriske** advarsler og anbefalinger.
+
+```json
+{{
+  "title": "Kort og fængende titel for efterforskningen",
+  "strategy_summary": "En kort opsummering af den overordnede strategi, der fremhæver brugen af CVR først-princippet, branchekode-filtrering og systematisk tilgang.",
+  "investigation_steps": [
+    {{
+      "step": 1,
+      "title": "CVR Først: Identificér Relevante Virksomheder",
+      "type": "search",
+      "module": "Registrering",
+      "rationale": "Start med at identificere alle relevante virksomheder ved hjælp af branchekode-filtrering. Dette giver os et solidt grundlag for videre overvågning.",
+      "details": {{
+        "strategic_note": "Brug branchekode 47.11.10 (Slik og konfekture) som primært filter. Dette sikrer, at vi fanger alle relevante virksomheder uanset deres navn.",
+        "search_string": "slik OR candy OR konfekture OR chokolade",
+        "explanation": "Vi kombinerer branchekode-filtrering med søgeord som finjustering. Branchekoden fanger alle relevante virksomheder, mens søgeordet hjælper med at identificere specifikke typer.",
+        "recommended_notification": "løbende",
+        "hitlogik_note": "Brug 'OG' logik mellem branchekode og geografisk filter for præcision."
+      }}
+    }},
+    {{
+      "step": 2,
+      "title": "Overvåg Virksomhedsstatusændringer",
+      "type": "search",
+      "module": "Status",
+      "rationale": "Hold øje med statusændringer for de identificerede virksomheder. Dette afdækker lukninger, flytninger og andre vigtige ændringer.",
+      "details": {{
+        "strategic_note": "Brug CVR-numre fra trin 1 som virksomhedsfilter. Dette sikrer præcis overvågning af de relevante virksomheder.",
+        "search_string": "",
+        "explanation": "Vi bruger kun virksomhedsfilter baseret på CVR-numre. Ingen søgeord nødvendige, da vi allerede har identificeret de relevante virksomheder.",
+        "recommended_notification": "løbende"
+      }}
+    }},
+    {{
+      "step": 3,
+      "title": "Krydsreference med Lokalpolitik",
+      "type": "search",
+      "module": "Lokalpolitik",
+      "rationale": "Søg efter lokalpolitiske beslutninger, der kan påvirke detailhandel og erhvervsliv i området.",
+      "details": {{
+        "strategic_note": "ADVARSEL: Du skal manuelt vælge relevante kommuner som kilder. Brug branchekode-filtrering for at fokusere på detailhandel.",
+        "search_string": "detailhandel AND (tilladelse OR regulering OR udvikling)",
+        "explanation": "Vi kombinerer branchekode-filtrering med søgeord for at fange politiske beslutninger, der specifikt påvirker detailhandel.",
+        "recommended_notification": "interval",
+        "hitlogik_note": "Brug 'OG' logik mellem søgeord og geografisk filter for præcision."
+      }}
+    }}
+  ],
+  "next_level_questions": [
+    "Hvordan kan vi identificere mønstre i åbning og lukning af virksomheder i specifikke brancher?",
+    "Er der tegn på, at større kæder eller udenlandske aktører er ved at overtage markedet?",
+    "Hvordan påvirker ændringer i lokalpolitik eller regulering virksomhedernes forretningsmodel?"
+  ]
+}}
+```
+
+**5. KONTEKST**
+
+**USER_GOAL:**
+"{user_goal}"
+
+**6. UDFØRELSE**
+Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske principper som CVR først-princippet, branchekode-filtrering, hitlogik og systematisk tilgang.
+""".format(user_goal=goal)
     retries = 3
     delay = 2
 
@@ -326,34 +361,13 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
             search_string = step.get("details", {}).get("search_string") if step.get("details") else None
             
             if "details" in step and isinstance(step["details"], dict):
-                # Strategic note
+                # Strategic note - only add if not already present
                 if "strategic_note" not in step["details"]:
-                    warning = advisor.get_warning(module) if module else None
-                    step["details"]["strategic_note"] = warning or "Ingen specifik strategisk note til dette trin."
+                    step["details"]["strategic_note"] = "Ingen specifik strategisk note til dette trin."
                 
-                # Recommended notification
+                # Recommended notification - only add if not already present
                 if "recommended_notification" not in step["details"]:
-                    notif = advisor.determine_notification_type(module) if module else "interval"
-                    step["details"]["recommended_notification"] = notif
-                
-                # Power tip (altid evaluer og tilføj hvis relevant)
-                tip = advisor.get_power_tip(module, search_string)
-                logger.debug(f"Power_tip for step '{step_title}': {tip}")
-                if tip:
-                    step["details"]["power_tip"] = tip
-                
-                # Warning (eksplicit felt hvis ønsket)
-                warn = advisor.get_warning(module) if module else None
-                logger.debug(f"Warning for step '{step_title}': {warn}")
-                if warn:
-                    step["details"]["warning"] = warn
-                
-                # Geo advice (altid evaluer og tilføj i trin 1 hvis relevant)
-                if idx == 0:
-                    geo = advisor.get_geo_advice(step_title)
-                    logger.debug(f"Geo_advice for step '{step_title}': {geo}")
-                    if geo:
-                        step["details"]["geo_advice"] = geo
+                    step["details"]["recommended_notification"] = "interval"
     
     # Validate recommended modules against KM24 API
     validation_warnings = []
@@ -409,10 +423,20 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
     if module_suggestions:
         recipe["km24_module_suggestions"] = module_suggestions
     
-    # Supplementary modules (altid evaluer og tilføj hvis relevant)
-    suggestions = advisor.get_supplementary_modules(recipe.get("goal", goal))
-    logger.debug(f"Supplementary_modules: {suggestions}")
-    recipe["supplementary_modules"] = suggestions
+    # Get supplementary modules from KM24 API
+    try:
+        if goal:
+            supplementary_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=5)
+            recipe["supplementary_modules"] = [
+                {
+                    "module": match.module_title,
+                    "reason": match.match_reason
+                }
+                for match in supplementary_matches[3:]  # Skip first 3 (already in main suggestions)
+            ]
+    except Exception as e:
+        logger.error(f"Error getting supplementary modules: {e}", exc_info=True)
+        recipe["supplementary_modules"] = []
     
     logger.info("Returnerer kompletteret recipe")
     return recipe

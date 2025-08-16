@@ -44,7 +44,7 @@ class ModuleValidator:
         try:
             result = await self.client.get_modules_basic()
             if result.success and result.data:
-                self._modules_cache = result.data.get('modules', [])
+                self._modules_cache = result.data.get('items', [])
                 self._module_titles = [mod.get('title', '') for mod in self._modules_cache]
                 self._module_slugs = [mod.get('slug', '') for mod in self._modules_cache]
                 logger.info(f"Indlæst {len(self._modules_cache)} moduler fra KM24 API")
