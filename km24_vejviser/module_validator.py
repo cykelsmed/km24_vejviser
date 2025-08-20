@@ -30,6 +30,34 @@ class ValidationResult:
     suggestions: List[ModuleMatch]
     total_checked: int
 
+@dataclass
+class EnhancedModuleCard:
+    """Udvidet modul-information med API metadata."""
+    title: str
+    slug: str
+    emoji: str
+    color: str
+    short_description: str
+    long_description: str
+    data_frequency: str
+    available_filters: List[Dict[str, Any]]
+    requires_source_selection: bool
+
+@dataclass
+class FilterRecommendation:
+    """Smart anbefalinger for filter-rækkefølge."""
+    optimal_sequence: List[str]
+    efficiency_tips: List[str]
+    complexity_warning: Optional[str]
+
+@dataclass
+class ComplexityAnalysis:
+    """Analyse af forventet kompleksitet og hit-mængde."""
+    estimated_hits: str
+    filter_efficiency: str
+    notification_recommendation: Dict[str, str]
+    optimization_suggestions: List[str]
+
 class ModuleValidator:
     """Validerer moduler mod KM24 API og giver intelligente forslag."""
     
@@ -291,6 +319,294 @@ class ModuleValidator:
         
         # Fjern duplikater og returnér
         return list(set(keywords))
+
+    async def get_enhanced_module_card(self, module_title: str) -> Optional[EnhancedModuleCard]:
+        """Få udvidet modul-information med alle API metadata."""
+        if not await self._load_modules():
+            return None
+        
+        for module in self._modules_cache:
+            if module.get('title') == module_title:
+                # Process filters with detailed info
+                available_filters = []
+                requires_source = False
+                
+                for part in module.get('parts', []):
+                    filter_info = {
+                        'type': part.get('part'),
+                        'name': part.get('name'),
+                        'info': part.get('info', ''),
+                        'multiple': part.get('canSelectMultiple', False),
+                        'order': part.get('order', 999),
+                        'practical_use': self._get_practical_filter_use(part.get('part'), part.get('name'))
+                    }
+                    available_filters.append(filter_info)
+                    
+                    # Check if web_source (requires manual selection)
+                    if part.get('part') == 'web_source':
+                        requires_source = True
+                
+                # Sort filters by order
+                available_filters.sort(key=lambda x: x['order'])
+                
+                # Extract data frequency from description
+                data_freq = self._extract_data_frequency(module.get('longDescription', ''))
+                
+                return EnhancedModuleCard(
+                    title=module.get('title', ''),
+                    slug=module.get('slug', ''),
+                    emoji=module.get('emoji', '📊'),
+                    color=f"#{module.get('colorHex', '666666')}",
+                    short_description=module.get('shortDescription', ''),
+                    long_description=module.get('longDescription', ''),
+                    data_frequency=data_freq,
+                    available_filters=available_filters,
+                    requires_source_selection=requires_source
+                )
+        
+        return None
+
+    def _get_practical_filter_use(self, filter_type: str, filter_name: str) -> str:
+        """Generer praktiske anvendelses-tips for filtre."""
+        tips = {
+            'industry': 'Brug specifikke branchekoder for præcision - fx 41.20.00 for byggeri',
+            'municipality': 'Vælg 1-3 kommuner for fokuseret overvågning',
+            'amount_selection': 'Sæt minimum-beløb for at fokusere på større sager',
+            'company': 'Brug CVR-numre fra andre moduler for præcis targeting',
+            'web_source': 'PÅKRÆVET: Vælg specifikke mediekilder manuelt',
+            'generic_value': f'Filtrer på specifikke {filter_name.lower()} kategorier',
+            'search_string': 'Brug som sidste filter efter branche/geografi',
+            'hit_logic': 'Vælg OG for præcision, ELLER for bredde'
+        }
+        return tips.get(filter_type, f'Konfigurer {filter_name} efter behov')
+
+    def _extract_data_frequency(self, description: str) -> str:
+        """Udtræk data-opdateringshyppighed fra beskrivelse."""
+        if 'dagligt' in description.lower():
+            return 'flere gange dagligt'
+        elif 'ugentlig' in description.lower():
+            return 'ugentligt'
+        elif 'månedlig' in description.lower():
+            return 'månedligt'
+        else:
+            return 'løbende opdatering'
+
+    async def get_filter_recommendations(self, module_title: str, goal: str = "") -> FilterRecommendation:
+        """Generer smarte anbefalinger for filter-rækkefølge."""
+        card = await self.get_enhanced_module_card(module_title)
+        if not card:
+            return FilterRecommendation([], [], "Modul ikke fundet")
+        
+        # Build optimal sequence based on filter order and type
+        sequence = []
+        tips = []
+        warning = None
+        
+        # Priority order: industry -> municipality -> amount -> company -> search
+        priority_map = {
+            'industry': 1,
+            'municipality': 2, 
+            'amount_selection': 3,
+            'company': 4,
+            'generic_value': 5,
+            'web_source': 6,
+            'search_string': 7,
+            'hit_logic': 8
+        }
+        
+        # Sort filters by priority
+        sorted_filters = sorted(card.available_filters, 
+                              key=lambda x: priority_map.get(x['type'], 9))
+        
+        for idx, filter_info in enumerate(sorted_filters):
+            if filter_info['type'] == 'hit_logic':
+                continue  # Skip hit_logic in sequence
+            
+            step = f"{idx + 1}. {filter_info['name']}"
+            if filter_info['type'] == 'industry':
+                step += " (742 tilgængelige branchekoder)"
+            elif filter_info['type'] == 'municipality':
+                step += " (98 kommuner + Christiansø)"
+            
+            sequence.append(step)
+            
+            # Add practical tips
+            if filter_info['multiple']:
+                tips.append(f"Multi-select mulig på {filter_info['name']}")
+            
+            if filter_info['info']:
+                tips.append(f"{filter_info['name']}: {filter_info['info'][:100]}...")
+        
+        # Add complexity warnings
+        if len([f for f in card.available_filters if f['type'] == 'web_source']) > 0:
+            warning = "PÅKRÆVET: Manuel kildevalg nødvendig for dette modul"
+        elif not any(f['type'] == 'industry' for f in card.available_filters):
+            warning = "Ingen branche-filtrering tilgængelig - kan give mange hits"
+        
+        return FilterRecommendation(sequence, tips, warning)
+
+    async def analyze_complexity(self, module_title: str, filters: Dict[str, Any]) -> ComplexityAnalysis:
+        """Analysér forventet kompleksitet baseret på filter-kombination."""
+        card = await self.get_enhanced_module_card(module_title)
+        if not card:
+            return ComplexityAnalysis("Ukendt", "Lav", {}, [])
+        
+        # Estimate hit volume based on filters
+        complexity_score = 0
+        optimizations = []
+        
+        # Check if industry filter is used
+        if 'industry' in filters and filters['industry']:
+            complexity_score -= 30  # Industry filter reduces hits significantly
+        else:
+            if any(f['type'] == 'industry' for f in card.available_filters):
+                optimizations.append("Tilføj branche-filter for færre og mere relevante hits")
+                complexity_score += 50
+        
+        # Check municipality filter
+        if 'municipality' in filters and filters['municipality']:
+            complexity_score -= 20
+        else:
+            if any(f['type'] == 'municipality' for f in card.available_filters):
+                optimizations.append("Begræns geografisk for mere fokuseret overvågning")
+                complexity_score += 30
+        
+        # Check amount filter
+        if any(f['type'] == 'amount_selection' for f in card.available_filters):
+            if 'amount' not in filters:
+                optimizations.append("Overvej beløbsgrænse for at fokusere på større sager")
+                complexity_score += 20
+        
+        # Determine estimated hits
+        if complexity_score > 60:
+            estimated = "Meget høj (>500/dag)"
+            notification = "interval"
+            reason = "For mange hits til løbende notifikationer"
+        elif complexity_score > 30:
+            estimated = "Høj (100-500/dag)" 
+            notification = "interval"
+            reason = "Mange hits - overvej interval-notifikationer"
+        elif complexity_score > 0:
+            estimated = "Medium (20-100/dag)"
+            notification = "løbende"
+            reason = "Håndterbart antal hits for løbende overvågning"
+        else:
+            estimated = "Lav (1-20/dag)"
+            notification = "løbende"
+            reason = "Få, relevante hits - perfekt til løbende notifikationer"
+        
+        # Filter efficiency
+        if complexity_score > 40:
+            efficiency = "Lav - tilføj flere filtre"
+        elif complexity_score > 20:
+            efficiency = "Medium - overvej yderligere filtrering"
+        else:
+            efficiency = "Høj - godt konfigureret"
+        
+        notification_rec = {
+            "type": notification,
+            "reason": reason,
+            "optimization": optimizations[0] if optimizations else "Konfiguration ser god ud"
+        }
+        
+        return ComplexityAnalysis(estimated, efficiency, notification_rec, optimizations)
+
+    async def get_module_availability_matrix(self) -> Dict[str, Any]:
+        """Generer matrix over tilgængelige funktioner på tværs af moduler."""
+        if not await self._load_modules():
+            return {}
+        
+        matrix = {
+            "total_modules": len(self._modules_cache),
+            "has_industry_filter": 0,
+            "has_municipality_filter": 0,
+            "has_company_filter": 0,
+            "has_amount_filter": 0,
+            "requires_source_selection": 0,
+            "modules_without_company_filter": [],
+            "modules_without_industry_filter": [],
+            "specialized_filters": {}
+        }
+        
+        for module in self._modules_cache:
+            title = module.get('title', '')
+            parts = {part.get('part') for part in module.get('parts', [])}
+            
+            if 'industry' in parts:
+                matrix["has_industry_filter"] += 1
+            else:
+                matrix["modules_without_industry_filter"].append(title)
+            
+            if 'municipality' in parts:
+                matrix["has_municipality_filter"] += 1
+            
+            if 'company' in parts:
+                matrix["has_company_filter"] += 1
+            else:
+                matrix["modules_without_company_filter"].append(title)
+            
+            if 'amount_selection' in parts:
+                matrix["has_amount_filter"] += 1
+            
+            if 'web_source' in parts:
+                matrix["requires_source_selection"] += 1
+            
+            # Track specialized filters
+            for part in module.get('parts', []):
+                if part.get('part') == 'generic_value':
+                    filter_name = part.get('name', 'Unknown')
+                    if filter_name not in matrix["specialized_filters"]:
+                        matrix["specialized_filters"][filter_name] = []
+                    matrix["specialized_filters"][filter_name].append(title)
+        
+        return matrix
+
+    async def get_cross_module_intelligence(self, modules: List[str]) -> List[Dict[str, Any]]:
+        """Generer intelligent vejledning til krydsmodulære workflows."""
+        if not await self._load_modules():
+            return []
+        
+        relationships = []
+        
+        # Define common workflows
+        workflows = [
+            {
+                "primary": "Registrering",
+                "connects_to": ["Status", "Tinglysning", "Arbejdstilsyn", "Børsmeddelelser"],
+                "workflow": "CVR-numre → Aktivitet → Kontekst",
+                "timing": "Start med Registrering for at få CVR-numre til andre moduler",
+                "rationale": "CVR-først princippet giver præcise virksomhedsfiltre"
+            },
+            {
+                "primary": "Udbud",
+                "connects_to": ["Status", "Arbejdstilsyn", "Miljøsager"],
+                "workflow": "Vundne kontrakter → Virksomhedsstatus → Problemer",
+                "timing": "Følg udbudsvindere gennem deres efterfølgende aktiviteter",
+                "rationale": "Afdæk om udbudsvindere efterfølgende får problemer eller går konkurs"
+            },
+            {
+                "primary": "Tinglysning",
+                "connects_to": ["Miljøsager", "Lokalpolitik", "Registrering"],
+                "workflow": "Ejendomshandler → Miljøgodkendelser → Politiske beslutninger",
+                "timing": "Store ejendomshandler kan indikere kommende udviklingsprojekter",
+                "rationale": "Følg pengestrømme fra ejendom til projekter til godkendelser"
+            }
+        ]
+        
+        # Filter workflows based on provided modules
+        for workflow in workflows:
+            if workflow["primary"] in modules:
+                relevant_connections = [mod for mod in workflow["connects_to"] if mod in modules]
+                if relevant_connections:
+                    relationships.append({
+                        "primary": workflow["primary"],
+                        "connects_to": relevant_connections,
+                        "workflow": workflow["workflow"],
+                        "timing": workflow["timing"],
+                        "rationale": workflow["rationale"]
+                    })
+        
+        return relationships
 
 # Global validator instance
 _module_validator: Optional[ModuleValidator] = None

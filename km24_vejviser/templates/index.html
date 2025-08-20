@@ -326,6 +326,167 @@
             font-size: 1.2rem;
         }
 
+        /* NEW: Enhanced Module Cards */
+        .enhanced-module-card {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid #d9d9d9;
+            position: relative;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .module-emoji {
+            font-size: 1.5rem;
+        }
+
+        .module-info {
+            flex: 1;
+        }
+
+        .module-title {
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .module-frequency {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0;
+        }
+
+        /* Filter Recommendations */
+        .filter-recommendations {
+            background: #f0f5ff;
+            border-left: 4px solid #1890ff;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+
+        .filter-sequence {
+            list-style: none;
+            padding: 0;
+        }
+
+        .filter-sequence li {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e6f7ff;
+        }
+
+        .filter-sequence li:last-child {
+            border-bottom: none;
+        }
+
+        /* Complexity Analysis */
+        .complexity-analysis {
+            background: #fff7e6;
+            border-left: 4px solid #fa8c16;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+
+        .complexity-score {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .efficiency-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .efficiency-high { background: #f6ffed; color: #52c41a; }
+        .efficiency-medium { background: #fff7e6; color: #fa8c16; }
+        .efficiency-low { background: #fff2e8; color: #fa541c; }
+
+        /* Search Optimization */
+        .search-optimization {
+            background: #f9f0ff;
+            border-left: 4px solid #722ed1;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+
+        .optimal-config {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Cross-Module Intelligence */
+        .cross-module-intelligence {
+            background: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+
+        .workflow-chain {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.75rem 0;
+            font-weight: bold;
+        }
+
+        .workflow-arrow {
+            color: #1890ff;
+            font-size: 1.2rem;
+        }
+
+        /* Module Availability Matrix */
+        .availability-matrix {
+            background: #f6ffed;
+            border-left: 4px solid #52c41a;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+
+        .matrix-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #52c41a;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
     </style>
 </head>
 <body>
@@ -394,6 +555,7 @@
                     }
                     
                     const jsonData = await response.json();
+                    console.log('JSON Data received:', jsonData);
                     renderJsonResponse(jsonData);
 
                 } catch (error) {
@@ -415,6 +577,7 @@
             });
 
             function renderJsonResponse(data) {
+                console.log('renderJsonResponse called with:', data);
                 let html = `<h4>${data.title}</h4>`;
                 html += `<p><strong>Strategi:</strong> ${data.strategy_summary}</p>`;
 
@@ -427,7 +590,22 @@
                             </div>
                             <div class="step-details">`;
                     
-                    if (step.module) {
+                    // Enhanced Module Card
+                    if (step.details && step.details.module_card) {
+                        const card = step.details.module_card;
+                        html += `
+                            <div class="enhanced-module-card" style="border-left-color: ${card.color};">
+                                <div class="module-header">
+                                    <span class="module-emoji">${card.emoji}</span>
+                                    <div class="module-info">
+                                        <h6 class="module-title">${step.module}</h6>
+                                        <p class="module-frequency">📊 ${card.data_frequency}</p>
+                                    </div>
+                                </div>
+                                <p class="module-description">${card.short_description}</p>
+                                ${card.requires_source_selection ? '<p><strong>⚠️ Kræver manuel kildevalg</strong></p>' : ''}
+                            </div>`;
+                    } else if (step.module) {
                         html += `<p><strong>Modul:</strong> <em>${step.module}</em></p>`;
                     }
                     
@@ -481,10 +659,67 @@
                             html += `<div class="search-examples"><strong>🔍 Søge-eksempler:</strong><ul>${step.details.search_examples.map(ex => `<li><code>${ex}</code></li>`).join('')}</ul></div>`;
                         }
                         
+                        // Filter Recommendations
+                        if (step.details.filter_recommendations) {
+                            const rec = step.details.filter_recommendations;
+                            html += `<div class="filter-recommendations">`;
+                            html += `<h6>🔧 Smart Filter-anbefaling</h6>`;
+                            if (rec.optimal_sequence && rec.optimal_sequence.length > 0) {
+                                html += `<p><strong>Optimal rækkefølge:</strong></p>`;
+                                html += `<ol class="filter-sequence">`;
+                                rec.optimal_sequence.forEach(seq => {
+                                    html += `<li>${seq}</li>`;
+                                });
+                                html += `</ol>`;
+                            }
+                            if (rec.complexity_warning) {
+                                html += `<p><strong>⚠️ Advarsel:</strong> ${rec.complexity_warning}</p>`;
+                            }
+                            if (rec.efficiency_tips && rec.efficiency_tips.length > 0) {
+                                html += `<p><strong>💡 Tips:</strong> ${rec.efficiency_tips.slice(0,2).join('. ')}</p>`;
+                            }
+                            html += `</div>`;
+                        }
+
+                        // Complexity Analysis
+                        if (step.details.complexity_analysis) {
+                            const comp = step.details.complexity_analysis;
+                            html += `<div class="complexity-analysis">`;
+                            html += `<h6>📊 Kompleksitets-analyse</h6>`;
+                            html += `<div class="complexity-score">`;
+                            html += `<span><strong>Forventede hits:</strong> ${comp.estimated_hits}</span>`;
+                            const efficiencyClass = comp.filter_efficiency.includes('Høj') ? 'efficiency-high' : 
+                                                  comp.filter_efficiency.includes('Medium') ? 'efficiency-medium' : 'efficiency-low';
+                            html += `<span class="efficiency-badge ${efficiencyClass}">${comp.filter_efficiency}</span>`;
+                            html += `</div>`;
+                            if (comp.notification_recommendation) {
+                                html += `<p><strong>Notifikation:</strong> ${comp.notification_recommendation.type} - ${comp.notification_recommendation.reason}</p>`;
+                            }
+                            if (comp.optimization_suggestions && comp.optimization_suggestions.length > 0) {
+                                html += `<p><strong>💡 Optimering:</strong> ${comp.optimization_suggestions[0]}</p>`;
+                            }
+                            html += `</div>`;
+                        }
+
+                        // Search Optimization
+                        if (step.details.search_optimization && step.details.search_optimization.optimal_config) {
+                            const opt = step.details.search_optimization;
+                            html += `<div class="search-optimization">`;
+                            html += `<h6>🎯 Optimal Konfiguration</h6>`;
+                            html += `<p>${opt.rationale}</p>`;
+                            html += `<div class="optimal-config">`;
+                            Object.entries(opt.optimal_config).forEach(([key, value]) => {
+                                const displayValue = Array.isArray(value) ? value.join(', ') : value;
+                                html += `<strong>${key}:</strong> ${displayValue}<br>`;
+                            });
+                            html += `</div>`;
+                            html += `</div>`;
+                        }
+
                         if (step.details.live_data_available) {
                             html += `<div class="live-data-indicator">${step.details.data_source || 'Live data tilgængelig'}</div>`;
                         }
-                    }
+                        
                         if (step.details.geo_advice) {
                             html += `
                                 <div class="geo-advice">
@@ -588,6 +823,67 @@
                     html += `</div>`;
                 }
 
+                // Cross-Module Intelligence
+                if (data.cross_module_intelligence && data.cross_module_intelligence.length > 0) {
+                    html += `<div class="cross-module-intelligence">`;
+                    html += `<h4>🔗 Smart Modul-workflows</h4>`;
+                    html += `<p>Disse moduler fungerer godt sammen i din undersøgelse:</p>`;
+                    data.cross_module_intelligence.forEach(rel => {
+                        html += `<div style="margin: 1rem 0; padding: 1rem; background: white; border-radius: 6px;">`;
+                        html += `<div class="workflow-chain">`;
+                        html += `<strong>${rel.primary}</strong>`;
+                        html += `<span class="workflow-arrow">→</span>`;
+                        html += `<strong>${rel.connects_to.join(' & ')}</strong>`;
+                        html += `</div>`;
+                        html += `<p><strong>Workflow:</strong> ${rel.workflow}</p>`;
+                        html += `<p><strong>Timing:</strong> ${rel.timing}</p>`;
+                        html += `<p><strong>Hvorfor:</strong> ${rel.rationale}</p>`;
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // Module Availability Matrix
+                if (data.module_availability_matrix) {
+                    const matrix = data.module_availability_matrix;
+                    html += `<div class="availability-matrix">`;
+                    html += `<h4>📊 KM24 Platform Oversigt</h4>`;
+                    html += `<p>Komplet oversigt over modulernes funktioner:</p>`;
+                    html += `<div class="matrix-stats">`;
+                    
+                    html += `<div class="stat-item">`;
+                    html += `<span class="stat-number">${matrix.total_modules}</span>`;
+                    html += `<div class="stat-label">Total moduler</div>`;
+                    html += `</div>`;
+                    
+                    html += `<div class="stat-item">`;
+                    html += `<span class="stat-number">${matrix.has_industry_filter}</span>`;
+                    html += `<div class="stat-label">Med branche-filter</div>`;
+                    html += `</div>`;
+                    
+                    html += `<div class="stat-item">`;
+                    html += `<span class="stat-number">${matrix.has_municipality_filter}</span>`;
+                    html += `<div class="stat-label">Med kommune-filter</div>`;
+                    html += `</div>`;
+                    
+                    html += `<div class="stat-item">`;
+                    html += `<span class="stat-number">${matrix.requires_source_selection}</span>`;
+                    html += `<div class="stat-label">Kræver kildevalg</div>`;
+                    html += `</div>`;
+                    
+                    html += `</div>`;
+                    
+                    if (matrix.modules_without_industry_filter && matrix.modules_without_industry_filter.length > 0) {
+                        html += `<details style="margin-top: 1rem;">`;
+                        html += `<summary>Moduler uden branche-filter (${matrix.modules_without_industry_filter.length})</summary>`;
+                        html += `<p style="margin-top: 0.5rem; font-size: 0.9rem;">${matrix.modules_without_industry_filter.join(', ')}</p>`;
+                        html += `</details>`;
+                    }
+                    
+                    html += `</div>`;
+                }
+
+                console.log('Setting innerHTML with html length:', html.length);
                 resultDiv.innerHTML = html;
                 addCopyFunctionality();
             }

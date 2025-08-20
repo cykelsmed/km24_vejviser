@@ -340,7 +340,7 @@ Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske pr
     for attempt in range(retries):
         try:
             response = await client.messages.create(
-                model="claude-3-5-sonnet-20240620",
+                model="claude-3-5-sonnet-20241022",
                 max_tokens=4096,
                 system=full_system_prompt,
                 messages=[
@@ -377,6 +377,71 @@ Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske pr
             else:
                 return {"error": f"Uventet fejl efter {retries} forsøg: {e}"}
     return {"error": "Ukendt fejl i get_anthropic_response."}
+
+async def generate_search_optimization(module_card, goal: str, step: dict) -> dict:
+    """Generer optimal søgekonfiguration baseret på modul og mål."""
+    try:
+        optimization = {
+            "for_module": module_card.title,
+            "your_goal": goal[:50] + "..." if len(goal) > 50 else goal,
+            "optimal_config": {},
+            "rationale": ""
+        }
+        
+        # Analyze goal for specific keywords
+        goal_lower = goal.lower()
+        
+        # Smart recommendations based on available filters and goal
+        config = {}
+        rationale_parts = []
+        
+        # Industry recommendations
+        industry_filters = [f for f in module_card.available_filters if f['type'] == 'industry']
+        if industry_filters:
+            if any(word in goal_lower for word in ['bygge', 'byggeri', 'construction']):
+                config["branche"] = ["41.20.00", "43.11.00"]
+                rationale_parts.append("Branchekoder for byggeri giver præcis targeting")
+            elif any(word in goal_lower for word in ['energi', 'strøm', 'elektricitet']):
+                config["branche"] = ["35.11.00", "35.12.00"]
+                rationale_parts.append("Energibranchekoder fokuserer på relevante selskaber")
+            elif any(word in goal_lower for word in ['transport', 'logistik', 'fragt']):
+                config["branche"] = ["49.41.00", "52.29.90"]
+                rationale_parts.append("Transport-branchekoder rammer målgruppen præcist")
+        
+        # Municipality recommendations
+        municipality_filters = [f for f in module_card.available_filters if f['type'] == 'municipality']
+        if municipality_filters:
+            # Extract municipality names from goal
+            dansk_kommuner = ['københavn', 'aarhus', 'odense', 'aalborg', 'esbjerg', 'randers', 'kolding']
+            found_municipalities = [kom for kom in dansk_kommuner if kom in goal_lower]
+            if found_municipalities:
+                config["kommune"] = found_municipalities
+                rationale_parts.append(f"Geografisk fokus på {', '.join(found_municipalities)}")
+        
+        # Amount recommendations
+        amount_filters = [f for f in module_card.available_filters if f['type'] == 'amount_selection']
+        if amount_filters:
+            if any(word in goal_lower for word in ['store', 'større', 'million', 'mio']):
+                config["amount_min"] = "10000000"
+                rationale_parts.append("Beløbsgrænse fokuserer på større sager")
+        
+        # Search string optimization
+        search_filters = [f for f in module_card.available_filters if f['type'] == 'search_string']
+        if search_filters and config:
+            config["search_terms"] = "empty"
+            rationale_parts.append("Filtre er mere præcise end fri tekstsøgning")
+        
+        if config:
+            optimization["optimal_config"] = config
+            optimization["rationale"] = ". ".join(rationale_parts)
+        else:
+            optimization["rationale"] = "Brug modulets standardkonfiguration"
+            
+        return optimization
+        
+    except Exception as e:
+        logger.error(f"Error in generate_search_optimization: {e}")
+        return {}
 
 
 async def complete_recipe(recipe: dict, goal: str = "") -> dict:
@@ -474,13 +539,64 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
         logger.error(f"Error getting supplementary modules: {e}", exc_info=True)
         recipe["supplementary_modules"] = []
     
-    # Add dynamic search examples and live data
+    # Add enhanced API-driven features
     try:
         if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
-            for step in recipe["investigation_steps"]:
+            enhanced_steps = []
+            all_modules = [step.get("module") for step in recipe["investigation_steps"] if step.get("module")]
+            
+            # Get cross-module intelligence
+            cross_module_relationships = await module_validator.get_cross_module_intelligence(all_modules)
+            
+            for idx, step in enumerate(recipe["investigation_steps"]):
                 if "details" in step and isinstance(step["details"], dict):
                     module = step.get("module")
                     if module:
+                        # 1. Enhanced Module Cards
+                        module_card = await module_validator.get_enhanced_module_card(module)
+                        if module_card:
+                            step["details"]["module_card"] = {
+                                "emoji": module_card.emoji,
+                                "color": module_card.color,
+                                "short_description": module_card.short_description,
+                                "data_frequency": module_card.data_frequency,
+                                "requires_source_selection": module_card.requires_source_selection
+                            }
+                            
+                            # Add detailed filter information
+                            step["details"]["available_filters"] = module_card.available_filters
+                        
+                        # 2. Smart Filter Recommendations
+                        filter_recommendations = await module_validator.get_filter_recommendations(module, goal)
+                        step["details"]["filter_recommendations"] = {
+                            "optimal_sequence": filter_recommendations.optimal_sequence,
+                            "efficiency_tips": filter_recommendations.efficiency_tips,
+                            "complexity_warning": filter_recommendations.complexity_warning
+                        }
+                        
+                        # 3. Real-time Complexity Analysis
+                        # Extract filters from step details (simulate user configuration)
+                        current_filters = {}
+                        if "branchekode" in step["details"].get("strategic_note", "").lower():
+                            current_filters["industry"] = True
+                        if "kommune" in step["details"].get("strategic_note", "").lower():
+                            current_filters["municipality"] = True
+                        
+                        complexity = await module_validator.analyze_complexity(module, current_filters)
+                        step["details"]["complexity_analysis"] = {
+                            "estimated_hits": complexity.estimated_hits,
+                            "filter_efficiency": complexity.filter_efficiency,
+                            "notification_recommendation": complexity.notification_recommendation,
+                            "optimization_suggestions": complexity.optimization_suggestions
+                        }
+                        
+                        # 5. Dynamic Search Optimization
+                        if module_card:
+                            # Generate optimal configuration based on goal and available filters
+                            optimal_config = await generate_search_optimization(module_card, goal, step)
+                            if optimal_config:
+                                step["details"]["search_optimization"] = optimal_config
+                        
                         # Add search examples for the module
                         search_examples = module_validator.get_search_examples_for_module(module)
                         if search_examples:
@@ -489,8 +605,20 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
                         # Add live data indicators
                         step["details"]["live_data_available"] = True
                         step["details"]["data_source"] = "KM24 API"
+                
+                enhanced_steps.append(step)
+            
+            # 4. Cross-Module Intelligence 
+            if cross_module_relationships:
+                recipe["cross_module_intelligence"] = cross_module_relationships
+                
+        # 6. Module Availability Matrix
+        availability_matrix = await module_validator.get_module_availability_matrix()
+        if availability_matrix:
+            recipe["module_availability_matrix"] = availability_matrix
+            
     except Exception as e:
-        logger.error(f"Error adding dynamic data: {e}", exc_info=True)
+        logger.error(f"Error adding enhanced API features: {e}", exc_info=True)
     
     logger.info("Returnerer kompletteret recipe")
     return recipe
