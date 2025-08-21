@@ -28,14 +28,14 @@ from datetime import datetime
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from typing import Any
+from typing import Any, List
 
 # KM24 API Integration
 from km24_client import get_km24_client, KM24APIResponse
 from module_validator import get_module_validator, ModuleMatch
 
 # Load environment variables from .env file
-env_path = Path(__file__).parent / '.env'
+env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
 # Konfigurer struktureret logging
@@ -155,8 +155,17 @@ async def get_anthropic_response(goal: str) -> dict:
     if not client:
         return {"error": "ANTHROPIC_API_KEY er ikke konfigureret."}
 
-    full_system_prompt = """
-[SYSTEM PROMPT V3.3 - COMPREHENSIVE KM24 EXPERTISE]
+    # Hent live KM24 data før LLM-kald
+    km24_client = get_km24_client()
+    module_validator = get_module_validator()
+    
+    # Byg dynamisk kontekst fra KM24 API
+    km24_context = await _build_km24_context(goal, km24_client, module_validator)
+
+    full_system_prompt = f"""
+[SYSTEM PROMPT V3.4 - LIVE KM24 INTEGRATION]
+
+{km24_context}
 
 **1. ROLLE OG MÅL**
 Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
@@ -205,11 +214,29 @@ Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skj
 - **Aldrig**: For at fravælge specifikke moduler
 
 **AVANCERET SØGESYNTAKS:**
+- **`"eksakt frase"`**: Anførselstegn for præcis frasesøgning
+- **`AND`, `OR`, `NOT`**: Booleske operatorer for komplekse søgninger (brug VERSALER)
+- **`-ord`**: Kortform for NOT - ekskluder ord (fx energi -olie -gas)
+- **`(gruppe)`**: Parenteser til gruppering af komplekse søgninger
+- **`*`**: Wildcard/trunkering for ordstammer (fx klima*)
 - **`~frase~`**: Eksakt frasesøgning - fanger kun den præcise frase
 - **`~ord`**: Positionel søgning - ordet skal være centralt i teksten
 - **`term1;term2`**: Semikolon-separeret - fanger begge termer i ét modul
-- **`AND`, `OR`, `NOT`**: Booleske operatorer for komplekse søgninger
-- **`"eksakt frase"`**: Anførselstegn for præcis frasesøgning
+
+**KM24 API SØGEFORMAT EKSEMPLER:**
+- **Eksakt frase:** `"Copenhagen Infrastructure Partners"`
+- **Booleske operatorer:** `(vind OR sol) AND energi`
+- **Ekskludering:** `"Energinet" -job -stillingsopslag`
+- **Gruppering:** `(udbud OR licitation) AND energi`
+- **Wildcard:** `klima*` (fanger klima, klimatilpasning, klimapolitik, etc.)
+- **Kompleks søgning:** `(Hellerup OR 2900) AND ejendom*`
+
+**SØGESTRATEGIER:**
+- **Start smalt:** Brug præcise termer og anførselstegn
+- **Udvid gradvist:** Tilføj OR og wildcards hvis du mangler træf
+- **Ekskluder støj:** Brug minus (-) for at fjerne irrelevante resultater
+- **Grupper logisk:** Brug parenteser for komplekse kombinationer
+- **Hold tidsfiltre i API:** Brug from/to parametre, ikke i søgestrengen
 
 **MODUL UNDERKATEGORIER:**
 - **`company`**: Filtrer efter specifikke virksomheder (multi-select)
@@ -322,7 +349,7 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
 **5. KONTEKST**
 
 **USER_GOAL:**
-"{user_goal}"
+"{goal}"
 
 **6. UDFØRELSE**
 Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske principper som CVR først-princippet, branchekode-filtrering, hitlogik og systematisk tilgang.
@@ -333,7 +360,7 @@ Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske pr
 - `advanced_tactics`: Avancerede taktikker og kreative filtre
 - `potential_story_angles`: Dristige hypoteser og worst-case scenarios
 - `creative_cross_references`: Kreative krydsrefereringer mellem moduler
-""".format(user_goal=goal)
+"""
     retries = 3
     delay = 2
 
@@ -379,12 +406,117 @@ Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske pr
     return {"error": "Ukendt fejl i get_anthropic_response."}
 
 
+async def _build_km24_context(goal: str, km24_client, module_validator) -> str:
+    """
+    Byg dynamisk kontekst fra KM24 API til system prompt.
+    
+    Args:
+        goal: Det journalistiske mål
+        km24_client: KM24 API client
+        module_validator: Module validator instance
+        
+    Returns:
+        Formateret kontekst-streng til system prompt
+    """
+    context_parts = []
+    
+    try:
+        # 1. Hent alle tilgængelige moduler
+        modules_result = await km24_client.get_modules_basic()
+        if modules_result.success and modules_result.data:
+            modules = modules_result.data.get('items', [])
+            total_modules = len(modules)
+            
+            context_parts.append(f"**AKTUELLE KM24 MODULER (Live Data - {total_modules} tilgængelige):**")
+            
+            # Kategoriser moduler for bedre overblik
+            categories = {
+                "Virksomhedsdata": [],
+                "Offentlige sager": [],
+                "Medier": [],
+                "Domstole": [],
+                "Miljø & Arbejdsmiljø": [],
+                "Finans": [],
+                "Andre": []
+            }
+            
+            for module in modules:
+                title = module.get('title', '').lower()
+                if any(word in title for word in ['registrering', 'status', 'cvr']):
+                    categories["Virksomhedsdata"].append(module)
+                elif any(word in title for word in ['udbud', 'lokalpolitik', 'kommune']):
+                    categories["Offentlige sager"].append(module)
+                elif any(word in title for word in ['medier', 'nyheder']):
+                    categories["Medier"].append(module)
+                elif any(word in title for word in ['domstol', 'ret']):
+                    categories["Domstole"].append(module)
+                elif any(word in title for word in ['miljø', 'arbejd', 'tilsyn']):
+                    categories["Miljø & Arbejdsmiljø"].append(module)
+                elif any(word in title for word in ['finans', 'økonomi']):
+                    categories["Finans"].append(module)
+                else:
+                    categories["Andre"].append(module)
+            
+            # Tilføj kategoriserede moduler til kontekst
+            for category, category_modules in categories.items():
+                if category_modules:
+                    context_parts.append(f"\n**{category}:**")
+                    for module in category_modules[:5]:  # Max 5 per kategori
+                        context_parts.append(f"- **{module.get('title', '')}**: {module.get('description', '')}")
+                    if len(category_modules) > 5:
+                        context_parts.append(f"- ... og {len(category_modules) - 5} flere")
+        
+        # 2. Få modul-forslag specifikt for målet
+        if goal:
+            suggested_modules = await module_validator.get_module_suggestions_for_goal(goal, limit=8)
+            if suggested_modules:
+                context_parts.append(f"\n\n**HØJEST RELEVANTE MODULER FOR DIT MÅL:**")
+                for match in suggested_modules:
+                    context_parts.append(f"- **{match.module_title}** (Confidence: {match.confidence:.1%}): {match.match_reason}")
+        
+        # 3. Hent relevante branchekoder
+        branch_codes_result = await km24_client.get_branch_codes()
+        if branch_codes_result.success and branch_codes_result.data:
+            keywords = module_validator._extract_keywords_from_goal(goal)
+            relevant_codes = []
+            
+            for keyword in keywords[:3]:  # Top 3 keywords
+                matching_codes = [
+                    code for code in branch_codes_result.data.get('codes', [])
+                    if keyword.lower() in code.get('description', '').lower()
+                ]
+                relevant_codes.extend(matching_codes[:2])  # Top 2 per keyword
+            
+            if relevant_codes:
+                context_parts.append(f"\n\n**RELEVANTE BRANCHEKODER FOR PRÆCIS MÅLRETNING:**")
+                for code in relevant_codes[:6]:  # Max 6 koder
+                    context_parts.append(f"- **{code.get('code', '')}**: {code.get('description', '')}")
+        
+        # 4. Tilføj kritiske instruktioner
+        context_parts.append("""
+        
+**KRITISKE INSTRUKTIONER FOR MODULANVENDELSE:**
+1. **Du SKAL overveje ALLE ovenstående moduler** når du planlægger din strategi
+2. **Ikke kun de åbenlyse moduler** - tænk kreativt om hvordan tilsyneladende urelaterede moduler kan kaste nyt lys over dit mål
+3. **Brug branchekoder først** for præcis målretning af virksomheder
+4. **Kombiner moduler kreativt** for at afdække skjulte sammenhænge
+5. **Overvej krydsreferering** mellem forskellige datakilder for at finde mønstre
+""")
+        
+    except Exception as e:
+        logger.error(f"Error building KM24 context: {e}", exc_info=True)
+        context_parts.append("\n**ADVARSEL:** Kunne ikke hente live KM24 data - bruger statiske anbefalinger")
+    
+    return "\n".join(context_parts)
+
+
 async def complete_recipe(recipe: dict, goal: str = "") -> dict:
     import json as _json
     logger.info("Modtog recipe til komplettering: %s", _json.dumps(recipe, ensure_ascii=False))
     
     # Module validation with KM24 API
     module_validator = get_module_validator()
+    km24_client = get_km24_client()
     recommended_modules = []
     
     if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
@@ -486,14 +618,222 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
                         if search_examples:
                             step["details"]["search_examples"] = search_examples
                         
+                        # Generate optimized search string if not present
+                        if not step["details"].get("search_string"):
+                            keywords = module_validator._extract_keywords_from_goal(goal)
+                            module_type = _get_module_type(module)
+                            optimized_search = module_validator.generate_optimized_search_string(keywords, module_type)
+                            if optimized_search:
+                                step["details"]["search_string"] = optimized_search
+                                step["details"]["search_string_optimized"] = True
+                        
+                        # Add search refinements
+                        current_search = step["details"].get("search_string", "")
+                        if current_search:
+                            refinements = module_validator.suggest_search_refinements(current_search, _get_module_type(module))
+                            if refinements:
+                                step["details"]["search_refinements"] = refinements
+                        
                         # Add live data indicators
                         step["details"]["live_data_available"] = True
                         step["details"]["data_source"] = "KM24 API"
     except Exception as e:
         logger.error(f"Error adding dynamic data: {e}", exc_info=True)
     
+    # Efter-berigelse: geo-råd, tinglysning-fritekst, supplement-rens
+    try:
+        if isinstance(recipe.get("investigation_steps"), list):
+            for step in recipe["investigation_steps"]:
+                if not isinstance(step, dict): continue
+                details = step.setdefault("details", {})
+                # Simpelt geo-råd ud fra mål/step-titel
+                low = (goal or step.get("title","")).lower()
+                if any(k in low for k in ["københavn","frederiksberg","vestjylland","aarhus","odense","aalborg","gentofte","sjælland","fyn","jylland"]):
+                    details.setdefault("geo_advice", "Vælg relevante kommuner/kilder for dit område.")
+                # Tinglysning: brug filtre, ikke fritekst
+                if step.get("module") == "Tinglysning":
+                    details["search_string"] = ""
+                    details.setdefault("recommended_notification", "løbende")
+        if isinstance(recipe.get("supplementary_modules"), list):
+            recipe["supplementary_modules"] = [m for m in recipe["supplementary_modules"] if m.get("module") != "Registrering"]
+    except Exception as e:
+        logger.warning(f"Efter-berigelse fejlede: {e}")
+    
+    # Tilføj modul-anvendelse statistikker og forbedringsforslag
+    try:
+        # Hent alle tilgængelige moduler for sammenligning
+        modules_result = await km24_client.get_modules_basic()
+        if modules_result.success and modules_result.data:
+            all_modules = [mod.get('title') for mod in modules_result.data.get('items', [])]
+            total_modules = len(all_modules)
+            used_modules = list(set(recommended_modules))  # Fjern duplikater
+            
+            # Beregn dækningsgrad
+            coverage_percentage = (len(used_modules) / total_modules * 100) if total_modules > 0 else 0
+            
+            # Find moduler der IKKE bruges men kunne være relevante
+            unused_modules = [mod for mod in all_modules if mod not in used_modules]
+            
+            # Få forslag til yderligere moduler baseret på målet
+            additional_suggestions = []
+            if goal:
+                additional_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=10)
+                additional_suggestions = [
+                    {
+                        "module": match.module_title,
+                        "reason": f"Kunne supplere din strategi: {match.match_reason}",
+                        "confidence": match.confidence,
+                        "description": match.description
+                    }
+                    for match in additional_matches
+                    if match.module_title not in used_modules
+                ][:5]  # Top 5 yderligere forslag
+            
+            # Tilføj modul-anvendelse feedback
+            recipe["km24_module_usage"] = {
+                "total_modules_available": total_modules,
+                "modules_used_in_plan": len(used_modules),
+                "coverage_percentage": f"{coverage_percentage:.1f}%",
+                "unused_modules_count": len(unused_modules),
+                "assessment": _get_coverage_assessment(coverage_percentage),
+                "suggestions": _get_usage_suggestions(coverage_percentage, len(used_modules)),
+                "additional_module_suggestions": additional_suggestions
+            }
+            
+            # Tilføj kreative modul-kombinationsforslag
+            if additional_suggestions:
+                recipe["creative_module_combinations"] = _generate_creative_combinations(
+                    used_modules, additional_suggestions, goal
+                )
+    
+    except Exception as e:
+        logger.error(f"Error adding module usage statistics: {e}", exc_info=True)
+        recipe["km24_module_usage"] = {
+            "error": "Kunne ikke beregne modul-anvendelse statistikker",
+            "suggestion": "Tjek KM24 API forbindelse"
+        }
+    
     logger.info("Returnerer kompletteret recipe")
     return recipe
+
+
+def _get_coverage_assessment(coverage_percentage: float) -> str:
+    """Vurder dækningsgraden af moduler i planen."""
+    if coverage_percentage >= 25:
+        return "Ekscellent - Du bruger mange forskellige moduler til en omfattende strategi"
+    elif coverage_percentage >= 15:
+        return "God - Du har en solid tilgang med flere relevante moduler"
+    elif coverage_percentage >= 8:
+        return "Acceptabel - Du dækker de vigtigste moduler, men overvej at udvide"
+    else:
+        return "Begrænset - Du bruger kun få moduler. Overvej at udvide din strategi"
+
+
+def _get_usage_suggestions(coverage_percentage: float, modules_used: int) -> List[str]:
+    """Generer forslag baseret på modul-anvendelse."""
+    suggestions = []
+    
+    if coverage_percentage < 10:
+        suggestions.extend([
+            "Overvej at tilføje flere moduler for en mere omfattende strategi",
+            "Kombiner virksomhedsdata med medieovervågning for fuld dækning",
+            "Tilføj lokalpolitiske eller miljømæssige aspekter til din undersøgelse"
+        ])
+    elif modules_used < 3:
+        suggestions.extend([
+            "Din strategi kunne styrkes med flere datakilder",
+            "Overvej at krydsreferere data fra forskellige moduler",
+            "Tilføj overvågning af relaterede områder for dybere indsigt"
+        ])
+    else:
+        suggestions.extend([
+            "God brug af flere moduler - overvej kreative kombinationer",
+            "Krydsreferer data mellem dine valgte moduler for mønstre",
+            "Din strategi dækker godt - fokuser nu på avancerede filtre"
+        ])
+    
+    return suggestions
+
+
+def _generate_creative_combinations(used_modules: List[str], additional_suggestions: List[dict], goal: str) -> List[dict]:
+    """Generer kreative forslag til modul-kombinationer."""
+    combinations = []
+    
+    # Kombiner brugte moduler med nye forslag
+    for used_module in used_modules[:3]:  # Top 3 brugte moduler
+        for suggestion in additional_suggestions[:3]:  # Top 3 forslag
+            combination_reason = _get_combination_reason(used_module, suggestion["module"], goal)
+            if combination_reason:
+                combinations.append({
+                    "primary_module": used_module,
+                    "secondary_module": suggestion["module"],
+                    "combination_reason": combination_reason,
+                    "potential_insight": f"Kombiner {used_module} med {suggestion['module']} for at {combination_reason.lower()}",
+                    "confidence": suggestion.get("confidence", 0.0)
+                })
+    
+    # Sortér efter confidence og returnér top 5
+    combinations.sort(key=lambda x: x.get("confidence", 0), reverse=True)
+    return combinations[:5]
+
+
+def _get_combination_reason(module1: str, module2: str, goal: str) -> str:
+    """Generer en begrundelse for hvorfor to moduler kan kombineres."""
+    goal_lower = goal.lower()
+    
+    # Virksomhedsdata kombinationer
+    if any(word in module1.lower() for word in ['registrering', 'status']) and \
+       any(word in module2.lower() for word in ['udbud', 'lokalpolitik']):
+        return "afdække virksomheder der vinder offentlige kontrakter"
+    
+    if any(word in module1.lower() for word in ['registrering', 'status']) and \
+       any(word in module2.lower() for word in ['miljø', 'arbejd']):
+        return "finde virksomheder med miljø- eller arbejdsmiljøproblemer"
+    
+    # Medieovervågning kombinationer
+    if any(word in module1.lower() for word in ['medier', 'nyheder']) and \
+       any(word in module2.lower() for word in ['udbud', 'lokalpolitik']):
+        return "sammenligne medieomtale med faktiske beslutninger"
+    
+    # Miljø og ejendom kombinationer
+    if any(word in module1.lower() for word in ['miljø', 'forurening']) and \
+       any(word in module2.lower() for word in ['tinglysning', 'ejendom']):
+        return "afdække miljøproblematiske ejendomshandler"
+    
+    # Generisk begrundelse
+    return f"kombinere {module1} og {module2} for dybere indsigt i {goal[:50]}..."
+
+
+def _get_module_type(module_title: str) -> str:
+    """
+    Bestem modul type baseret på titel for søgeoptimering.
+    
+    Args:
+        module_title: Titlen på modulet
+        
+    Returns:
+        Modul type (company, media, politics, property, etc.)
+    """
+    module_lower = module_title.lower()
+    
+    if any(word in module_lower for word in ['registrering', 'status', 'cvr']):
+        return "company"
+    elif any(word in module_lower for word in ['medier', 'nyheder', 'medie']):
+        return "media"
+    elif any(word in module_lower for word in ['lokalpolitik', 'kommune', 'politik']):
+        return "politics"
+    elif any(word in module_lower for word in ['tinglysning', 'ejendom', 'ejendomshandel']):
+        return "property"
+    elif any(word in module_lower for word in ['miljø', 'forurening']):
+        return "environment"
+    elif any(word in module_lower for word in ['arbejd', 'tilsyn']):
+        return "workplace"
+    elif any(word in module_lower for word in ['finans', 'økonomi']):
+        return "finance"
+    elif any(word in module_lower for word in ['domstol', 'ret', 'dom']):
+        return "legal"
+    else:
+        return "general"
 
 # --- API Endpoints ---
 @app.post(
@@ -591,6 +931,194 @@ async def clear_km24_cache():
         return JSONResponse(content=result)
     else:
         return JSONResponse(status_code=500, content=result)
+
+@app.get("/api/km24-module-overview")
+async def get_module_overview():
+    """Få overblik over alle tilgængelige KM24 moduler."""
+    km24_client = get_km24_client()
+    
+    try:
+        # Hent alle moduler
+        modules_result = await km24_client.get_modules_basic()
+        
+        if modules_result.success:
+            modules = modules_result.data.get('items', [])
+            
+            # Kategoriser moduler
+            categories = {
+                "virksomhedsdata": {
+                    "title": "Virksomhedsdata",
+                    "description": "CVR-registreringer, statusændringer og virksomhedsoplysninger",
+                    "modules": []
+                },
+                "offentlige_sager": {
+                    "title": "Offentlige sager",
+                    "description": "Udbud, lokalpolitik og kommunale beslutninger",
+                    "modules": []
+                },
+                "medier": {
+                    "title": "Medier",
+                    "description": "Danske og udenlandske medier, nyheder og medieomtale",
+                    "modules": []
+                },
+                "domstole": {
+                    "title": "Domstole",
+                    "description": "Retssager, domme og juridiske afgørelser",
+                    "modules": []
+                },
+                "miljø_arbejdsmiljø": {
+                    "title": "Miljø & Arbejdsmiljø",
+                    "description": "Miljøsager, arbejdstilsyn og sikkerhed",
+                    "modules": []
+                },
+                "finans": {
+                    "title": "Finans",
+                    "description": "Finanstilsynet, økonomiske sager og børsmeddelelser",
+                    "modules": []
+                },
+                "andre": {
+                    "title": "Andre",
+                    "description": "Diverse andre datakilder og moduler",
+                    "modules": []
+                }
+            }
+            
+            for module in modules:
+                title = module.get('title', '').lower()
+                if any(word in title for word in ['registrering', 'status', 'cvr']):
+                    categories["virksomhedsdata"]["modules"].append(module)
+                elif any(word in title for word in ['udbud', 'lokalpolitik', 'kommune']):
+                    categories["offentlige_sager"]["modules"].append(module)
+                elif any(word in title for word in ['medier', 'nyheder']):
+                    categories["medier"]["modules"].append(module)
+                elif any(word in title for word in ['domstol', 'ret']):
+                    categories["domstole"]["modules"].append(module)
+                elif any(word in title for word in ['miljø', 'arbejd', 'tilsyn']):
+                    categories["miljø_arbejdsmiljø"]["modules"].append(module)
+                elif any(word in title for word in ['finans', 'økonomi']):
+                    categories["finans"]["modules"].append(module)
+                else:
+                    categories["andre"]["modules"].append(module)
+            
+            # Beregn statistikker
+            total_modules = len(modules)
+            category_stats = {}
+            for key, category in categories.items():
+                category_stats[key] = {
+                    "count": len(category["modules"]),
+                    "percentage": f"{(len(category['modules']) / total_modules * 100):.1f}%" if total_modules > 0 else "0%"
+                }
+            
+            return JSONResponse(content={
+                "success": True,
+                "total_modules": total_modules,
+                "categories": categories,
+                "category_statistics": category_stats,
+                "cache_age": str(modules_result.cache_age) if modules_result.cache_age else None,
+                "last_updated": datetime.utcnow().isoformat()
+            })
+        else:
+            return JSONResponse(
+                status_code=500,
+                content={"success": False, "error": modules_result.error}
+            )
+    except Exception as e:
+        logger.error(f"Error in module overview: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
+
+@app.get("/api/km24-module-suggestions")
+async def get_module_suggestions(goal: str):
+    """Få modul-forslag baseret på et journalistisk mål."""
+    if not goal or len(goal.strip()) < 10:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Mål skal være mindst 10 tegn langt"}
+        )
+    
+    module_validator = get_module_validator()
+    
+    try:
+        # Få modul-forslag
+        suggested_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=10)
+        
+        suggestions = [
+            {
+                "module": match.module_title,
+                "slug": match.module_slug,
+                "description": match.description,
+                "reason": match.match_reason,
+                "confidence": match.confidence,
+                "search_examples": module_validator.get_search_examples_for_module(match.module_title)
+            }
+            for match in suggested_matches
+        ]
+        
+        return JSONResponse(content={
+            "success": True,
+            "goal": goal,
+            "suggestions": suggestions,
+            "total_suggestions": len(suggestions),
+            "timestamp": datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting module suggestions: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
+
+@app.get("/api/km24-search-test")
+async def test_search_functionality(goal: str, module: str = "general"):
+    """Test den nye søgefunktionalitet med KM24 API format."""
+    if not goal or len(goal.strip()) < 10:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Mål skal være mindst 10 tegn langt"}
+        )
+    
+    module_validator = get_module_validator()
+    
+    try:
+        # Ekstraher nøgleord
+        keywords = module_validator._extract_keywords_from_goal(goal)
+        
+        # Generer optimeret søgestreng
+        optimized_search = module_validator.generate_optimized_search_string(keywords, module)
+        
+        # Få søgeforbedringer
+        refinements = module_validator.suggest_search_refinements(optimized_search, module)
+        
+        # Få søgeeksempler for modulet
+        search_examples = module_validator.get_search_examples_for_module(module)
+        
+        return JSONResponse(content={
+            "success": True,
+            "goal": goal,
+            "module": module,
+            "keywords": keywords,
+            "optimized_search": optimized_search,
+            "search_refinements": refinements,
+            "search_examples": search_examples,
+            "search_format_info": {
+                "exact_phrases": "Brug anførselstegn for præcise fraser: \"eksakt frase\"",
+                "boolean_operators": "Brug AND, OR, NOT i versaler: (term1 OR term2) AND term3",
+                "exclusion": "Brug minus for ekskludering: term -støj",
+                "wildcards": "Brug * for ordstammer: klima*",
+                "grouping": "Brug parenteser for gruppering: (gruppe1 OR gruppe2)"
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error testing search functionality: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
 
 # --- Inspiration Prompts ---
 inspiration_prompts = [

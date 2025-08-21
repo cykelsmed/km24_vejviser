@@ -215,47 +215,57 @@ class ModuleValidator:
         """Få eksempel-søgestrenge for et specifikt modul."""
         module_lower = module_title.lower()
         
-        # Modulspecifikke søge-eksempler
+        # Modulspecifikke søge-eksempler med KM24 API format
         search_examples = {
             "udbud": [
-                "vinder OR tildelt OR valgt",
-                "kontraktværdi > 1000000",
-                "offentlig OR kommunal OR statlig"
+                '"vinder" OR "tildelt" OR "valgt"',
+                'kontraktværdi AND (offentlig OR kommunal OR statlig)',
+                '"offentligt udbud" -job -stillingsopslag'
             ],
             "miljøsager": [
-                "forurening OR miljøskade",
-                "godkendelse OR tilladelse",
-                "kritik OR påbud"
+                '"forurening" OR "miljøskade"',
+                '"godkendelse" OR "tilladelse" AND miljø*',
+                '"kritik" OR "påbud" -job'
             ],
             "registrering": [
-                "ny OR oprettet OR registreret",
-                "branchekode: 47.11.10",
-                "~holding~ OR ~capital~"
+                '"ny" OR "oprettet" OR "registreret"',
+                'branchekode:01.11.00 OR branchekode:01.50.00',
+                'branchekode:68.10.00 OR branchekode:68.31.00'
             ],
             "status": [
-                "konkurs OR opløst",
-                "statusændring OR ophør",
-                "tvangsopløsning OR likvidation"
+                '"konkurs" OR "opløst"',
+                '"statusændring" OR "ophør"',
+                '"tvangsopløsning" OR "likvidation"'
             ],
             "tinglysning": [
-                "ejendomshandel OR salg",
-                "beløb > 5000000",
-                "~landbrugsejendom~ OR ~gård~"
+                '"ejendomshandel" OR "salg"',
+                'beløb AND (ejendom* OR gård*)',
+                '"landbrugsejendom" OR "gård" AND beløb'
             ],
             "lokalpolitik": [
-                "byrådsbeslutning OR kommunal",
-                "politisk OR beslutning",
-                "udvikling OR planlægning"
+                '"byrådsbeslutning" OR "kommunal"',
+                '"politisk" OR "beslutning" AND (udvikling OR planlægning)',
+                '"zoneændring" OR "landzone"'
             ],
             "arbejdstilsyn": [
-                "kritik OR påbud",
-                "arbejdsmiljø OR sikkerhed",
-                "overtrædelse OR bøde"
+                '"kritik" OR "påbud"',
+                '"arbejdsmiljø" OR "sikkerhed"',
+                '"overtrædelse" OR "bøde" -job'
             ],
             "finanstilsynet": [
-                "advarsel OR påbud",
-                "finansiel OR økonomisk",
-                "tilsyn OR kontrol"
+                '"advarsel" OR "påbud"',
+                '"finansiel" OR "økonomisk" AND tilsyn',
+                '"kontrol" OR "regulering"'
+            ],
+            "medier": [
+                '"omtale" OR "nyhed"',
+                '"artikel" OR "reportage"',
+                '"interview" OR "kommentar"'
+            ],
+            "domstole": [
+                '"dom" OR "afgørelse"',
+                '"sag" OR "retsforhandling"',
+                '"anklage" OR "tiltale"'
             ]
         }
         
@@ -268,9 +278,9 @@ class ModuleValidator:
         # Generiske eksempler hvis ingen specifikke fundet
         if not examples:
             examples = [
-                "relevant OR vigtig OR central",
-                "~søgeterm~ OR ~nøgleord~",
-                "AND (kritisk OR problem)"
+                '"relevant" OR "vigtig" OR "central"',
+                '"søgeterm" OR "nøgleord"',
+                '(kritisk OR problem) AND relevant*'
             ]
         
         return examples[:5]  # Returnér max 5 eksempler
@@ -291,6 +301,93 @@ class ModuleValidator:
         
         # Fjern duplikater og returnér
         return list(set(keywords))
+
+    def generate_optimized_search_string(self, keywords: List[str], module_type: str = "general") -> str:
+        """
+        Generer optimeret søgestreng baseret på KM24 API format.
+        
+        Args:
+            keywords: Liste af nøgleord fra målet
+            module_type: Type modul (general, company, media, etc.)
+            
+        Returns:
+            Optimiseret søgestreng i KM24 API format
+        """
+        if not keywords:
+            return ""
+        
+        # Modulspecifikke strategier
+        if module_type in ["company", "registrering", "status"]:
+            # For virksomhedsdata - brug eksakte fraser og branchekoder
+            company_keywords = [f'"{kw}"' for kw in keywords if len(kw) > 3]
+            if company_keywords:
+                return " OR ".join(company_keywords)
+        
+        elif module_type in ["media", "medier"]:
+            # For medier - fokuser på omtale og nyheder
+            media_keywords = [f'"{kw}"' for kw in keywords if len(kw) > 3]
+            if media_keywords:
+                return f'({" OR ".join(media_keywords)}) AND ("omtale" OR "nyhed" OR "artikel")'
+        
+        elif module_type in ["politics", "lokalpolitik"]:
+            # For politik - kombiner med politiske termer
+            politics_keywords = [f'"{kw}"' for kw in keywords if len(kw) > 3]
+            if politics_keywords:
+                return f'({" OR ".join(politics_keywords)}) AND ("politisk" OR "beslutning" OR "byråd")'
+        
+        elif module_type in ["property", "tinglysning"]:
+            # For ejendomme - fokuser på handler og ejendomme
+            property_keywords = [f'"{kw}"' for kw in keywords if len(kw) > 3]
+            if property_keywords:
+                return f'({" OR ".join(property_keywords)}) AND ("ejendom*" OR "salg" OR "handler")'
+        
+        else:
+            # Generisk tilgang - brug eksakte fraser og wildcards
+            exact_phrases = [f'"{kw}"' for kw in keywords if len(kw) > 4]
+            wildcards = [f'{kw}*' for kw in keywords if len(kw) > 3]
+            
+            search_parts = []
+            if exact_phrases:
+                search_parts.append(" OR ".join(exact_phrases))
+            if wildcards:
+                search_parts.append(" OR ".join(wildcards))
+            
+            if search_parts:
+                return " OR ".join(search_parts)
+        
+        # Fallback - brug simple OR kombination
+        return " OR ".join([f'"{kw}"' for kw in keywords if len(kw) > 2])
+
+    def suggest_search_refinements(self, base_search: str, module_type: str = "general") -> List[str]:
+        """
+        Foreslå forbedringer til en søgestreng.
+        
+        Args:
+            base_search: Den oprindelige søgestreng
+            module_type: Type modul
+            
+        Returns:
+            Liste af forbedrede søgestrengs-forslag
+        """
+        refinements = []
+        
+        # Tilføj ekskludering af almindelige støj-ord
+        if module_type in ["media", "medier"]:
+            refinements.append(f'{base_search} -job -stillingsopslag -annonce')
+        
+        # Tilføj geografiske termer hvis relevant
+        if any(word in base_search.lower() for word in ["aarhus", "københavn", "odense"]):
+            refinements.append(f'{base_search} AND (kommune OR lokal)')
+        
+        # Tilføj tidsbegrænsning hvis relevant
+        if "ny" in base_search.lower() or "oprettet" in base_search.lower():
+            refinements.append(f'{base_search} AND ("2024" OR "2025")')
+        
+        # Tilføj branchekode hvis relevant
+        if module_type in ["company", "registrering"]:
+            refinements.append(f'{base_search} AND branchekode:*')
+        
+        return refinements[:3]  # Returnér max 3 forslag
 
 # Global validator instance
 _module_validator: Optional[ModuleValidator] = None

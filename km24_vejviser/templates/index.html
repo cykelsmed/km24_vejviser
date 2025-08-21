@@ -1,157 +1,28 @@
 <!DOCTYPE html>
-<html lang="da" data-theme="light">
+<html lang="da">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KM24 Vejviser</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
-        body {
-            padding: 2rem;
-            max-width: 800px;
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 2rem;
         }
-        main.container {
-            max-width: 800px;
+        
+        .lead {
+            font-size: 1.2rem;
+            color: var(--pico-muted-color);
+            margin-bottom: 2rem;
         }
-        #result h4, #result h5 {
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-            color: #333;
-        }
-        #result p {
-            margin-bottom: 1em;
-            line-height: 1.6;
-        }
-        #result ul {
-            margin-bottom: 1em;
-            padding-left: 1.5em;
-        }
-        #result li {
-            margin-bottom: 0.5em;
-        }
-        .power-tip {
-            background: #e6f7ff;
-            border-left: 4px solid #1890ff;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 6px;
-        }
-        .warning {
-            background: #fff2e8;
-            border-left: 4px solid #fa541c;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 6px;
-        }
-        .geo-advice {
-            background: #f6ffed;
-            border-left: 4px solid #52c41a;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 6px;
-        }
-
-        /* NEW: Styles for KM24 validation warnings */
-        .validation-warning {
-            background: #fff2e8;
-            border-left: 4px solid #fa541c;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 6px;
-        }
-        .validation-warning ul {
-            margin: 0.5rem 0;
-            padding-left: 1.5rem;
-        }
-        .validation-warning li {
-            margin-bottom: 0.25rem;
-        }
-
-        /* NEW: Styles for KM24 module suggestions */
-        .km24-suggestions {
-            background: #f0f5ff;
-            border-left: 4px solid #1890ff;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 6px;
-            list-style: none;
-        }
-        .km24-suggestions li {
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            background: white;
-            border-radius: 4px;
-            border: 1px solid #d9d9d9;
-        }
-        .km24-suggestions strong {
-            color: #1890ff;
-        }
-        .km24-suggestions em {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        .km24-suggestions small {
-            color: #999;
-            font-size: 0.8rem;
-        }
-        #result {
-            border: 1px solid var(--pico-muted-border-color);
-            padding: 1rem;
-            border-radius: var(--pico-border-radius);
-            margin-top: 1rem;
-            min-height: 100px;
-        }
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #recipe-output {
-            white-space: pre-wrap;
-            background-color: #f7f7f7;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            border: 1px solid #e1e1e1;
-        }
-
-        /* Styles for search string formatting */
-        .search-string-container {
-            position: relative;
-            background-color: #f0f0f0; /* Lidt mørkere end #result baggrund */
-            border-radius: var(--pico-border-radius);
-            margin: 1rem 0;
-            padding-top: 2.5rem; /* Plads til knappen */
-        }
-        .search-string-container pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            padding: 1rem;
-            background-color: transparent;
-            border: none;
-        }
-        .search-string-container .copy-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            cursor: pointer;
-            border: 1px solid var(--pico-muted-border-color);
-        }
-        .copy-btn.copied {
-            background-color: #4CAF50; /* Grøn farve for "kopieret" feedback */
-            color: white;
-            border-color: #4CAF50;
-        }
-
-        /* Styles for inspiration prompts */
+        
         .inspiration-container {
             margin-top: 0.5rem;
             margin-bottom: 1.5rem;
         }
+        
         .inspiration-prompt {
             font-size: 0.8rem;
             padding: 0.4rem 0.8rem;
@@ -163,169 +34,132 @@
             border-radius: 2rem;
             transition: background-color 0.2s, color 0.2s, border-color 0.2s;
         }
+        
         .inspiration-prompt:hover {
             background-color: var(--pico-primary);
             color: var(--pico-primary-inverse);
             border-color: var(--pico-primary);
         }
-
-        /* Styles for JSON rendering */
+        
         .step {
             border: 1px solid var(--pico-muted-border-color);
             padding: 1rem 1.5rem;
             border-radius: var(--pico-border-radius);
             margin-bottom: 1rem;
         }
+        
         .step-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
             margin-bottom: 1rem;
         }
+        
         .step-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--pico-primary);
-        }
-        .step-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin: 0;
-        }
-        .step-details {
-            margin-left: 3rem; /* Indent details */
-        }
-        .step-details strong {
-            display: block;
-            margin-top: 0.5rem;
-        }
-
-        .strategic-note, .notification-recommendation {
+            background-color: var(--pico-primary);
+            color: var(--pico-primary-inverse);
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .step-title {
+            margin: 0;
+            color: var(--pico-primary);
+        }
+        
+        .search-string-container {
+            position: relative;
+            background-color: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+        }
+        
+        .copy-btn.copied {
+            background-color: var(--pico-color-success);
+            color: var(--pico-color-success-inverse);
+        }
+        
+        .strategic-note, .notification-recommendation {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            background-color: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .strategic-note svg, .notification-recommendation svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: var(--pico-color-warning);
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+        
+        .validation-warning {
+            background-color: var(--pico-color-warning);
+            color: var(--pico-color-warning-inverse);
+            padding: 1rem;
             border-radius: var(--pico-border-radius);
             margin: 1rem 0;
-            font-size: 0.9rem;
         }
-
-        .strategic-note {
-            background-color: var(--pico-info-background);
-            border-left: 4px solid var(--pico-info-border);
-        }
-
-        .notification-recommendation {
-            background-color: var(--pico-warning-background);
-            border-left: 4px solid var(--pico-warning-border);
-        }
-
-        .strategic-note svg, .notification-recommendation svg {
-            flex-shrink: 0;
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Styles for geo advice */
-        .geo-advice {
-            background: #e6f7ff;
-            border-left: 4px solid #1890ff;
-            padding: 0.75rem;
-            margin: 1rem 0;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-
-        /* Styles for power tip og supplementary modules */
-        .power-tip {
-            background: #fffbe6;
-            border-left: 4px solid #faad14;
-            padding: 0.75rem;
-            margin: 1rem 0;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-        .supplementary-modules {
-            background: #f6ffed;
-            border-left: 4px solid #52c41a;
-            padding: 0.75rem 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-            list-style: none;
-        }
-        .supplementary-modules li {
-            margin-bottom: 0.5rem;
-        }
-
-        /* Styles for new creative sections */
-        .creative-approach {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .potential-story-angles {
-            background: #fff2e8;
-            border-left: 4px solid #fa541c;
+        
+        .km24-suggestions {
+            background-color: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
             padding: 1rem;
-            margin: 1.5rem 0;
-            border-radius: 8px;
+            margin: 1rem 0;
         }
-
-        .creative-cross-references {
-            background: #f0f5ff;
-            border-left: 4px solid #2f54eb;
+        
+        .creative-approach, .potential-story-angles, .creative-cross-references {
+            background-color: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
             padding: 1rem;
-            margin: 1.5rem 0;
-            border-radius: 8px;
+            margin: 1rem 0;
         }
-
-        .creative-insights {
-            background: #f6ffed;
-            border-left: 4px solid #52c41a;
-            padding: 0.75rem;
+        
+        .creative-insights, .advanced-tactics, .search-examples {
+            background-color: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            padding: 0.5rem 1rem;
             margin: 0.5rem 0;
-            border-radius: 6px;
-            font-style: italic;
         }
-
-        .advanced-tactics {
-            background: #fff7e6;
-            border-left: 4px solid #fa8c16;
-            padding: 0.75rem;
-            margin: 0.5rem 0;
-            border-radius: 6px;
-        }
-
-        .search-examples {
-            background: #f9f0ff;
-            border-left: 4px solid #722ed1;
-            padding: 0.75rem;
-            margin: 0.5rem 0;
-            border-radius: 6px;
-        }
-
+        
         .live-data-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #e6f7ff;
-            color: #1890ff;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
+            display: inline-block;
+            background-color: var(--pico-color-success);
+            color: var(--pico-color-success-inverse);
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--pico-border-radius);
             font-size: 0.8rem;
-            font-weight: 500;
+            margin: 0.5rem 0;
         }
-
+        
         .live-data-indicator::before {
             content: "●";
             color: #52c41a;
             font-size: 1.2rem;
         }
-
     </style>
 </head>
 <body>
@@ -334,9 +168,10 @@
             <h1>KM24 Vejviser</h1>
             <p class="lead">Din guide til datadrevet journalistik</p>
         </header>
+        
         <form id="recipe-form">
             <label for="goal">Beskriv dit journalistiske mål eller dækningsområde:</label>
-            <textarea id="goal" name="goal" rows="5" required placeholder="Jeg vil gerne undersøge, hvem der systematisk opkøber ejendomme i Skagen-området... (minimum 10 tegn)"></textarea>
+            <textarea id="goal" name="goal" rows="5" placeholder="Jeg vil gerne undersøge, hvem der systematisk opkøber ejendomme i Skagen-området... (minimum 10 tegn)"></textarea>
             
             {% if prompts %}
             <div class="inspiration-container">
@@ -349,6 +184,7 @@
 
             <button type="submit" aria-busy="false">Generér Opskrift</button>
         </form>
+        
         <section>
             <h2>Din Opskrift:</h2>
             <div id="result">
@@ -356,24 +192,38 @@
             </div>
         </section>
     </main>
+    
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing script');
+            
             const form = document.getElementById('recipe-form');
             const resultDiv = document.getElementById('result');
-            const submitButton = form.querySelector('button');
+            const goalTextarea = document.getElementById('goal');
+            
             console.log('Form found:', form);
+            console.log('Result div found:', resultDiv);
+            console.log('Goal textarea found:', goalTextarea);
+            
+            if (!form || !resultDiv || !goalTextarea) {
+                console.error('Kritiske elementer mangler!');
+                return;
+            }
+            
+            const submitButton = form.querySelector('button[type="submit"]');
             console.log('Submit button found:', submitButton);
 
-            form.addEventListener('submit', async (e) => {
+            // Form submission handler
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                console.log('Form submitted');
-                const goal = document.getElementById('goal').value;
-                console.log('Goal:', goal);
+                console.log('=== FORM SUBMISSION START ===');
                 
-                // Valider input længde
+                const goal = goalTextarea.value;
+                console.log('Goal value:', goal);
+                console.log('Goal length:', goal.length);
+                
                 if (goal.length < 10) {
-                    resultDiv.innerHTML = `<p style="color: red;"><strong>Fejl:</strong> Dit mål skal være mindst 10 tegn langt. Du har skrevet ${goal.length} tegn.</p>`;
+                    resultDiv.innerHTML = '<p style="color: red;"><strong>Fejl:</strong> Dit mål skal være mindst 10 tegn langt. Du har skrevet ' + goal.length + ' tegn.</p>';
                     return;
                 }
                 
@@ -390,7 +240,7 @@
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                        throw new Error(errorData.error || 'HTTP error! status: ' + response.status);
                     }
                     
                     const jsonData = await response.json();
@@ -398,194 +248,180 @@
 
                 } catch (error) {
                     console.error('Error:', error);
-                    resultDiv.innerHTML = `<p style="color: red;"><strong>Fejl:</strong> ${error.message}</p>`;
+                    resultDiv.innerHTML = '<p style="color: red;"><strong>Fejl:</strong> ' + error.message + '</p>';
                 } finally {
                     submitButton.setAttribute('aria-busy', 'false');
                     submitButton.disabled = false;
                 }
             });
 
-            document.querySelectorAll('.inspiration-prompt').forEach(button => {
-                button.addEventListener('click', () => {
-                    console.log('Inspiration prompt clicked');
+            // Inspiration prompt handlers
+            document.querySelectorAll('.inspiration-prompt').forEach(function(button) {
+                console.log('Adding click listener to button:', button.textContent);
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Inspiration prompt clicked:', button.textContent);
                     const prompt = button.getAttribute('data-prompt');
-                    console.log('Prompt:', prompt);
-                    document.getElementById('goal').value = prompt;
+                    console.log('Prompt data:', prompt);
+                    goalTextarea.value = prompt;
+                    console.log('Textarea value set to:', goalTextarea.value);
+                    
+                    resultDiv.innerHTML = '<p style="color: green;">✓ Inspiration prompt indsat: "' + button.textContent + '"</p>';
                 });
             });
 
             function renderJsonResponse(data) {
-                let html = `<h4>${data.title}</h4>`;
-                html += `<p><strong>Strategi:</strong> ${data.strategy_summary}</p>`;
+                let html = '<h4>' + data.title + '</h4>';
+                html += '<p><strong>Strategi:</strong> ' + data.strategy_summary + '</p>';
 
-                data.investigation_steps.forEach(step => {
-                    html += `
-                        <div class="step">
-                            <div class="step-header">
-                                <span class="step-number">${step.step}</span>
-                                <h5 class="step-title">${step.title}</h5>
-                            </div>
-                            <div class="step-details">`;
+                if (data.creative_approach) {
+                    html += '<div class="creative-approach">';
+                    html += '<h4>🎨 Kreativ Tilgang</h4>';
+                    html += '<p>' + data.creative_approach + '</p>';
+                    html += '</div>';
+                }
+
+                if (data.potential_story_angles && data.potential_story_angles.length > 0) {
+                    html += '<div class="potential-story-angles">';
+                    html += '<h4>📰 Potentielle Historievinkler</h4>';
+                    html += '<ul>';
+                    data.potential_story_angles.forEach(function(angle) {
+                        html += '<li>' + angle + '</li>';
+                    });
+                    html += '</ul>';
+                    html += '</div>';
+                }
+
+                if (data.creative_cross_references && data.creative_cross_references.length > 0) {
+                    html += '<div class="creative-cross-references">';
+                    html += '<h4>🔗 Kreative Krydsrefereringer</h4>';
+                    html += '<ul>';
+                    data.creative_cross_references.forEach(function(ref) {
+                        html += '<li>' + ref + '</li>';
+                    });
+                    html += '</ul>';
+                    html += '</div>';
+                }
+
+                data.investigation_steps.forEach(function(step) {
+                    html += '<div class="step">';
+                    html += '<div class="step-header">';
+                    html += '<span class="step-number">' + step.step + '</span>';
+                    html += '<h5 class="step-title">' + step.title + '</h5>';
+                    html += '</div>';
+                    html += '<div class="step-details">';
                     
                     if (step.module) {
-                        html += `<p><strong>Modul:</strong> <em>${step.module}</em></p>`;
+                        html += '<p><strong>Modul:</strong> <em>' + step.module + '</em></p>';
                     }
                     
-                    html += `<p><strong>Formål:</strong> ${step.rationale}</p>`;
+                    html += '<p><strong>Formål:</strong> ' + step.rationale + '</p>';
                     
                     if (step.details) {
-                        if(step.details.strategic_note) {
-                            html += `
-                                <div class="strategic-note">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11M12 18.75v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11m-9.58 3.28a13.5 13.5 0 0 1 2.083-1.611m-2.083 1.611a13.5 13.5 0 0 0 2.083-1.611M3.75 6.75A2.25 2.25 0 0 1 6 4.5h12A2.25 2.25 0 0 1 20.25 6.75v10.5A2.25 2.25 0 0 1 18 19.5H6A2.25 2.25 0 0 1 3.75 17.25V6.75Z" /></svg>
-                                    <div>${step.details.strategic_note}</div>
-                                </div>`;
+                        if (step.details.strategic_note) {
+                            html += '<div class="strategic-note">';
+                            html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11M12 18.75v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11m-9.58 3.28a13.5 13.5 0 0 1 2.083-1.611m-2.083 1.611a13.5 13.5 0 0 0 2.083-1.611M3.75 6.75A2.25 2.25 0 0 1 6 4.5h12A2.25 2.25 0 0 1 20.25 6.75v10.5A2.25 2.25 0 0 1 18 19.5H6A2.25 2.25 0 0 1 3.75 17.25V6.75Z" /></svg>';
+                            html += '<div>' + step.details.strategic_note + '</div>';
+                            html += '</div>';
                         }
 
                         if (step.details.search_string) {
-                             html += `
-                                <strong>Søgestreng:</strong>
-                                <div class="search-string-container">
-                                    <button class="copy-btn">Kopiér</button>
-                                    <pre><code>${step.details.search_string}</code></pre>
-                                </div>
-                                <strong>Forklaring:</strong>
-                                <p>${step.details.explanation}</p>`;
+                            html += '<strong>Søgestreng:</strong>';
+                            html += '<div class="search-string-container">';
+                            html += '<button class="copy-btn">Kopiér</button>';
+                            html += '<pre><code>' + step.details.search_string + '</code></pre>';
+                            html += '</div>';
+                            html += '<strong>Forklaring:</strong>';
+                            html += '<p>' + step.details.explanation + '</p>';
                         }
 
                         if (step.details.logic) {
-                            html += `<strong>Logik:</strong> <p>${step.details.logic}</p>`;
+                            html += '<strong>Logik:</strong> <p>' + step.details.logic + '</p>';
                         }
                         
-                        if(step.details.recommended_notification) {
+                        if (step.details.recommended_notification) {
                             const notificationText = step.details.recommended_notification === 'løbende'
                                 ? '<b>Løbende notifikation:</b> Få besked med det samme, når der er nye resultater. Godt til tidskritiske overvågninger.'
                                 : '<b>Interval notifikation:</b> Få en samlet besked dagligt eller ugentligt. Godt til mindre presserende overvågninger for at undgå støj.';
-                            html += `
-                                <div class="notification-recommendation">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
-                                    <div>${notificationText}</div>
-                                </div>`;
+                            html += '<div class="notification-recommendation">';
+                            html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>';
+                            html += '<div>' + notificationText + '</div>';
+                            html += '</div>';
                         }
                         
-                        // Add new creative sections
                         if (step.details.creative_insights) {
-                            html += `<div class="creative-insights"><strong>💡 Kreativ Indsigt:</strong> ${step.details.creative_insights}</div>`;
+                            html += '<div class="creative-insights"><strong>💡 Kreativ Indsigt:</strong> ' + step.details.creative_insights + '</div>';
                         }
                         
                         if (step.details.advanced_tactics) {
-                            html += `<div class="advanced-tactics"><strong>🎯 Avancerede Taktikker:</strong> ${step.details.advanced_tactics}</div>`;
+                            html += '<div class="advanced-tactics"><strong>🎯 Avancerede Taktikker:</strong> ' + step.details.advanced_tactics + '</div>';
                         }
                         
                         if (step.details.search_examples) {
-                            html += `<div class="search-examples"><strong>🔍 Søge-eksempler:</strong><ul>${step.details.search_examples.map(ex => `<li><code>${ex}</code></li>`).join('')}</ul></div>`;
+                            html += '<div class="search-examples"><strong>🔍 Søge-eksempler:</strong><ul>';
+                            step.details.search_examples.forEach(function(ex) {
+                                html += '<li><code>' + ex + '</code></li>';
+                            });
+                            html += '</ul></div>';
                         }
                         
                         if (step.details.live_data_available) {
-                            html += `<div class="live-data-indicator">${step.details.data_source || 'Live data tilgængelig'}</div>`;
+                            html += '<div class="live-data-indicator">' + (step.details.data_source || 'Live data tilgængelig') + '</div>';
                         }
-                    }
                         if (step.details.geo_advice) {
-                            html += `
-                                <div class="geo-advice">
-                                    🌍 <strong>Geo-råd:</strong> ${step.details.geo_advice}
-                                </div>
-                            `;
+                            html += '<div class="geo-advice">🌍 <strong>Geo-råd:</strong> ' + step.details.geo_advice + '</div>';
                         }
-                        if (step.details.power_tip) {
-                            html += `
-                                <div class="power-tip">
-                                    ⚡ <strong>${step.details.power_tip.title}:</strong> ${step.details.power_tip.explanation}
-                                </div>
-                            `;
-                        }
-                    } else if (step.type === 'manual_research') {
-                        html += `<strong>Forventet output:</strong> <p>${step.output}</p>`;
                     }
                     
-                    html += `</div></div>`;
+                    html += '</div></div>';
                 });
 
                 if (data.next_level_questions && data.next_level_questions.length > 0) {
-                    html += `<h4>Næste Niveau</h4><ul>`;
-                    data.next_level_questions.forEach(q => {
-                        html += `<li>${q}</li>`;
+                    html += '<h4>Næste Niveau</h4><ul>';
+                    data.next_level_questions.forEach(function(q) {
+                        html += '<li>' + q + '</li>';
                     });
-                    html += `</ul>`;
+                    html += '</ul>';
                 }
 
                 if (data.supplementary_modules && data.supplementary_modules.length > 0) {
-                    html += `<h4>Supplerende moduler at overveje</h4><ul class="supplementary-modules">`;
-                    data.supplementary_modules.forEach(mod => {
-                        html += `<li><strong>${mod.module}</strong>: ${mod.reason}</li>`;
+                    html += '<h4>Supplerende moduler at overveje</h4><ul class="supplementary-modules">';
+                    data.supplementary_modules.forEach(function(mod) {
+                        html += '<li><strong>' + mod.module + '</strong>: ' + mod.reason + '</li>';
                     });
-                    html += `</ul>`;
+                    html += '</ul>';
                 }
 
-                // NEW: KM24 Module Validation Warnings
                 if (data.validation_warnings && data.validation_warnings.length > 0) {
-                    html += `<h4>⚠️ KM24 Modul Validering</h4>`;
-                    data.validation_warnings.forEach(warning => {
-                        html += `<div class="validation-warning">`;
-                        html += `<p><strong>${warning.message}</strong></p>`;
+                    html += '<h4>⚠️ KM24 Modul Validering</h4>';
+                    data.validation_warnings.forEach(function(warning) {
+                        html += '<div class="validation-warning">';
+                        html += '<p><strong>' + warning.message + '</strong></p>';
                         if (warning.suggestions && warning.suggestions.length > 0) {
-                            html += `<p><strong>Forslag til alternative moduler:</strong></p><ul>`;
-                            warning.suggestions.forEach(suggestion => {
-                                html += `<li><strong>${suggestion.module}</strong> (${Math.round(suggestion.confidence * 100)}% match): ${suggestion.reason}</li>`;
+                            html += '<p><strong>Forslag til alternative moduler:</strong></p><ul>';
+                            warning.suggestions.forEach(function(suggestion) {
+                                html += '<li><strong>' + suggestion.module + '</strong> (' + Math.round(suggestion.confidence * 100) + '% match): ' + suggestion.reason + '</li>';
                             });
-                            html += `</ul>`;
+                            html += '</ul>';
                         }
-                        html += `</div>`;
+                        html += '</div>';
                     });
                 }
 
-                // NEW: KM24 Module Suggestions
                 if (data.km24_module_suggestions && data.km24_module_suggestions.length > 0) {
-                    html += `<h4>🔍 KM24 Modul Forslag</h4>`;
-                    html += `<p>Baseret på dit mål foreslår vi følgende KM24 moduler:</p>`;
-                    html += `<ul class="km24-suggestions">`;
-                    data.km24_module_suggestions.forEach(suggestion => {
-                        html += `<li>`;
-                        html += `<strong>${suggestion.module}</strong> (${Math.round(suggestion.confidence * 100)}% relevans)`;
-                        html += `<br><em>${suggestion.reason}</em>`;
+                    html += '<h4>🔍 KM24 Modul Forslag</h4>';
+                    html += '<p>Baseret på dit mål foreslår vi følgende KM24 moduler:</p>';
+                    html += '<ul class="km24-suggestions">';
+                    data.km24_module_suggestions.forEach(function(suggestion) {
+                        html += '<li>';
+                        html += '<strong>' + suggestion.module + '</strong> (' + Math.round(suggestion.confidence * 100) + '% relevans)';
+                        html += '<br><em>' + suggestion.reason + '</em>';
                         if (suggestion.description) {
-                            html += `<br><small>${suggestion.description}</small>`;
+                            html += '<br><small>' + suggestion.description + '</small>';
                         }
-                        html += `</li>`;
+                        html += '</li>';
                     });
-                    html += `</ul>`;
-                }
-
-                // NEW: Creative Approach
-                if (data.creative_approach) {
-                    html += `<div class="creative-approach">`;
-                    html += `<h4>🎨 Kreativ Tilgang</h4>`;
-                    html += `<p>${data.creative_approach}</p>`;
-                    html += `</div>`;
-                }
-
-                // NEW: Potential Story Angles
-                if (data.potential_story_angles && data.potential_story_angles.length > 0) {
-                    html += `<div class="potential-story-angles">`;
-                    html += `<h4>📰 Potentielle Historievinkler</h4>`;
-                    html += `<ul>`;
-                    data.potential_story_angles.forEach(angle => {
-                        html += `<li>${angle}</li>`;
-                    });
-                    html += `</ul>`;
-                    html += `</div>`;
-                }
-
-                // NEW: Creative Cross References
-                if (data.creative_cross_references && data.creative_cross_references.length > 0) {
-                    html += `<div class="creative-cross-references">`;
-                    html += `<h4>🔗 Kreative Krydsrefereringer</h4>`;
-                    html += `<ul>`;
-                    data.creative_cross_references.forEach(ref => {
-                        html += `<li>${ref}</li>`;
-                    });
-                    html += `</ul>`;
-                    html += `</div>`;
+                    html += '</ul>';
                 }
 
                 resultDiv.innerHTML = html;
@@ -593,14 +429,14 @@
             }
 
             function addCopyFunctionality() {
-                document.querySelectorAll('.copy-btn').forEach(button => {
-                    button.addEventListener('click', () => {
+                document.querySelectorAll('.copy-btn').forEach(function(button) {
+                    button.addEventListener('click', function() {
                         const container = button.closest('.search-string-container');
                         const code = container.querySelector('code');
-                        navigator.clipboard.writeText(code.textContent).then(() => {
+                        navigator.clipboard.writeText(code.textContent).then(function() {
                             button.textContent = 'Kopieret!';
                             button.classList.add('copied');
-                            setTimeout(() => {
+                            setTimeout(function() {
                                 button.textContent = 'Kopiér';
                                 button.classList.remove('copied');
                             }, 2000);
