@@ -472,66 +472,84 @@ async def generate_search_optimization(module_card, goal: str, step: dict) -> di
 async def complete_recipe(recipe: dict, goal: str = "") -> dict:
     import json as _json
     logger.info("Modtog recipe til komplettering: %s", _json.dumps(recipe, ensure_ascii=False))
-    
-    # Module validation with KM24 API
+
+    # Helpers (goal-context analysis and value gates)
+    def _norm(text: str) -> str:
+        return (text or "").lower()
+
+    goal_lc = _norm(goal)
+    time_critical = any(k in goal_lc for k in ["konkurs", "akut", "haster", "kritisk", "varsling"])
+    mentions_large_amounts = any(k in goal_lc for k in ["mio", "million", "kr", "beløb", "over ", "større", "stor"]) 
+    mentions_politics = any(k in goal_lc for k in ["kommune", "kommunal", "byråd", "lokalpolitik", "politisk", "udvalg"]) 
+    mentions_holding_capital = any(k in goal_lc for k in ["holding", "kapital", "capital", "fond", "ejerskab", "ejerkæde"]) 
+    mentions_agri_env = any(k in goal_lc for k in ["landbrug", "svin", "kvæg", "gylle", "miljø", "forurening"]) 
+
+    def _goal_keywords(maxn: int = 5) -> list[str]:
+        import re
+        words = re.findall(r"[a-zA-ZæøåÆØÅ0-9]{3,}", goal_lc)
+        stop = {"jeg","vil","om","at","for","der","som","med","og","det","den","de","en","et","i","på","af","til","er","ikke"}
+        uniq = []
+        for w in words:
+            if w not in stop and w not in uniq:
+                uniq.append(w)
+            if len(uniq) >= maxn:
+                break
+        return uniq
+
+    def _notification_for(module_name: str) -> str:
+        high_volume = module_name in {"Tinglysning", "Tingbogsattester", "Registrering", "Status", "Regnskaber"}
+        if time_critical:
+            return "løbende"
+        return "interval" if high_volume else "interval"
+
+    def _strategic_note_for(module_name: str) -> str | None:
+        if module_name == "Lokalpolitik" and mentions_politics:
+            return "ADVARSEL: Vælg manuelt de relevante kommuner som kilder for præcis dækning."
+        if module_name in {"Tinglysning", "Tingbogsattester"} and mentions_large_amounts:
+            return "Brug minimum-beløb filter (fx ≥ 10 mio. kr.) for at fokusere på væsentlige handler."
+        if module_name == "Registrering" and mentions_holding_capital:
+            return "Brug branchekoder 64.20.10 (Finansielle holdingselskaber) og 01.11.00 hvis relevant."
+        if module_name == "Miljøsager" and mentions_agri_env:
+            return "Vælg relevante miljøtyper (fx husdyrgodkendelser og landbrugssager)."
+        return None
+
+    def _power_tip_for(module_name: str) -> str | None:
+        if module_name in {"Tinglysning", "Tingbogsattester"} and any(k in goal_lc for k in ["systematisk", "mønster", "serie", "+1"]):
+            return "+1-trick: Opret parallelle overvågninger med forskellige thresholds/geografier for at splitte støj."
+        if module_name == "Registrering" and any(k in goal_lc for k in ["udenlandsk", "foreign", "kapital", "fond", "ejerkæde"]):
+            return "Kortlæg ejerkæder: Start i holdingselskaber, kryds med direktører/bestyrelse og fortsæt nedad."
+        if module_name == "Status" and any(k in goal_lc for k in ["fusion", "spaltning", "merger", "sammenlægning"]):
+            return "Timing-analyse: Overvåg koordinerede statusændringer på tværs af relaterede selskaber."
+        return None
+
+    def _contextual_search_examples(module_name: str) -> list[str]:
+        kws = _goal_keywords(4)
+        if not kws:
+            return []
+        examples: list[str] = []
+        if len(kws) >= 2:
+            examples.append(f"{kws[0]} AND {kws[1]}")
+        examples.append(" OR ".join(kws[:3]))
+        if module_name in {"Registrering","Status"} and mentions_holding_capital and kws:
+            examples.append(f"{kws[0]} AND (holding OR kapital)")
+        return [e for e in examples if len(e) >= 3]
+
+    # Module validation and suggestion setup
     module_validator = get_module_validator()
-    recommended_modules = []
-    
-    if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
-        for idx, step in enumerate(recipe["investigation_steps"]):
-            module = step.get("module") or (step.get("details", {}).get("module"))
-            if module:
-                recommended_modules.append(module)
-            
-            step_title = step.get("title", "")
-            search_string = step.get("details", {}).get("search_string") if step.get("details") else None
+    recommended_modules: list[str] = []
 
-            # Ensure details object exists
-            if "details" not in step or not isinstance(step.get("details"), dict):
-                step["details"] = {}
+    if "investigation_steps" in recipe and isinstance(recipe.get("investigation_steps"), list):
+        for step in recipe["investigation_steps"]:
+            m = step.get("module") or (step.get("details", {}).get("module"))
+            if m:
+                recommended_modules.append(m)
 
-            if "details" in step and isinstance(step["details"], dict):
-                # Strategic note - only add if not already present
-                if "strategic_note" not in step["details"]:
-                    step["details"]["strategic_note"] = "Ingen specifik strategisk note til dette trin."
-
-                # Recommended notification - only add if not already present
-                if "recommended_notification" not in step["details"]:
-                    step["details"]["recommended_notification"] = "interval"
-
-                # Explanation - ensure it's present and meaningful
-                current_explanation = step["details"].get("explanation")
-                needs_explanation = (
-                    "explanation" not in step["details"] or
-                    current_explanation is None or
-                    current_explanation == "undefined" or
-                    str(current_explanation).strip() == ""
-                )
-
-                if needs_explanation:
-                    rationale = step.get("rationale", "overvåge relevante ændringer")
-                    module = step.get("module", "dette modul")
-
-                    # Ensure rationale is not None and has content
-                    if rationale:
-                        rationale = str(rationale).strip().lower()
-                        if not rationale:
-                            rationale = "overvåge relevante ændringer"
-                    else:
-                        rationale = "overvåge relevante ændringer"
-
-                    step["details"]["explanation"] = f"Vi bruger {module} til at {rationale}"
-                    logger.info(f"Added fallback explanation for step {idx + 1}: {step['details']['explanation']}")
-    
-    # Validate recommended modules against KM24 API
-    validation_warnings = []
-    module_suggestions = []
-    
+    # Validate against KM24 API (keep, but only attach warnings when relevant)
+    validation_warnings: list[dict] = []
+    module_suggestions: list[dict] = []
     try:
         if recommended_modules:
             validation_result = await module_validator.validate_recommended_modules(recommended_modules)
-            
-            # Add warnings for invalid modules
             if validation_result.invalid_modules:
                 validation_warnings.append({
                     "type": "invalid_modules",
@@ -541,143 +559,128 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
                             "module": match.module_title,
                             "reason": match.match_reason,
                             "confidence": match.confidence
-                        }
-                        for match in validation_result.suggestions
+                        } for match in validation_result.suggestions
                     ]
                 })
-            
-            # Log validation results
             logger.info(f"Module validation: {len(validation_result.valid_modules)}/{len(recommended_modules)} valid")
-        
-        # Get intelligent module suggestions for the goal
+
         if goal:
-            suggested_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=3)
-            module_suggestions = [
-                {
-                    "module": match.module_title,
-                    "slug": match.module_slug,
-                    "reason": match.match_reason,
-                    "confidence": match.confidence,
-                    "description": match.description
-                }
-                for match in suggested_matches
-            ]
-    
+            suggested_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=6)
+            # Convert and later filter out already-included modules; cap at 3
+            module_suggestions_raw = [{
+                "module": m.module_title,
+                "slug": m.module_slug,
+                "reason": m.match_reason,
+                "confidence": m.confidence,
+                "description": m.description
+            } for m in suggested_matches]
+        else:
+            module_suggestions_raw = []
     except Exception as e:
         logger.error(f"Error during module validation: {e}", exc_info=True)
         validation_warnings.append({
             "type": "validation_error",
-            "message": "Kunne ikke validere moduler mod KM24 API - fortsætter med statiske anbefalinger"
+            "message": "Kunne ikke validere moduler mod KM24 API"
         })
-    
-    # Add validation results to recipe
+        module_suggestions_raw = []
+
     if validation_warnings:
         recipe["validation_warnings"] = validation_warnings
-    
-    if module_suggestions:
-        recipe["km24_module_suggestions"] = module_suggestions
-    
-    # Get supplementary modules from KM24 API
+
+    # Enhanced per-step enrichment (value-driven only)
     try:
-        if goal:
-            supplementary_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=5)
-            recipe["supplementary_modules"] = [
-                {
-                    "module": match.module_title,
-                    "reason": match.match_reason
-                }
-                for match in supplementary_matches[3:]  # Skip first 3 (already in main suggestions)
-            ]
-    except Exception as e:
-        logger.error(f"Error getting supplementary modules: {e}", exc_info=True)
-        recipe["supplementary_modules"] = []
-    
-    # Add enhanced API-driven features
-    try:
-        if "investigation_steps" in recipe and isinstance(recipe["investigation_steps"], list):
-            enhanced_steps = []
-            all_modules = [step.get("module") for step in recipe["investigation_steps"] if step.get("module")]
-            
-            # Get cross-module intelligence
+        if "investigation_steps" in recipe and isinstance(recipe.get("investigation_steps"), list):
+            all_modules = [s.get("module") for s in recipe["investigation_steps"] if s.get("module")]
             cross_module_relationships = await module_validator.get_cross_module_intelligence(all_modules)
-            
+
             for idx, step in enumerate(recipe["investigation_steps"]):
-                if "details" in step and isinstance(step["details"], dict):
-                    module = step.get("module")
-                    if module:
-                        # 1. Enhanced Module Cards
-                        module_card = await module_validator.get_enhanced_module_card(module)
-                        if module_card:
-                            logger.info(f"Module card created for {module}: {module_card.total_filters} filters, {module_card.complexity_level} complexity")
-                            step["details"]["module_card"] = {
-                                "emoji": module_card.emoji,
-                                "color": module_card.color,
-                                "short_description": module_card.short_description,
-                                "long_description": module_card.long_description,
-                                "data_frequency": module_card.data_frequency,
-                                "requires_source_selection": module_card.requires_source_selection,
-                                "total_filters": module_card.total_filters,
-                                "complexity_level": module_card.complexity_level
-                            }
-                            
-                            # Add detailed filter information
-                            step["details"]["available_filters"] = module_card.available_filters
-                        
-                        # 2. Smart Filter Recommendations
-                        filter_recommendations = await module_validator.get_filter_recommendations(module, goal)
-                        step["details"]["filter_recommendations"] = {
-                            "optimal_sequence": filter_recommendations.optimal_sequence,
-                            "efficiency_tips": filter_recommendations.efficiency_tips,
-                            "complexity_warning": filter_recommendations.complexity_warning
+                if not isinstance(step.get("details"), dict):
+                    step["details"] = {}
+
+                module_name = step.get("module") or ""
+                details = step["details"]
+
+                # Strategic note (only if goal- and module-specific)
+                note = _strategic_note_for(module_name)
+                if note:
+                    details["strategic_note"] = note
+
+                # Notification intelligence
+                details["recommended_notification"] = _notification_for(module_name)
+
+                # Explanation fallback (only if missing/undefined)
+                current_expl = details.get("explanation")
+                if current_expl is None or str(current_expl).strip() == "" or str(current_expl) == "undefined":
+                    rationale = (step.get("rationale") or "overvåge relevante ændringer").strip()
+                    details["explanation"] = f"Vi bruger {module_name or 'dette modul'} til at {rationale.lower()}"
+
+                # Enhanced module card + filters
+                if module_name:
+                    module_card = await module_validator.get_enhanced_module_card(module_name)
+                    if module_card:
+                        details["module_card"] = {
+                            "emoji": module_card.emoji,
+                            "color": module_card.color,
+                            "short_description": module_card.short_description,
+                            "long_description": module_card.long_description,
+                            "data_frequency": module_card.data_frequency,
+                            "requires_source_selection": module_card.requires_source_selection,
+                            "total_filters": module_card.total_filters,
+                            "complexity_level": module_card.complexity_level
                         }
-                        
-                        # 3. Real-time Complexity Analysis
-                        # Extract filters from step details (simulate user configuration)
-                        current_filters = {}
-                        if "branchekode" in step["details"].get("strategic_note", "").lower():
-                            current_filters["industry"] = True
-                        if "kommune" in step["details"].get("strategic_note", "").lower():
-                            current_filters["municipality"] = True
-                        
-                        complexity = await module_validator.analyze_complexity(module, current_filters)
-                        step["details"]["complexity_analysis"] = {
+                        details["available_filters"] = module_card.available_filters
+
+                    # Filter recommendations (only if actionable)
+                    rec = await module_validator.get_filter_recommendations(module_name, goal)
+                    actionable_rec = bool(rec.optimal_sequence or rec.complexity_warning or rec.efficiency_tips)
+                    if actionable_rec:
+                        details["filter_recommendations"] = {
+                            "optimal_sequence": rec.optimal_sequence,
+                            "efficiency_tips": rec.efficiency_tips,
+                            "complexity_warning": rec.complexity_warning
+                        }
+
+                    # Complexity analysis (only if actionable and consistent)
+                    complexity = await module_validator.analyze_complexity(module_name, {})
+                    if complexity and (complexity.optimization_suggestions or complexity.notification_recommendation):
+                        details["complexity_analysis"] = {
                             "estimated_hits": complexity.estimated_hits,
                             "filter_efficiency": complexity.filter_efficiency,
                             "notification_recommendation": complexity.notification_recommendation,
-                            "optimization_suggestions": complexity.optimization_suggestions
+                            "optimization_suggestions": [s for s in complexity.optimization_suggestions if s and s.strip()]
                         }
-                        
-                        # 5. Dynamic Search Optimization
-                        if module_card:
-                            # Generate optimal configuration based on goal and available filters
-                            optimal_config = await generate_search_optimization(module_card, goal, step)
-                            if optimal_config:
-                                step["details"]["search_optimization"] = optimal_config
-                        
-                        # Add search examples for the module
-                        search_examples = module_validator.get_search_examples_for_module(module)
-                        if search_examples:
-                            step["details"]["search_examples"] = search_examples
-                        
-                        # Add live data indicators
-                        step["details"]["live_data_available"] = True
-                        step["details"]["data_source"] = "KM24 API"
-                
-                enhanced_steps.append(step)
-            
-            # 4. Cross-Module Intelligence 
+
+                    # Dynamic search optimization (skip placeholders)
+                    if module_card:
+                        opt_cfg = await generate_search_optimization(module_card, goal, step)
+                        if opt_cfg and (opt_cfg.get("optimal_config") or "standardkonfiguration" not in _norm(opt_cfg.get("rationale", ""))):
+                            # Only attach when there is non-empty config or non-generic rationale
+                            details["search_optimization"] = opt_cfg
+
+                    # Contextual search examples (goal-driven; remove generic)
+                    examples = _contextual_search_examples(module_name)
+                    if examples:
+                        details["search_examples"] = examples[:3]
+
+                    # Power tip (only when criteria match)
+                    tip = _power_tip_for(module_name)
+                    if tip:
+                        details["power_tip"] = tip
+
+            # Cross-module intelligence (keep if present)
             if cross_module_relationships:
                 recipe["cross_module_intelligence"] = cross_module_relationships
-                
-        # 6. Module Availability Matrix
-        availability_matrix = await module_validator.get_module_availability_matrix()
-        if availability_matrix:
-            recipe["module_availability_matrix"] = availability_matrix
-            
+
+        # Supplementary modules: filter out already-included and cap at 3
+        if goal:
+            included = {s.get("module") for s in recipe.get("investigation_steps", []) if s.get("module")}
+            supp = [m for m in module_suggestions_raw if m["module"] not in included]
+            recipe["km24_module_suggestions"] = supp[:3]
+
     except Exception as e:
-        logger.error(f"Error adding enhanced API features: {e}", exc_info=True)
-    
-    logger.info("Returnerer kompletteret recipe")
+        logger.error(f"Error adding streamlined API features: {e}", exc_info=True)
+
+    logger.info("Returnerer kompletteret recipe (streamlined)")
     return recipe
 
 # --- API Endpoints ---
