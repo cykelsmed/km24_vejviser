@@ -362,6 +362,94 @@
             margin: 0;
         }
 
+        .complexity-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .complexity-simpel {
+            background-color: #52c41a;
+            color: white;
+        }
+
+        .complexity-medium {
+            background-color: #fa8c16;
+            color: white;
+        }
+
+        .complexity-kompleks {
+            background-color: #f5222d;
+            color: white;
+        }
+
+        /* Module Statistics */
+        .module-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0.75rem 0;
+            flex-wrap: wrap;
+        }
+
+        .module-stats span {
+            background: rgba(255,255,255,0.7);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .complexity-simpel {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+
+        .complexity-medium {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+
+        .complexity-kompleks {
+            background: #fff2e8;
+            color: #fa541c;
+        }
+
+        /* External Links */
+        .external-link {
+            color: #1890ff !important;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .external-link:hover {
+            color: #40a9ff !important;
+        }
+
+        /* Long Description Details */
+        .enhanced-module-card details {
+            margin-top: 1rem;
+        }
+
+        .enhanced-module-card summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #1890ff;
+            margin-bottom: 0.5rem;
+        }
+
+        .enhanced-module-card summary:hover {
+            color: #40a9ff;
+        }
+
+        .enhanced-module-card details[open] summary {
+            margin-bottom: 0.75rem;
+        }
+
         /* Filter Recommendations */
         .filter-recommendations {
             background: #f0f5ff;
@@ -590,9 +678,40 @@
                             </div>
                             <div class="step-details">`;
                     
-                    // Enhanced Module Card
+                    // Enhanced Module Card with Long Description & Statistics
                     if (step.details && step.details.module_card) {
                         const card = step.details.module_card;
+
+                        // Parse HTML links in long description
+                        const longDescHtml = card.long_description ?
+                            card.long_description.replace(
+                                /<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g,
+                                '<a href="$1" target="_blank" rel="noopener noreferrer" class="external-link">$2 ↗</a>'
+                            ) : '';
+
+                        // Use backend-calculated statistics
+                        const filterCount = card.total_filters || 0;
+                        const complexityText = card.complexity_level || 'Ukendt';
+                        const multiSelectCount = card.available_filters ?
+                            card.available_filters.filter(f => f.multiple).length : 0;
+                        const filterTypes = card.available_filters ?
+                            [...new Set(card.available_filters.map(f => f.type))].join(', ') : '';
+
+                        // Determine complexity CSS class based on backend complexity level
+                        let complexityClass = 'complexity-simpel';
+                        if (complexityText === 'Kompleks') {
+                            complexityClass = 'complexity-kompleks';
+                        } else if (complexityText === 'Medium') {
+                            complexityClass = 'complexity-medium';
+                        }
+
+                        console.log('Module card debug:', {
+                            module: step.module,
+                            totalFilters: filterCount,
+                            complexityLevel: complexityText,
+                            longDescription: card.long_description ? 'PRESENT' : 'MISSING'
+                        });
+
                         html += `
                             <div class="enhanced-module-card" style="border-left-color: ${card.color};">
                                 <div class="module-header">
@@ -601,9 +720,27 @@
                                         <h6 class="module-title">${step.module}</h6>
                                         <p class="module-frequency">📊 ${card.data_frequency}</p>
                                     </div>
+                                    <span class="complexity-badge ${complexityClass}">${complexityText}</span>
                                 </div>
+
                                 <p class="module-description">${card.short_description}</p>
-                                ${card.requires_source_selection ? '<p><strong>⚠️ Kræver manuel kildevalg</strong></p>' : ''}
+
+                                <div class="module-stats">
+                                    <span>🎛️ ${filterCount} filtre</span>
+                                    <span>✅ ${multiSelectCount} multi-select</span>
+                                    <span>🔧 ${filterTypes || 'Ingen filtre'}</span>
+                                </div>
+
+                                ${longDescHtml ? `
+                                    <details open style="margin-top: 1rem;">
+                                        <summary style="cursor: pointer; font-weight: bold;">📖 Læs mere om ${step.module}</summary>
+                                        <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e6e6e6; font-size: 0.9rem; line-height: 1.5;">
+                                            ${longDescHtml}
+                                        </div>
+                                    </details>
+                                ` : ''}
+
+                                ${card.requires_source_selection ? '<p style="margin-top: 0.5rem;"><strong>⚠️ Kræver manuel kildevalg</strong></p>' : ''}
                             </div>`;
                     } else if (step.module) {
                         html += `<p><strong>Modul:</strong> <em>${step.module}</em></p>`;
@@ -874,7 +1011,7 @@
                     html += `</div>`;
                     
                     if (matrix.modules_without_industry_filter && matrix.modules_without_industry_filter.length > 0) {
-                        html += `<details style="margin-top: 1rem;">`;
+                        html += `<details open style="margin-top: 1rem;">`;
                         html += `<summary>Moduler uden branche-filter (${matrix.modules_without_industry_filter.length})</summary>`;
                         html += `<p style="margin-top: 0.5rem; font-size: 0.9rem;">${matrix.modules_without_industry_filter.join(', ')}</p>`;
                         html += `</details>`;

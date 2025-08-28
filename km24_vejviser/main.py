@@ -31,8 +31,8 @@ from slowapi.errors import RateLimitExceeded
 from typing import Any
 
 # KM24 API Integration
-from km24_client import get_km24_client, KM24APIResponse
-from module_validator import get_module_validator, ModuleMatch
+from .km24_client import get_km24_client, KM24APIResponse, KM24APIClient
+from .module_validator import get_module_validator, ModuleMatch
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
@@ -155,7 +155,40 @@ async def get_anthropic_response(goal: str) -> dict:
     if not client:
         return {"error": "ANTHROPIC_API_KEY er ikke konfigureret."}
 
-    full_system_prompt = """
+    # Hent faktiske moduldata fra KM24 API
+    km24_client: KM24APIClient = get_km24_client()
+    modules_response = await km24_client.get_modules_basic()
+
+    module_list_text = ""
+    if modules_response.success and modules_response.data:
+        modules = modules_response.data.get('items', [])
+        logger.info(f"Hentet {len(modules)} moduler fra KM24 API")
+
+        # Byg modul liste tekst til system prompt
+        module_entries = []
+        for module in modules[:20]:  # Begræns til første 20 for at holde prompten håndterbar
+            title = module.get('title', 'Ukendt')
+            description = module.get('shortDescription', 'Ingen beskrivelse')
+            module_entries.append(f"- **{title}**: {description}")
+
+        module_list_text = "\n".join(module_entries)
+        logger.info(f"Moduler der sendes til Claude (første 5): {', '.join([m.get('title', '') for m in modules[:5]])}")
+    else:
+        logger.warning(f"Kunne ikke hente KM24 moduler: {modules_response.error}")
+        # Fallback til hårdkodede moduler hvis API fejler
+        module_list_text = """
+- **Tinglysning**: Ejendomshandler, beløbsfiltrering mulig
+- **Status**: Virksomhedsstatusændringer, konkurser, etc.
+- **Registrering**: Nye virksomhedsregistreringer - START HER
+- **Lokalpolitik**: Kommunale beslutninger, kræver kildevalg
+- **Udbud**: Offentlige udbud, kontraktværdi filtrering
+- **Miljøsager**: Miljøgodkendelser og -sager
+- **Personbogen**: Pant i løsøre, årets høst, relevant for landbrug
+- **Danske medier**: Lokale og landsdækkende medier
+- **Udenlandske medier**: Internationale medier og EU-kilder
+"""
+
+    full_system_prompt = f"""
 [SYSTEM PROMPT V3.3 - COMPREHENSIVE KM24 EXPERTISE]
 
 **1. ROLLE OG MÅL**
@@ -221,15 +254,7 @@ Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skj
 - **`generic_value`**: Modulspecifikke kategorier (multi-select)
 
 **VIGTIGE MODULER OG DERES FUNKTIONER:**
-- **Tinglysning**: Ejendomshandler, beløbsfiltrering mulig
-- **Status**: Virksomhedsstatusændringer, konkurser, etc.
-- **Registrering**: Nye virksomhedsregistreringer - **START HER**
-- **Lokalpolitik**: Kommunale beslutninger, kræver kildevalg
-- **Udbud**: Offentlige udbud, kontraktværdi filtrering
-- **Miljøsager**: Miljøgodkendelser og -sager
-- **Personbogen**: Pant i løsøre, årets høst, relevant for landbrug
-- **Danske medier**: Lokale og landsdækkende medier
-- **Udenlandske medier**: Internationale medier og EU-kilder
+{module_list_text}
 
 **STRATEGISKE PRINCIPLER:**
 - **Geografisk præcision**: Omsæt regioner til specifikke kommuner
@@ -322,7 +347,7 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
 **5. KONTEKST**
 
 **USER_GOAL:**
-"{user_goal}"
+{goal}
 
 **6. UDFØRELSE**
 Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske principper som CVR først-princippet, branchekode-filtrering, hitlogik og systematisk tilgang.
@@ -333,7 +358,7 @@ Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske pr
 - `advanced_tactics`: Avancerede taktikker og kreative filtre
 - `potential_story_angles`: Dristige hypoteser og worst-case scenarios
 - `creative_cross_references`: Kreative krydsrefereringer mellem moduler
-""".format(user_goal=goal)
+"""
     retries = 3
     delay = 2
 
@@ -460,15 +485,43 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
             
             step_title = step.get("title", "")
             search_string = step.get("details", {}).get("search_string") if step.get("details") else None
-            
+
+            # Ensure details object exists
+            if "details" not in step or not isinstance(step.get("details"), dict):
+                step["details"] = {}
+
             if "details" in step and isinstance(step["details"], dict):
                 # Strategic note - only add if not already present
                 if "strategic_note" not in step["details"]:
                     step["details"]["strategic_note"] = "Ingen specifik strategisk note til dette trin."
-                
+
                 # Recommended notification - only add if not already present
                 if "recommended_notification" not in step["details"]:
                     step["details"]["recommended_notification"] = "interval"
+
+                # Explanation - ensure it's present and meaningful
+                current_explanation = step["details"].get("explanation")
+                needs_explanation = (
+                    "explanation" not in step["details"] or
+                    current_explanation is None or
+                    current_explanation == "undefined" or
+                    str(current_explanation).strip() == ""
+                )
+
+                if needs_explanation:
+                    rationale = step.get("rationale", "overvåge relevante ændringer")
+                    module = step.get("module", "dette modul")
+
+                    # Ensure rationale is not None and has content
+                    if rationale:
+                        rationale = str(rationale).strip().lower()
+                        if not rationale:
+                            rationale = "overvåge relevante ændringer"
+                    else:
+                        rationale = "overvåge relevante ændringer"
+
+                    step["details"]["explanation"] = f"Vi bruger {module} til at {rationale}"
+                    logger.info(f"Added fallback explanation for step {idx + 1}: {step['details']['explanation']}")
     
     # Validate recommended modules against KM24 API
     validation_warnings = []
@@ -555,12 +608,16 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
                         # 1. Enhanced Module Cards
                         module_card = await module_validator.get_enhanced_module_card(module)
                         if module_card:
+                            logger.info(f"Module card created for {module}: {module_card.total_filters} filters, {module_card.complexity_level} complexity")
                             step["details"]["module_card"] = {
                                 "emoji": module_card.emoji,
                                 "color": module_card.color,
                                 "short_description": module_card.short_description,
+                                "long_description": module_card.long_description,
                                 "data_frequency": module_card.data_frequency,
-                                "requires_source_selection": module_card.requires_source_selection
+                                "requires_source_selection": module_card.requires_source_selection,
+                                "total_filters": module_card.total_filters,
+                                "complexity_level": module_card.complexity_level
                             }
                             
                             # Add detailed filter information

@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 import re
-from km24_client import get_km24_client, KM24APIResponse
+from .km24_client import get_km24_client, KM24APIResponse
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,8 @@ class EnhancedModuleCard:
     data_frequency: str
     available_filters: List[Dict[str, Any]]
     requires_source_selection: bool
+    total_filters: int
+    complexity_level: str
 
 @dataclass
 class FilterRecommendation:
@@ -322,15 +324,21 @@ class ModuleValidator:
 
     async def get_enhanced_module_card(self, module_title: str) -> Optional[EnhancedModuleCard]:
         """Få udvidet modul-information med alle API metadata."""
+        logger.info(f"Getting enhanced card for: {module_title}")
+
         if not await self._load_modules():
+            logger.warning(f"Could not load modules for {module_title}")
             return None
-        
+
         for module in self._modules_cache:
             if module.get('title') == module_title:
+                logger.info(f"Found module: {module.get('title')}")
+                logger.info(f"Module data: {module.get('longDescription', 'NO LONG DESC')[:100]}...")
+
                 # Process filters with detailed info
                 available_filters = []
                 requires_source = False
-                
+
                 for part in module.get('parts', []):
                     filter_info = {
                         'type': part.get('part'),
@@ -341,17 +349,23 @@ class ModuleValidator:
                         'practical_use': self._get_practical_filter_use(part.get('part'), part.get('name'))
                     }
                     available_filters.append(filter_info)
-                    
+
                     # Check if web_source (requires manual selection)
                     if part.get('part') == 'web_source':
                         requires_source = True
-                
+
                 # Sort filters by order
                 available_filters.sort(key=lambda x: x['order'])
-                
+
+                # Calculate NEW FIELDS
+                total_filters = len(available_filters)
+                complexity_level = self._calculate_complexity_level(total_filters, requires_source)
+
                 # Extract data frequency from description
                 data_freq = self._extract_data_frequency(module.get('longDescription', ''))
-                
+
+                logger.info(f"Module stats - Filters: {total_filters}, Complexity: {complexity_level}")
+
                 return EnhancedModuleCard(
                     title=module.get('title', ''),
                     slug=module.get('slug', ''),
@@ -361,9 +375,12 @@ class ModuleValidator:
                     long_description=module.get('longDescription', ''),
                     data_frequency=data_freq,
                     available_filters=available_filters,
-                    requires_source_selection=requires_source
+                    requires_source_selection=requires_source,
+                    total_filters=total_filters,
+                    complexity_level=complexity_level
                 )
-        
+
+        logger.warning(f"Module not found: {module_title}")
         return None
 
     def _get_practical_filter_use(self, filter_type: str, filter_name: str) -> str:
@@ -390,6 +407,15 @@ class ModuleValidator:
             return 'månedligt'
         else:
             return 'løbende opdatering'
+
+    def _calculate_complexity_level(self, total_filters: int, requires_source: bool) -> str:
+        """Beregn kompleksitetsniveau baseret på filter-antal og kildekrav."""
+        if total_filters <= 2 and not requires_source:
+            return "Simpel"
+        elif total_filters <= 4 and not requires_source:
+            return "Medium"
+        else:
+            return "Kompleks"
 
     async def get_filter_recommendations(self, module_title: str, goal: str = "") -> FilterRecommendation:
         """Generer smarte anbefalinger for filter-rækkefølge."""
