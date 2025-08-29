@@ -20,7 +20,7 @@ import anthropic
 from dotenv import load_dotenv
 from pathlib import Path
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 import asyncio
 import json
 import logging
@@ -1621,3 +1621,38 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def read_item(request: Request):
     logger.info("Serverer index_new.html til bruger")
     return templates.TemplateResponse("index_new.html", {"request": request, "prompts": inspiration_prompts}) 
+
+@app.get("/generate-recipe-stream/")
+async def generate_recipe_stream(goal: str):
+    async def event_stream():
+        try:
+            # Step 1: Analyze goal
+            yield f"data: {json.dumps({'progress': 10, 'message': 'Analyserer dit journalistiske mål...', 'details': 'Uddrager nøgleord og fokus'})}\n\n"
+            await asyncio.sleep(0.5)
+
+            # Step 2: Load modules and filters
+            yield f"data: {json.dumps({'progress': 25, 'message': 'Henter KM24 moduler og filtre...', 'details': 'Indlæser modules/basic og initialiserer filterkatalog'})}\n\n"
+            km24_client: KM24APIClient = get_km24_client()
+            modules_response = await km24_client.get_modules_basic()
+            filter_catalog = get_filter_catalog()
+            await filter_catalog.load_all_filters()
+
+            # Step 3: Find relevant strategies
+            yield f"data: {json.dumps({'progress': 35, 'message': 'Finder relevante overvågningsstrategier...', 'details': 'Analyserer moduler og parts for match'})}\n\n"
+            _ = filter_catalog.get_relevant_filters(goal, [])
+            await asyncio.sleep(0.3)
+
+            # Step 4: Generate recipe with AI
+            yield f"data: {json.dumps({'progress': 75, 'message': 'Genererer opskrift med AI...', 'details': 'Kalder Claude for fuld strategi'})}\n\n"
+            raw = await get_anthropic_response(goal)
+
+            # Step 5: Validate and optimize
+            yield f"data: {json.dumps({'progress': 90, 'message': 'Validerer og optimerer strategien...', 'details': 'Normalisering og validering'})}\n\n"
+            completed = await complete_recipe(raw, goal) if isinstance(raw, dict) else {"error": "Ugyldigt AI-svar"}
+
+            # Step 6: Done
+            yield f"data: {json.dumps({'progress': 100, 'message': 'Klar til brug!', 'details': 'Opskrift genereret'})}\n\n"
+            yield f"data: {json.dumps({'result': completed})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'progress': 100, 'message': 'Fejl', 'details': str(e)})}\n\n"
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
