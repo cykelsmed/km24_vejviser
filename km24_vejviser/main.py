@@ -1594,6 +1594,71 @@ inspiration_prompts = [
     {
         "title": "🏢 Ejendomsspekulation & politik",
         "prompt": "Undersøg om lokale politikere eller deres familie systematisk køber ejendomme i områder hvor kommunen senere planlægger store udviklingsprojekter, infrastruktur eller ændringer i lokalplaner."
+    },
+    # --- Korruption og interessekonflikter ---
+    {
+        "title": "⚖️ Udbud & politiske forbindelser",
+        "prompt": "Kortlæg kommunalpolitikere med økonomiske interesser i virksomheder der vinder kommunale udbud, og sammenlign tidslinjer i Lokalpolitik med Udbud og Registrering for at afdække mulige interessekonflikter."
+    },
+    {
+        "title": "🔁 Embedsmænds jobskifte",
+        "prompt": "Identificér embedsmænd der har skiftet til private selskaber, de tidligere regulerede; brug Danske medier og Registrering til at følge personspor og Udbud for efterfølgende kontrakter."
+    },
+    {
+        "title": "👪 Familieejerskab & sagsbehandling",
+        "prompt": "Find sager hvor beslutningstageres familiemedlemmer ejer virksomheder med aktive byggesager; kombiner Personbogen, Tinglysning og Lokalpolitik for at afdække sammenfald."
+    },
+    # --- Miljø og sundhed ---
+    {
+        "title": "🌍 Gentagne miljøbrud & nye tilladelser",
+        "prompt": "Find virksomheder med gentagne Arbejdstilsyn- eller Miljøsager-brud som alligevel får nye miljøtilladelser; krydsreferér Arbejdstilsyn, Miljøsager og Danske medier."
+    },
+    {
+        "title": "🐖 Dyresygdomme & eksport",
+        "prompt": "Undersøg om udbrud af dyresygdomme følges af uændrede eller stigende eksportgodkendelser; brug Forskning, EU og Danske medier til at matche tidslinjer."
+    },
+    {
+        "title": "🥗 Fødevaresmiley vs. eksportaktivitet",
+        "prompt": "Sammenlign lave fødevaresmiley-resultater med virksomhedernes eksportaktivitet; brug Fødevaresmiley, Regnskaber og Danske medier for afvigelser."
+    },
+    # --- Erhverv og økonomi ---
+    {
+        "title": "💸 Offentlig støtte før konkurs",
+        "prompt": "Identificér virksomheder der modtager større offentlige kontrakter eller støtte kort før konkurs; brug Udbud, Regnskaber og Status til at dokumentere forløb."
+    },
+    {
+        "title": "🏦 Kapitalfonde & systematiske opkøb",
+        "prompt": "Kortlæg kapitalfondes systematiske opkøb af danske selskaber; kombiner Registrering, Kapitalændring og Børsmeddelelser for at se mønstre og timing."
+    },
+    {
+        "title": "📉 Regnskabsinflation før salg",
+        "prompt": "Find tegn på regnskabsinflation op til virksomhedssalg; brug Regnskaber og Børsmeddelelser sammen med Danske medier til at identificere uregelmæssigheder."
+    },
+    # --- Offentlige finanser ---
+    {
+        "title": "🧾 Konsulentforbrug i pressede kommuner",
+        "prompt": "Sammenhold stigende konsulentforbrug med kommuner med budgetunderskud; brug Lokalpolitik og Kommuner (kilder) samt Danske medier for budgetreferencer."
+    },
+    {
+        "title": "📑 Udbud & budgetoverskridelser",
+        "prompt": "Find sammenhæng mellem vundne udbud og efterfølgende budgetoverskridelser; brug Udbud og Lokalpolitik til at matche kontraktstart og økonomiopfølgning."
+    },
+    {
+        "title": "🏠 Offentlige ejendomshandler under markedspris",
+        "prompt": "Identificér kommunale ejendomssalg under markedspris ved at krydsreferere Tinglysning (beløb) med Lokalpolitik og Danske medier for beslutningsgrundlaget."
+    },
+    # --- Social dumping og arbejdsforhold ---
+    {
+        "title": "🛠️ Arbejdstilsynsbrud & udbudsvindere",
+        "prompt": "Find udenlandske virksomheder med alvorlige Arbejdstilsyns-reaktioner (Forbud/Strakspåbud) der samtidig vinder offentlige udbud; brug Arbejdstilsyn og Udbud."
+    },
+    {
+        "title": "💼 Konkurser & lønrestancer",
+        "prompt": "Undersøg mønstre hvor konkurser følges af lønrestancer og nye selskaber; kombiner Status, Registrering og Danske medier."
+    },
+    {
+        "title": "🧯 Sikkerhedsbrud i offentlige kontrakter",
+        "prompt": "Identificér leverandører med gentagne sikkerhedsbrud der har aktive offentlige kontrakter; brug Arbejdstilsyn og Udbud til at matche tidsmæssigt."
     }
 ]
 
