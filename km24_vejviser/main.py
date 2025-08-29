@@ -309,9 +309,11 @@ For hvert trin i din JSON-output skal du:
 • Pitfalls: 3-5 bullets med typiske fejl
 
 **2. SØGESYNTAKS (MUST)**
-• AND/OR: Altid med STORE bogstaver (AND, OR, NOT)
+• AND/OR: Altid med STORE bogstaver (AND, OR, NOT) - ALDRIG lowercase!
+• KRITISK: Brug KUN "AND", "OR", "NOT" med store bogstaver i søgestrengene
 • Parallelle variationer: Brug semikolon ; (ikke komma)
 • Eksempel: landbrug;landbrugsvirksomhed;agriculture
+• Eksempel med operator: landbrug AND ejendom OR byggeri
 • Eksakt frase: ~kritisk sygdom~
 • Positionel søgning: ~parkering
 • INGEN uunderstøttede operatorer – kun ovenstående
@@ -672,6 +674,19 @@ def _normalize_notification(notification: str) -> str:
     else:
         return "daily"  # Default fallback
 
+def _fix_operators_in_search_string(search_string: str) -> str:
+    """Fix lowercase operators to uppercase in search strings."""
+    if not search_string:
+        return search_string
+    
+    # Replace lowercase operators with uppercase
+    fixed = search_string
+    fixed = re.sub(r'\band\b', 'AND', fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r'\bor\b', 'OR', fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r'\bnot\b', 'NOT', fixed, flags=re.IGNORECASE)
+    
+    return fixed
+
 def _standardize_search_string(search_string: str, module_name: str) -> str:
     """
     Standardize search strings according to KM24 syntax standards.
@@ -733,29 +748,33 @@ def _standardize_search_string(search_string: str, module_name: str) -> str:
         if module_lower == "registrering":
             for key, pattern in patterns.items():
                 if key in search_string.lower():
-                    return pattern
+                    return _fix_operators_in_search_string(pattern)
         
         # For tinglysning, use default pattern if it exists
         elif module_lower == "tinglysning":
             for key, pattern in patterns.items():
                 if key in search_string.lower():
-                    return pattern
+                    return _fix_operators_in_search_string(pattern)
         
         # For kapitalændring, use default pattern if it exists
         elif module_lower == "kapitalændring":
             for key, pattern in patterns.items():
                 if key in search_string.lower():
-                    return pattern
+                    return _fix_operators_in_search_string(pattern)
             # If no specific match, return default landbrug pattern
             if "landbrug" in search_string.lower():
-                return "kapitalfond;ejendomsselskab;landbrug"
+                return _fix_operators_in_search_string("kapitalfond;ejendomsselskab;landbrug")
         
         # For other modules, use default pattern
         elif "default" in patterns:
-            return patterns["default"]
+            pattern = patterns["default"]
+            return _fix_operators_in_search_string(pattern)
     
     # If no specific pattern found, apply general KM24 syntax improvements
-    return _apply_km24_syntax_improvements(search_string)
+    improved = _apply_km24_syntax_improvements(search_string)
+    
+    # Fix operators to uppercase
+    return _fix_operators_in_search_string(improved)
 
 def _apply_km24_syntax_improvements(search_string: str) -> str:
     """
@@ -786,6 +805,9 @@ def _apply_km24_syntax_improvements(search_string: str) -> str:
     result = re.sub(r'\s+', ' ', result)
     result = result.strip('; ')
     
+    # Fix operators to uppercase
+    result = _fix_operators_in_search_string(result)
+    
     return result
 
 def _ensure_filters_before_search_string(step: dict, goal: str = "") -> dict:
@@ -808,24 +830,29 @@ def _ensure_filters_before_search_string(step: dict, goal: str = "") -> dict:
         logger.info(f"Found {len(relevant_filters)} relevant filters")
         
         # Tilføj relevante filtre til step
+        added_any_filter = False
         for rec in relevant_filters:
             if rec.filter_type == "municipality":
                 step["filters"]["geografi"] = rec.values
+                added_any_filter = True
                 logger.info(f"Added geography filter: {rec.values}")
             elif rec.filter_type == "industry":
                 step["filters"]["branchekode"] = rec.values
+                added_any_filter = True
                 logger.info(f"Added industry filter: {rec.values}")
             elif rec.filter_type == "region":
                 step["filters"]["region"] = rec.values
+                added_any_filter = True
                 logger.info(f"Added region filter: {rec.values}")
         
-        # Tilføj standard periode og beløbsgrænse hvis de mangler
-        if "periode" not in step["filters"]:
-            step["filters"]["periode"] = "24 mdr"
-            logger.info("Added default period: 24 mdr")
-        if "beløbsgrænse" not in step["filters"]:
-            step["filters"]["beløbsgrænse"] = "1000000"
-            logger.info("Added default amount limit: 1000000")
+        # Tilføj standard periode og beløbsgrænse kun hvis vi faktisk har tilføjet filtre
+        if added_any_filter:
+            if "periode" not in step["filters"]:
+                step["filters"]["periode"] = "24 mdr"
+                logger.info("Added default period: 24 mdr")
+            if "beløbsgrænse" not in step["filters"]:
+                step["filters"]["beløbsgrænse"] = "1000000"
+                logger.info("Added default amount limit: 1000000")
     else:
         logger.info("Filters already present or no goal provided")
     
@@ -1035,12 +1062,15 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
         logger.info(f"Step {i+1}: module={module.get('name', 'Unknown')}, is_web_source={module.get('is_web_source', False)}, source_selection={step.get('source_selection', [])}")
     
     try:
-        # Validate against KM24 rules first
+        # Validate against KM24 rules first (record warnings instead of raising)
         is_valid, km24_errors = validate_km24_recipe(recipe)
         if not is_valid:
             error_message = format_validation_error(km24_errors)
             logger.error(f"KM24 validation failed: {error_message}")
-            raise ValueError(error_message)
+            # Record as quality warnings so frontend can surface issues without breaking
+            quality = recipe.setdefault("quality", {})
+            warnings_list = quality.setdefault("warnings", [])
+            warnings_list.extend(km24_errors)
         
         # Validate the final recipe against Pydantic schema
         model = UseCaseResponse.model_validate(recipe)
@@ -1172,13 +1202,14 @@ def validate_search_syntax(search_string: str, step_number: int) -> list[str]:
         # Don't add error, just return empty list - search strings can be empty
         return errors
     
-    # Check for invalid operators (only standalone words with word boundaries)
-    invalid_operators = ["and", "or", "not", "og", "eller", "ikke"]
-    for operator in invalid_operators:
-        # Use word boundaries to match only standalone operators
-        pattern = r'\b' + re.escape(operator) + r'\b'
-        if re.search(pattern, search_string.lower()):
-            errors.append(f"Trin {step_number}: Ugyldig operator '{operator}'. Brug AND/OR/NOT med store bogstaver")
+    # Flag lowercase boolean operators; accept uppercase AND/OR/NOT
+    operator_pattern = r"\b(and|or|not|og|eller|ikke)\b"
+    for match in re.finditer(operator_pattern, search_string):
+        token = match.group(0)
+        if token != token.upper():
+            errors.append(
+                f"Trin {step_number}: Ugyldig operator '{token}'. Brug AND/OR/NOT med store bogstaver"
+            )
     
     # Check for commas (should use semicolons)
     if "," in search_string:
@@ -1260,6 +1291,10 @@ async def generate_recipe_api(request: Request, body: RecipeRequest):
         return JSONResponse(status_code=422, content={"error": "goal må ikke være tom"})
     
     try:
+        # Return controlled error when Anthropic API key is not configured
+        if client is None:
+            logger.warning("Anthropic client not configured; returning error response")
+            return JSONResponse(status_code=500, content={"error": "ANTHROPIC_API_KEY er ikke konfigureret."})
         raw_recipe = await get_anthropic_response(goal)
 
         if "error" in raw_recipe:
