@@ -177,6 +177,34 @@ class KM24APIClient:
         """Hent eksempel-søgestrenge for et specifikt modul."""
         return await self._make_request(f"/api/modules/{module_slug}/search-examples", force_refresh)
     
+    async def get_generic_values(self, module_part_id: int, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent modulspecifikke kategorier (generic_values) for en specifik modulpart."""
+        return await self._make_request(f"/api/generic-values/{module_part_id}", force_refresh)
+    
+    async def get_web_sources(self, module_id: int, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent webkilder for et specifikt modul."""
+        return await self._make_request(f"/api/web-sources/categories/{module_id}", force_refresh)
+    
+    async def get_municipalities(self, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent alle danske kommuner."""
+        return await self._make_request("/api/municipalities", force_refresh)
+    
+    async def get_branch_codes_detailed(self, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent detaljerede branchekoder med beskrivelser."""
+        return await self._make_request("/api/branch-codes/detailed", force_refresh)
+    
+    async def get_court_districts(self, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent retskredse."""
+        return await self._make_request("/api/court-districts", force_refresh)
+    
+    async def get_regions(self, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent danske regioner."""
+        return await self._make_request("/api/regions", force_refresh)
+    
+    async def get_filter_options_for_module(self, module_id: int, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent alle filter-options for et specifikt modul."""
+        return await self._make_request(f"/api/modules/{module_id}/filter-options", force_refresh)
+    
     async def get_health_status(self) -> Dict[str, Any]:
         """Tjek KM24 API status."""
         if not self.api_key:

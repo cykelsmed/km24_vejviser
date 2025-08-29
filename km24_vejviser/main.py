@@ -24,6 +24,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 import asyncio
 import json
 import logging
+import re
 from datetime import datetime
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -33,6 +34,8 @@ from typing import Any
 # KM24 API Integration
 from .km24_client import get_km24_client, KM24APIResponse, KM24APIClient
 from .module_validator import get_module_validator, ModuleMatch
+from .models.usecase_response import UseCaseResponse, ModuleRef
+from .filter_catalog import get_filter_catalog
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
@@ -159,6 +162,23 @@ async def get_anthropic_response(goal: str) -> dict:
     km24_client: KM24APIClient = get_km24_client()
     modules_response = await km24_client.get_modules_basic()
 
+    # Hent dynamiske filter-data
+    filter_catalog = get_filter_catalog()
+    filter_data = await filter_catalog.load_all_filters()
+    
+    # Hent relevante filtre baseret på mål
+    relevant_filters = filter_catalog.get_relevant_filters(goal, [])
+    
+    # Byg filter-katalog tekst til system prompt
+    filter_catalog_text = ""
+    if relevant_filters:
+        filter_entries = []
+        for rec in relevant_filters[:5]:  # Top 5 anbefalinger
+            filter_entries.append(f"- **{rec.filter_type}**: {', '.join(rec.values)} (relevans: {rec.relevance_score:.2f})")
+        filter_catalog_text = "\n".join(filter_entries)
+    else:
+        filter_catalog_text = "Ingen specifikke filter-anbefalinger fundet"
+
     module_list_text = ""
     if modules_response.success and modules_response.data:
         modules = modules_response.data.get('items', [])
@@ -189,7 +209,7 @@ async def get_anthropic_response(goal: str) -> dict:
 """
 
     full_system_prompt = f"""
-[SYSTEM PROMPT V3.3 - COMPREHENSIVE KM24 EXPERTISE]
+[SYSTEM PROMPT V3.4 - COMPREHENSIVE KM24 EXPERTISE WITH DYNAMIC FILTERS]
 
 **1. ROLLE OG MÅL**
 Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
@@ -208,8 +228,49 @@ Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skj
     1.  **HVIS-SÅ-REGEL FOR '+1'-TRICKET:** Dette er din mest specifikke regel. **HVIS** en brugerforespørgsel kræver to eller flere separate overvågninger, der bruger **forskellige typer af for-filtrering** (f.eks. én overvågning filtreret på geografi og en anden filtreret på branchekode), **SÅ SKAL** du dedikere et specifikt trin i din plan til at forklare og anbefale **"+1"-tricket** som den optimale løsning for at holde disse overvågninger adskilt og rene.
     2.  **KRÆV NOTIFIKATIONS-ANBEFALING:** Din næstvigtigste regel. For **hvert** overvågningstrin (`search` eller `cvr_monitoring`) **SKAL** du inkludere feltet `recommended_notification` (`løbende` eller `interval`) og kort begrunde dit valg.
     3.  **ADVAR OM KILDEVALG:** Hvis et modul har `requires_source_selection: true`, **SKAL** du tilføje en `strategic_note`, der advarer brugeren om, at de manuelt skal vælge kilder for at få resultater.
+    4.  **BRUG DYNAMISKE FILTRE:** Du **SKAL** bruge de dynamisk hentede filtre nedenfor til at give konkrete og relevante filter-anbefalinger i hvert trin.
 
-**3. JOURNALISTISKE PRINCIPLER OG STRATEGIER**
+**3. DYNAMISKE FILTER-DATA (OBLIGATORISK AT BRUGE)**
+Baseret på dit mål er følgende filtre identificeret som relevante:
+
+{filter_catalog_text}
+
+**FILTER-KATALOG STATUS:**
+- Kommuner indlæst: {filter_data.get('municipalities', 0)}
+- Branchekoder indlæst: {filter_data.get('branch_codes', 0)}
+- Regioner indlæst: {filter_data.get('regions', 0)}
+- Retskredse indlæst: {filter_data.get('court_districts', 0)}
+
+**OBLIGATORISK FILTER-BRUG:**
+- **Hvert trin SKAL indeholde konkrete filtre** baseret på de relevante filtre ovenfor
+- **Kommuner**: Brug specifikke kommuner fra filter-anbefalingerne (f.eks. "Aarhus", "Vejle", "Horsens")
+- **Branchekoder**: Brug relevante branchekoder fra filter-anbefalingerne (f.eks. "41.1", "41.2" for byggeri)
+- **Regioner**: Brug regioner når geografisk fokus er bredere (f.eks. "midtjylland", "vestjylland")
+- **Beløbsgrænser**: Brug konkrete beløbsgrænser for amount_selection moduler
+
+**EKSEMPEL PÅ KORREKT FILTER-BRUG I JSON:**
+```json
+{{
+  "details": {{
+    "geografi": ["Aarhus", "Vejle", "Horsens"],
+    "branchekode": ["41.1", "41.2", "43.3"],
+    "periode": "24 mdr",
+    "beløbsgrænse": "1000000"
+  }}
+}}
+```
+
+**VIGTIGT: Du SKAL bruge de konkrete værdier fra filter-anbefalingerne ovenfor i dine trin!**
+
+**SPECIFIK INSTRUKTION:**
+For hvert trin i din JSON-output skal du:
+1. **Altid** inkludere `geografi` med kommuner fra filter-anbefalingerne
+2. **Altid** inkludere `branchekode` med relevante branchekoder fra filter-anbefalingerne
+3. **Altid** inkludere `periode` (f.eks. "24 mdr", "12 mdr")
+4. **Altid** inkludere `beløbsgrænse` for amount_selection moduler
+5. **Brug de eksakte værdier** fra filter-anbefalingerne ovenfor
+
+**4. JOURNALISTISKE PRINCIPLER OG STRATEGIER**
 
 **CVR FØRST-PRINCIP:**
 - **Start altid med CVR-data**: Brug Registrering og Status moduler først for at identificere virksomheder
@@ -237,12 +298,78 @@ Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skj
 - **Interval**: For mindre presserende overvågninger (mange hits)
 - **Aldrig**: For at fravælge specifikke moduler
 
-**AVANCERET SØGESYNTAKS:**
-- **`~frase~`**: Eksakt frasesøgning - fanger kun den præcise frase
-- **`~ord`**: Positionel søgning - ordet skal være centralt i teksten
-- **`term1;term2`**: Semikolon-separeret - fanger begge termer i ét modul
-- **`AND`, `OR`, `NOT`**: Booleske operatorer for komplekse søgninger
-- **`"eksakt frase"`**: Anførselstegn for præcis frasesøgning
+**UFRAVIGELIGE KM24 REGLER - ALT OUTPUT SKAL VÆRE KØREKLART**
+
+**1. STRUKTUR (MUST)**
+• Strategi: 2-3 linjer i overview.strategy_summary
+• Trin: Nummereret med Modul, Formål, Filtre, Søgestreng, Power-user, Notifikation, Hitlogik
+• Pipeline: Find aktører → Bekræft handler → Følg pengene → Sæt i kontekst
+• Næste niveau spørgsmål: Altid inkluderet
+• Potentielle vinkler: Altid inkluderet  
+• Pitfalls: 3-5 bullets med typiske fejl
+
+**2. SØGESYNTAKS (MUST)**
+• AND/OR: Altid med STORE bogstaver (AND, OR, NOT)
+• Parallelle variationer: Brug semikolon ; (ikke komma)
+• Eksempel: landbrug;landbrugsvirksomhed;agriculture
+• Eksakt frase: ~kritisk sygdom~
+• Positionel søgning: ~parkering
+• INGEN uunderstøttede operatorer – kun ovenstående
+
+**3. FILTRE (MUST)**
+• Alle trin skal angive Filtre først, før søgestrengen:
+• Geografi (kommuner, regioner, områder – fx Vestjylland, Gentofte)
+• Branche/instans (branchekoder, instanser, kildelister)
+• Beløbsgrænser/perioder (fx >10 mio., "seneste 24 mdr.")
+
+**4. MODULER (MUST match officielle)**
+• Brug kun officielle modulnavne:
+• 📊 Registrering – nye selskaber fra VIRK
+• 📊 Tinglysning – nye ejendomshandler
+• 📊 Kapitalændring – selskabsændringer fra VIRK
+• 📊 Lokalpolitik – dagsordener/referater
+• 📊 Miljøsager – miljøtilladelser
+• 📊 EU – indhold fra EU-organer
+• 📊 Kommuner – lokalpolitik og planer
+• 📊 Danske medier – danske nyhedskilder
+• 📊 Webstedsovervågning – konkurrentovervågning
+• 📊 Udenlandske medier – internationale kilder
+• 📊 Forskning – akademiske kilder
+• 📊 Udbud – offentlige udbud
+• 📊 Regnskaber – årsrapporter og regnskaber
+• 📊 Personbogen – personlige oplysninger
+• 📊 Status – virksomhedsstatusændringer og konkurser
+• 📊 Arbejdstilsyn – arbejdsmiljøsager og kontrol
+• 📊 Børsmeddelelser – børsnoterede selskaber
+
+**5. NOTIFIKATIONSKADENCE (MUST)**
+• Kun én kadence pr. trin:
+• Løbende → få, men kritiske hits (fx Tinglysning, Kapitalændring)
+• Daglig → moderate hits
+• Ugentlig/Interval → mange hits/støj (fx Registrering, Lokalpolitik)
+
+**6. WEBKILDE-MODULER (MUST)**
+• For moduler som EU, Kommuner, Danske medier, Webstedsovervågning skal du altid angive konkrete kilder i Filtre.
+• Hvis dette mangler → opskriften er ugyldig.
+
+**7. CVR-FILTER**
+• Når du overvåger en virksomhed via CVR-nummer, overstyrer CVR søgeord. Tilføj altid en ⚠️-advarsel i Pitfalls.
+
+**8. SØGESTRENGE & FILTRE (MUST)**
+• Alle trin skal have søgestrenge - brug modulspecifikke standarder
+• Filtre kan være tomme men bør indeholde geografi, branche eller beløb
+• Generer altid søgestrenge selv hvis LLM ikke giver dem
+
+**9. AFVISNING**
+• Hvis en opskrift bryder nogen regler → returnér kun: "UGYLDIG OPSKRIFT – RET FØLGENDE: [liste over fejl]"
+
+**STANDARD SØGESTRENGE FOR MODULER:**
+- **Registrering**: `landbrug;landbrugsvirksomhed;agriculture` (parallel-søgning)
+- **Tinglysning**: `~landbrugsejendom~` (eksakt frase)
+- **Kapitalændring**: `kapitalfond;ejendomsselskab;landbrug` (variationer)
+- **Lokalpolitik**: `lokalplan;landzone;kommunal` (variationer)
+- **Miljøsager**: `miljøtilladelse;husdyrgodkendelse;udvidelse` (variationer)
+- **Regnskaber**: `regnskab;årsrapport;økonomi` (variationer)
 
 **MODUL UNDERKATEGORIER:**
 - **`company`**: Filtrer efter specifikke virksomheder (multi-select)
@@ -469,219 +596,642 @@ async def generate_search_optimization(module_card, goal: str, step: dict) -> di
         return {}
 
 
-async def complete_recipe(recipe: dict, goal: str = "") -> dict:
-    import json as _json
-    logger.info("Modtog recipe til komplettering: %s", _json.dumps(recipe, ensure_ascii=False))
+def _get_default_sources_for_module(module_name: str) -> list[str]:
+    """
+    Get default source selection for web source modules.
+    
+    Returns appropriate default sources for modules that require source selection.
+    """
+    module_lower = module_name.lower()
+    
+    # Default sources for different web source modules
+    if "lokalpolitik" in module_lower:
+        return ["Aarhus", "København", "Odense", "Aalborg"]  # Major cities
+    elif "danske medier" in module_lower:
+        return ["DR", "TV2", "Berlingske", "Politiken", "Jyllands-Posten"]
+    elif "udenlandske medier" in module_lower:
+        return ["Reuters", "AFP", "AP", "Bloomberg"]
+    elif "eu" in module_lower:
+        return ["EU Commission", "European Parliament", "EU Council"]
+    elif "forskning" in module_lower:
+        return ["Aarhus University", "Copenhagen University", "DTU"]
+    elif "klima" in module_lower:
+        return ["Danish Meteorological Institute", "European Environment Agency"]
+    elif "sundhed" in module_lower:
+        return ["Danish Health Authority", "WHO", "European Medicines Agency"]
+    elif "webstedsovervågning" in module_lower:
+        return ["Government websites", "Municipal websites"]
+    else:
+        return []  # No default sources for unknown modules
 
-    # Helpers (goal-context analysis and value gates)
-    def _norm(text: str) -> str:
-        return (text or "").lower()
+def _get_default_search_string_for_module(module_name: str) -> str:
+    """Get default search string for module."""
+    module_name_lower = module_name.lower()
+    
+    if "registrering" in module_name_lower:
+        return "landbrug;landbrugsvirksomhed;agriculture"
+    elif "tinglysning" in module_name_lower:
+        return "~landbrugsejendom~"
+    elif "kapitalændring" in module_name_lower:
+        return "kapitalfond;ejendomsselskab;landbrug"
+    elif "lokalpolitik" in module_name_lower:
+        return "lokalplan;landzone;kommunal"
+    elif "miljøsager" in module_name_lower:
+        return "miljøtilladelse;husdyrgodkendelse;udvidelse"
+    elif "regnskaber" in module_name_lower:
+        return "regnskab;årsrapport;økonomi"
+    elif "status" in module_name_lower:
+        return "konkurs;ophør;statusændring"
+    elif "arbejdstilsyn" in module_name_lower:
+        return "arbejdsmiljø;kontrol;forseelse"
+    elif "børsmeddelelser" in module_name_lower:
+        return "børsmeddelelse;årsrapport;økonomi"
+    elif "udbud" in module_name_lower:
+        return "offentligt udbud;kontrakt;vinder"
+    elif "personbogen" in module_name_lower:
+        return "person;ejer;bestyrelse"
+    else:
+        return "søgning"
 
-    goal_lc = _norm(goal)
-    time_critical = any(k in goal_lc for k in ["konkurs", "akut", "haster", "kritisk", "varsling"])
-    mentions_large_amounts = any(k in goal_lc for k in ["mio", "million", "kr", "beløb", "over ", "større", "stor"]) 
-    mentions_politics = any(k in goal_lc for k in ["kommune", "kommunal", "byråd", "lokalpolitik", "politisk", "udvalg"]) 
-    mentions_holding_capital = any(k in goal_lc for k in ["holding", "kapital", "capital", "fond", "ejerskab", "ejerkæde"]) 
-    mentions_agri_env = any(k in goal_lc for k in ["landbrug", "svin", "kvæg", "gylle", "miljø", "forurening"]) 
+def _normalize_notification(notification: str) -> str:
+    """
+    Normalize notification values from Danish to English.
+    
+    Maps Danish notification values to the expected English literals.
+    """
+    if not notification:
+        return "daily"
+    
+    notification_lower = notification.lower().strip()
+    
+    # Map Danish to English
+    if notification_lower in ["løbende", "øjeblikkelig", "instant"]:
+        return "instant"
+    elif notification_lower in ["interval", "periodisk", "weekly"]:
+        return "weekly"
+    else:
+        return "daily"  # Default fallback
 
-    def _goal_keywords(maxn: int = 5) -> list[str]:
-        import re
-        words = re.findall(r"[a-zA-ZæøåÆØÅ0-9]{3,}", goal_lc)
-        stop = {"jeg","vil","om","at","for","der","som","med","og","det","den","de","en","et","i","på","af","til","er","ikke"}
-        uniq = []
-        for w in words:
-            if w not in stop and w not in uniq:
-                uniq.append(w)
-            if len(uniq) >= maxn:
-                break
-        return uniq
+def _standardize_search_string(search_string: str, module_name: str) -> str:
+    """
+    Standardize search strings according to KM24 syntax standards.
+    
+    Args:
+        search_string: The raw search string from LLM
+        module_name: The module name to determine appropriate syntax
+    
+    Returns:
+        Standardized search string following KM24 conventions
+    """
+    if not search_string:
+        return ""
+    
+    module_lower = module_name.lower()
+    search_string = search_string.strip()
+    
+    # Standard search patterns for different modules
+    module_patterns = {
+        "registrering": {
+            "landbrug": "landbrug;landbrugsvirksomhed;agriculture",
+            "ejendom": "ejendomsselskab;ejendomsudvikling;real_estate",
+            "bygge": "byggefirma;byggevirksomhed;construction",
+            "detail": "detailhandel;retail;butik",
+            "restaurant": "restaurant;café;cafe;spisested",
+            "transport": "transport;logistik;spedition",
+            "finans": "finans;bank;kapitalfond",
+            "teknologi": "teknologi;tech;software;it"
+        },
+        "tinglysning": {
+            "landbrug": "~landbrugsejendom~",
+            "ejendom": "~ejendomshandel~",
+            "bygge": "~byggegrund~",
+            "erhverv": "~erhvervsejendom~",
+            "bolig": "~boligejendom~"
+        },
+        "kapitalændring": {
+            "landbrug": "kapitalfond;ejendomsselskab;landbrug",
+            "ejendom": "ejendomsselskab;kapitalfond;udvikling",
+            "bygge": "byggefirma;kapitalfond;udvikling",
+            "finans": "kapitalfond;finansselskab;investering"
+        },
+        "lokalpolitik": {
+            "default": "lokalplan;landzone;kommunal;politisk"
+        },
+        "miljøsager": {
+            "default": "miljøtilladelse;husdyrgodkendelse;udvidelse;miljø"
+        },
+        "regnskaber": {
+            "default": "regnskab;årsrapport;økonomi;finansiel"
+        }
+    }
+    
+    # Check if we have a pattern for this module
+    if module_lower in module_patterns:
+        patterns = module_patterns[module_lower]
+        
+        # For registrering, try to match content
+        if module_lower == "registrering":
+            for key, pattern in patterns.items():
+                if key in search_string.lower():
+                    return pattern
+        
+        # For tinglysning, use default pattern if it exists
+        elif module_lower == "tinglysning":
+            for key, pattern in patterns.items():
+                if key in search_string.lower():
+                    return pattern
+        
+        # For kapitalændring, use default pattern if it exists
+        elif module_lower == "kapitalændring":
+            for key, pattern in patterns.items():
+                if key in search_string.lower():
+                    return pattern
+            # If no specific match, return default landbrug pattern
+            if "landbrug" in search_string.lower():
+                return "kapitalfond;ejendomsselskab;landbrug"
+        
+        # For other modules, use default pattern
+        elif "default" in patterns:
+            return patterns["default"]
+    
+    # If no specific pattern found, apply general KM24 syntax improvements
+    return _apply_km24_syntax_improvements(search_string)
 
-    def _notification_for(module_name: str) -> str:
-        high_volume = module_name in {"Tinglysning", "Tingbogsattester", "Registrering", "Status", "Regnskaber"}
-        if time_critical:
-            return "løbende"
-        return "interval" if high_volume else "interval"
+def _apply_km24_syntax_improvements(search_string: str) -> str:
+    """
+    Apply general KM24 syntax improvements to search strings.
+    
+    Args:
+        search_string: The raw search string
+    
+    Returns:
+        Improved search string with KM24 syntax
+    """
+    if not search_string:
+        return ""
+    
+    # Apply improvements more carefully to avoid breaking words
+    result = search_string
+    
+    # Handle exact phrases first
+    result = re.sub(r'"([^"]+)"', r'~\1~', result)
+    
+    # Handle variations
+    result = re.sub(r'(\w+)\s*[-_]\s*(\w+)', r'\1;\1_\2', result)
+    
 
-    def _strategic_note_for(module_name: str) -> str | None:
-        if module_name == "Lokalpolitik" and mentions_politics:
-            return "ADVARSEL: Vælg manuelt de relevante kommuner som kilder for præcis dækning."
-        if module_name in {"Tinglysning", "Tingbogsattester"} and mentions_large_amounts:
-            return "Brug minimum-beløb filter (fx ≥ 10 mio. kr.) for at fokusere på væsentlige handler."
-        if module_name == "Registrering" and mentions_holding_capital:
-            return "Brug branchekoder 64.20.10 (Finansielle holdingselskaber) og 01.11.00 hvis relevant."
-        if module_name == "Miljøsager" and mentions_agri_env:
-            return "Vælg relevante miljøtyper (fx husdyrgodkendelser og landbrugssager)."
-        return None
+    
+    # Clean up multiple semicolons and spaces
+    result = re.sub(r';+', ';', result)
+    result = re.sub(r'\s+', ' ', result)
+    result = result.strip('; ')
+    
+    return result
 
-    def _power_tip_for(module_name: str) -> str | None:
-        if module_name in {"Tinglysning", "Tingbogsattester"} and any(k in goal_lc for k in ["systematisk", "mønster", "serie", "+1"]):
-            return "+1-trick: Opret parallelle overvågninger med forskellige thresholds/geografier for at splitte støj."
-        if module_name == "Registrering" and any(k in goal_lc for k in ["udenlandsk", "foreign", "kapital", "fond", "ejerkæde"]):
-            return "Kortlæg ejerkæder: Start i holdingselskaber, kryds med direktører/bestyrelse og fortsæt nedad."
-        if module_name == "Status" and any(k in goal_lc for k in ["fusion", "spaltning", "merger", "sammenlægning"]):
-            return "Timing-analyse: Overvåg koordinerede statusændringer på tværs af relaterede selskaber."
-        return None
+def _ensure_filters_before_search_string(step: dict, goal: str = "") -> dict:
+    """
+    Ensures that filters are present in the step before search_string.
+    If not, it adds default filters based on dynamic filter recommendations.
+    """
+    logger.info(f"Ensuring filters for step: {step.get('title', 'Unknown')}")
+    logger.info(f"Goal: {goal}")
+    logger.info(f"Current filters: {step.get('filters', {})}")
+    
+    if "filters" not in step:
+        step["filters"] = {}
+    
+    # Hvis filtre mangler, tilføj dynamiske filtre baseret på mål
+    if not step["filters"] and goal:
+        logger.info("Adding dynamic filters based on goal")
+        filter_catalog = get_filter_catalog()
+        relevant_filters = filter_catalog.get_relevant_filters(goal, [])
+        logger.info(f"Found {len(relevant_filters)} relevant filters")
+        
+        # Tilføj relevante filtre til step
+        for rec in relevant_filters:
+            if rec.filter_type == "municipality":
+                step["filters"]["geografi"] = rec.values
+                logger.info(f"Added geography filter: {rec.values}")
+            elif rec.filter_type == "industry":
+                step["filters"]["branchekode"] = rec.values
+                logger.info(f"Added industry filter: {rec.values}")
+            elif rec.filter_type == "region":
+                step["filters"]["region"] = rec.values
+                logger.info(f"Added region filter: {rec.values}")
+        
+        # Tilføj standard periode og beløbsgrænse hvis de mangler
+        if "periode" not in step["filters"]:
+            step["filters"]["periode"] = "24 mdr"
+            logger.info("Added default period: 24 mdr")
+        if "beløbsgrænse" not in step["filters"]:
+            step["filters"]["beløbsgrænse"] = "1000000"
+            logger.info("Added default amount limit: 1000000")
+    else:
+        logger.info("Filters already present or no goal provided")
+    
+    logger.info(f"Final filters: {step['filters']}")
+    return step
 
-    def _contextual_search_examples(module_name: str) -> list[str]:
-        kws = _goal_keywords(4)
-        if not kws:
-            return []
-        examples: list[str] = []
-        if len(kws) >= 2:
-            examples.append(f"{kws[0]} AND {kws[1]}")
-        examples.append(" OR ".join(kws[:3]))
-        if module_name in {"Registrering","Status"} and mentions_holding_capital and kws:
-            examples.append(f"{kws[0]} AND (holding OR kapital)")
-        return [e for e in examples if len(e) >= 3]
+def coerce_raw_to_target_shape(raw: dict, goal: str) -> dict:
+    """
+    Normalize LLM JSON output to target structure.
+    
+    Handles incomplete LLM output by creating missing sections and mapping known fields.
+    """
+    logger.info("Normaliserer rå LLM-output til målstruktur")
+    
+    # Initialize target structure with defaults
+    target = {
+        "overview": {},
+        "scope": {},
+        "monitoring": {},
+        "hit_budget": {},
+        "notifications": {},
+        "parallel_profile": {},
+        "steps": [],
+        "cross_refs": [],
+        "syntax_guide": {},
+        "quality": {},
+        "artifacts": {},
+        "next_level_questions": [],
+        "potential_story_angles": [],
+        "creative_cross_references": []
+    }
+    
+    # Map known fields from raw LLM output
+    if "title" in raw:
+        target["overview"]["title"] = raw["title"]
+    if "strategy_summary" in raw:
+        target["overview"]["strategy_summary"] = raw["strategy_summary"]
+    if "creative_approach" in raw:
+        target["overview"]["creative_approach"] = raw["creative_approach"]
+    
+    # Set scope.primary_focus from goal if not present
+    if goal:
+        target["scope"]["primary_focus"] = goal[:100] + "..." if len(goal) > 100 else goal
+    
+    # Map investigation steps
+    if "investigation_steps" in raw and isinstance(raw["investigation_steps"], list):
+        for i, step in enumerate(raw["investigation_steps"], 1):
+            normalized_step = {
+                "step_number": step.get("step", i),
+                "title": step.get("title", f"Step {i}"),
+                "type": step.get("type", "search"),
+                "module": {
+                    "id": step.get("module", "").lower().replace(" ", "_"),
+                    "name": step.get("module", "Unknown"),
+                    "is_web_source": False  # Will be set by validator
+                },
+                "rationale": step.get("rationale", ""),
+                "search_string": _standardize_search_string(
+                    step.get("details", {}).get("search_string", ""),
+                    step.get("module", "Unknown")
+                ),
+                "filters": step.get("details", {}).get("filters", {}),
+                "notification": _normalize_notification(step.get("details", {}).get("recommended_notification", "daily")),
+                "delivery": "email",
+                "source_selection": step.get("details", {}).get("source_selection", []),
+                "strategic_note": step.get("details", {}).get("strategic_note"),
+                "explanation": step.get("details", {}).get("explanation", ""),
+                "creative_insights": step.get("details", {}).get("creative_insights"),
+                "advanced_tactics": step.get("details", {}).get("advanced_tactics")
+            }
+            
+            # Ensure filters are properly structured before search string
+            normalized_step = _ensure_filters_before_search_string(normalized_step, goal)
+            
+            target["steps"].append(normalized_step)
+    
+    # Map other fields
+    if "next_level_questions" in raw:
+        target["next_level_questions"] = raw["next_level_questions"]
+    if "potential_story_angles" in raw:
+        target["potential_story_angles"] = raw["potential_story_angles"]
+    if "creative_cross_references" in raw:
+        target["creative_cross_references"] = raw["creative_cross_references"]
+    
+    logger.info(f"Normalisering færdig: {len(target['steps'])} steps mapped")
+    return target
 
-    # Module validation and suggestion setup
-    module_validator = get_module_validator()
-    recommended_modules: list[str] = []
-
-    if "investigation_steps" in recipe and isinstance(recipe.get("investigation_steps"), list):
-        for step in recipe["investigation_steps"]:
-            m = step.get("module") or (step.get("details", {}).get("module"))
-            if m:
-                recommended_modules.append(m)
-
-    # Validate against KM24 API (keep, but only attach warnings when relevant)
-    validation_warnings: list[dict] = []
-    module_suggestions: list[dict] = []
-    try:
-        if recommended_modules:
-            validation_result = await module_validator.validate_recommended_modules(recommended_modules)
-            if validation_result.invalid_modules:
-                validation_warnings.append({
-                    "type": "invalid_modules",
-                    "message": f"Følgende moduler blev ikke fundet i KM24: {', '.join(validation_result.invalid_modules)}",
-                    "suggestions": [
-                        {
-                            "module": match.module_title,
-                            "reason": match.match_reason,
-                            "confidence": match.confidence
-                        } for match in validation_result.suggestions
-                    ]
-                })
-            logger.info(f"Module validation: {len(validation_result.valid_modules)}/{len(recommended_modules)} valid")
-
-        if goal:
-            suggested_matches = await module_validator.get_module_suggestions_for_goal(goal, limit=6)
-            # Convert and later filter out already-included modules; cap at 3
-            module_suggestions_raw = [{
-                "module": m.module_title,
-                "slug": m.module_slug,
-                "reason": m.match_reason,
-                "confidence": m.confidence,
-                "description": m.description
-            } for m in suggested_matches]
+def apply_min_defaults(recipe: dict) -> None:
+    """
+    Apply sensible defaults to recipe structure.
+    
+    Ensures all required fields have reasonable default values.
+    """
+    logger.info("Anvender minimum defaults")
+    
+    # Overview defaults
+    if not recipe.get("overview", {}).get("title"):
+        recipe.setdefault("overview", {})["title"] = "KM24 Investigation"
+    if not recipe.get("overview", {}).get("strategy_summary"):
+        recipe.setdefault("overview", {})["strategy_summary"] = "Systematic investigation using KM24 modules"
+    if not recipe.get("overview", {}).get("creative_approach"):
+        recipe.setdefault("overview", {})["creative_approach"] = "Data-driven approach with cross-referencing"
+    
+    # Monitoring defaults
+    if not recipe.get("monitoring", {}).get("type"):
+        recipe.setdefault("monitoring", {})["type"] = "keywords"
+    
+    # Notifications defaults
+    if not recipe.get("notifications"):
+        recipe["notifications"] = {
+            "primary": "daily",
+            "channels": ["email"]
+        }
+    
+    # Quality checks
+    quality = recipe.setdefault("quality", {})
+    checks = quality.setdefault("checks", [])
+    if "webkilder har valgte kilder" not in checks:
+        checks.append("webkilder har valgte kilder")
+    if "beløbsgrænser sat hvor muligt" not in checks:
+        checks.append("beløbsgrænser sat hvor muligt")
+    
+    # Step defaults
+    for step in recipe.get("steps", []):
+        if not step.get("notification"):
+            step["notification"] = "daily"
         else:
-            module_suggestions_raw = []
-    except Exception as e:
-        logger.error(f"Error during module validation: {e}", exc_info=True)
-        validation_warnings.append({
-            "type": "validation_error",
-            "message": "Kunne ikke validere moduler mod KM24 API"
-        })
-        module_suggestions_raw = []
+            # Normalize existing notification values
+            step["notification"] = _normalize_notification(step["notification"])
+        if not step.get("delivery"):
+            step["delivery"] = "email"
+        if not step.get("filters"):
+            step["filters"] = {}
+        
+        # Generate default search string if empty
+        if not step.get("search_string"):
+            module_name = step.get("module", {}).get("name", "Unknown") if isinstance(step.get("module"), dict) else step.get("module", "Unknown")
+            step["search_string"] = _get_default_search_string_for_module(module_name)
+            logger.info(f"Genereret default søgestreng for {module_name}: {step['search_string']}")
+        else:
+            # Standardize existing search strings
+            module_name = step.get("module", {}).get("name", "Unknown") if isinstance(step.get("module"), dict) else step.get("module", "Unknown")
+            step["search_string"] = _standardize_search_string(step["search_string"], module_name)
+            logger.info(f"Standardiseret søgestreng for {module_name}: {step['search_string']}")
+        
+        # Handle source_selection for web source modules
+        module = step.get("module", {})
+        if isinstance(module, dict) and module.get("is_web_source", False):
+            if not step.get("source_selection") or len(step.get("source_selection", [])) == 0:
+                # Get default sources for web source module
+                default_sources = _get_default_sources_for_module(module.get("name", ""))
+                step["source_selection"] = default_sources
+                logger.info(f"Tilføjet default sources for {module.get('name', '')}: {default_sources}")
+        elif not step.get("source_selection"):
+            step["source_selection"] = []
+    
+    logger.info("Defaults anvendt")
 
-    if validation_warnings:
-        recipe["validation_warnings"] = validation_warnings
-
-    # Enhanced per-step enrichment (value-driven only)
+async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
+    """
+    Complete recipe with deterministic output structure.
+    
+    Normalizes LLM output, validates modules, applies defaults, and returns
+    structured response conforming to UseCaseResponse model.
+    """
+    logger.info("Starter deterministisk recipe komplettering")
+    
+    # Step 1: Normalize LLM JSON to target structure
+    logger.info("Trin 1: Normaliserer rå LLM-output")
+    recipe = coerce_raw_to_target_shape(raw_recipe, goal)
+    
+    # Step 2: Validate and enrich modules via KM24ModuleValidator
+    logger.info("Trin 2: Validerer og beriger moduler")
+    module_validator = get_module_validator()
+    
+    for step in recipe.get("steps", []):
+        module_name = step.get("module", {}).get("name", "")
+        if module_name:
+            try:
+                # Get module info from validator
+                module_card = await module_validator.get_enhanced_module_card(module_name)
+                if module_card:
+                    step["module"]["id"] = module_card.slug
+                    step["module"]["name"] = module_card.title
+                    step["module"]["is_web_source"] = module_card.requires_source_selection
+                    
+                    # Add API example if available
+                    if hasattr(module_card, 'api_example'):
+                        step["api"] = {
+                            "endpoint": f"/api/{module_card.slug}",
+                            "method": "POST",
+                            "body": module_card.api_example
+                        }
+            except Exception as e:
+                logger.warning(f"Kunne ikke validere modul {module_name}: {e}")
+    
+    # Step 3: Apply sensible defaults (after module validation)
+    logger.info("Trin 3: Anvender defaults")
+    apply_min_defaults(recipe)
+    
+    # Step 4: Parse to UseCaseResponse and return dict
+    logger.info("Trin 4: Parser til UseCaseResponse")
+    
+    # Debug: Log step details before validation
+    for i, step in enumerate(recipe.get("steps", [])):
+        module = step.get("module", {})
+        logger.info(f"Step {i+1}: module={module.get('name', 'Unknown')}, is_web_source={module.get('is_web_source', False)}, source_selection={step.get('source_selection', [])}")
+    
     try:
-        if "investigation_steps" in recipe and isinstance(recipe.get("investigation_steps"), list):
-            all_modules = [s.get("module") for s in recipe["investigation_steps"] if s.get("module")]
-            cross_module_relationships = await module_validator.get_cross_module_intelligence(all_modules)
-
-            for idx, step in enumerate(recipe["investigation_steps"]):
-                if not isinstance(step.get("details"), dict):
-                    step["details"] = {}
-
-                module_name = step.get("module") or ""
-                details = step["details"]
-
-                # Strategic note (only if goal- and module-specific)
-                note = _strategic_note_for(module_name)
-                if note:
-                    details["strategic_note"] = note
-
-                # Notification intelligence
-                details["recommended_notification"] = _notification_for(module_name)
-
-                # Explanation fallback (only if missing/undefined)
-                current_expl = details.get("explanation")
-                if current_expl is None or str(current_expl).strip() == "" or str(current_expl) == "undefined":
-                    rationale = (step.get("rationale") or "overvåge relevante ændringer").strip()
-                    details["explanation"] = f"Vi bruger {module_name or 'dette modul'} til at {rationale.lower()}"
-
-                # Enhanced module card + filters
-                if module_name:
-                    module_card = await module_validator.get_enhanced_module_card(module_name)
-                    if module_card:
-                        details["module_card"] = {
-                            "emoji": module_card.emoji,
-                            "color": module_card.color,
-                            "short_description": module_card.short_description,
-                            "long_description": module_card.long_description,
-                            "data_frequency": module_card.data_frequency,
-                            "requires_source_selection": module_card.requires_source_selection,
-                            "total_filters": module_card.total_filters,
-                            "complexity_level": module_card.complexity_level
-                        }
-                        details["available_filters"] = module_card.available_filters
-
-                    # Filter recommendations (only if actionable)
-                    rec = await module_validator.get_filter_recommendations(module_name, goal)
-                    actionable_rec = bool(rec.optimal_sequence or rec.complexity_warning or rec.efficiency_tips)
-                    if actionable_rec:
-                        details["filter_recommendations"] = {
-                            "optimal_sequence": rec.optimal_sequence,
-                            "efficiency_tips": rec.efficiency_tips,
-                            "complexity_warning": rec.complexity_warning
-                        }
-
-                    # Complexity analysis (only if actionable and consistent)
-                    complexity = await module_validator.analyze_complexity(module_name, {})
-                    if complexity and (complexity.optimization_suggestions or complexity.notification_recommendation):
-                        details["complexity_analysis"] = {
-                            "estimated_hits": complexity.estimated_hits,
-                            "filter_efficiency": complexity.filter_efficiency,
-                            "notification_recommendation": complexity.notification_recommendation,
-                            "optimization_suggestions": [s for s in complexity.optimization_suggestions if s and s.strip()]
-                        }
-
-                    # Dynamic search optimization (skip placeholders)
-                    if module_card:
-                        opt_cfg = await generate_search_optimization(module_card, goal, step)
-                        if opt_cfg and (opt_cfg.get("optimal_config") or "standardkonfiguration" not in _norm(opt_cfg.get("rationale", ""))):
-                            # Only attach when there is non-empty config or non-generic rationale
-                            details["search_optimization"] = opt_cfg
-
-                    # Contextual search examples (goal-driven; remove generic)
-                    examples = _contextual_search_examples(module_name)
-                    if examples:
-                        details["search_examples"] = examples[:3]
-
-                    # Power tip (only when criteria match)
-                    tip = _power_tip_for(module_name)
-                    if tip:
-                        details["power_tip"] = tip
-
-            # Cross-module intelligence (keep if present)
-            if cross_module_relationships:
-                recipe["cross_module_intelligence"] = cross_module_relationships
-
-        # Supplementary modules: filter out already-included and cap at 3
-        if goal:
-            included = {s.get("module") for s in recipe.get("investigation_steps", []) if s.get("module")}
-            supp = [m for m in module_suggestions_raw if m["module"] not in included]
-            recipe["km24_module_suggestions"] = supp[:3]
-
+        # Validate against KM24 rules first
+        is_valid, km24_errors = validate_km24_recipe(recipe)
+        if not is_valid:
+            error_message = format_validation_error(km24_errors)
+            logger.error(f"KM24 validation failed: {error_message}")
+            raise ValueError(error_message)
+        
+        # Validate the final recipe against Pydantic schema
+        model = UseCaseResponse.model_validate(recipe)
+        logger.info("Recipe valideret succesfuldt")
+        return model.model_dump()
     except Exception as e:
-        logger.error(f"Error adding streamlined API features: {e}", exc_info=True)
+        logger.error(f"Validation fejl: {e}")
+        raise ValueError(f"Recipe validation failed: {e}")
 
-    logger.info("Returnerer kompletteret recipe (streamlined)")
-    return recipe
+def validate_km24_recipe(recipe: dict) -> tuple[bool, list[str]]:
+    """
+    Validate recipe against KM24 rules.
+    
+    Returns:
+        (is_valid, list_of_errors)
+    """
+    errors = []
+    
+    # 1. Check structure
+    required_sections = ["overview", "steps", "next_level_questions", "potential_story_angles"]
+    for section in required_sections:
+        if section not in recipe:
+            errors.append(f"Mangler sektion: {section}")
+    
+    # Check overview has strategy
+    if "overview" in recipe and "strategy_summary" not in recipe["overview"]:
+        errors.append("Mangler strategi i overview")
+    
+    # 2. Validate each step
+    if "steps" in recipe:
+        for i, step in enumerate(recipe["steps"], 1):
+            step_errors = validate_step(step, i)
+            errors.extend(step_errors)
+    
+    # 3. Check pipeline structure
+    if "steps" in recipe and len(recipe["steps"]) < 3:
+        errors.append("Pipeline skal have mindst 3 trin")
+    
+    # 4. Check next level questions
+    if "next_level_questions" in recipe and not recipe["next_level_questions"]:
+        errors.append("Mangler næste niveau spørgsmål")
+    
+    # 5. Check potential angles
+    if "potential_story_angles" in recipe and not recipe["potential_story_angles"]:
+        errors.append("Mangler potentielle vinkler")
+    
+    # 6. Check pitfalls
+    if "quality" not in recipe or "checks" not in recipe["quality"]:
+        errors.append("Mangler pitfalls/quality checks")
+    
+    return len(errors) == 0, errors
+
+def validate_step(step: dict, step_number: int) -> list[str]:
+    """Validate a single step against KM24 rules."""
+    errors = []
+    
+    # Check required fields
+    required_fields = ["module", "search_string", "filters", "notification"]
+    for field in required_fields:
+        if field not in step:
+            errors.append(f"Trin {step_number}: Mangler {field}")
+    
+    if "module" in step:
+        module_errors = validate_module(step["module"], step_number)
+        errors.extend(module_errors)
+    
+    if "search_string" in step:
+        search_errors = validate_search_syntax(step["search_string"], step_number)
+        errors.extend(search_errors)
+    
+    if "filters" in step:
+        filter_errors = validate_filters(step["filters"], step_number)
+        errors.extend(filter_errors)
+    
+    if "notification" in step:
+        notification_errors = validate_notification(step["notification"], step_number)
+        errors.extend(notification_errors)
+    
+    # Check web source modules have source selection
+    if "module" in step and "is_web_source" in step["module"] and step["module"]["is_web_source"]:
+        if "source_selection" not in step or not step["source_selection"]:
+            errors.append(f"Trin {step_number}: Webkilde-modul kræver source_selection")
+    
+    return errors
+
+def validate_module(module: dict, step_number: int) -> list[str]:
+    """Validate module name and format."""
+    errors = []
+    
+    if "name" not in module:
+        errors.append(f"Trin {step_number}: Modul mangler navn")
+        return errors
+    
+    name = module["name"]
+    
+    # Check official module names
+    official_modules = {
+        "Registrering": "📊 Registrering – nye selskaber fra VIRK",
+        "Tinglysning": "📊 Tinglysning – nye ejendomshandler", 
+        "Kapitalændring": "📊 Kapitalændring – selskabsændringer fra VIRK",
+        "Lokalpolitik": "📊 Lokalpolitik – dagsordener/referater",
+        "Miljøsager": "📊 Miljøsager – miljøtilladelser",
+        "EU": "📊 EU – indhold fra EU-organer",
+        "Kommuner": "📊 Kommuner – lokalpolitik og planer",
+        "Danske medier": "📊 Danske medier – danske nyhedskilder",
+        "Webstedsovervågning": "📊 Webstedsovervågning – konkurrentovervågning",
+        "Udenlandske medier": "📊 Udenlandske medier – internationale kilder",
+        "Forskning": "📊 Forskning – akademiske kilder",
+        "Udbud": "📊 Udbud – offentlige udbud",
+        "Regnskaber": "📊 Regnskaber – årsrapporter og regnskaber",
+        "Personbogen": "📊 Personbogen – personlige oplysninger",
+        "Status": "📊 Status – virksomhedsstatusændringer og konkurser",
+        "Arbejdstilsyn": "📊 Arbejdstilsyn – arbejdsmiljøsager og kontrol",
+        "Børsmeddelelser": "📊 Børsmeddelelser – børsnoterede selskaber"
+    }
+    
+    # Check if module name matches official format
+    if name not in official_modules and not any(official in name for official in official_modules.keys()):
+        errors.append(f"Trin {step_number}: Ugyldigt modulnavn '{name}'. Skal være et af de officielle moduler.")
+    
+    return errors
+
+def validate_search_syntax(search_string: str, step_number: int) -> list[str]:
+    """Validate search string syntax."""
+    errors = []
+    
+    # Allow empty search strings but warn
+    if not search_string:
+        # Don't add error, just return empty list - search strings can be empty
+        return errors
+    
+    # Check for invalid operators (only standalone words with word boundaries)
+    invalid_operators = ["and", "or", "not", "og", "eller", "ikke"]
+    for operator in invalid_operators:
+        # Use word boundaries to match only standalone operators
+        pattern = r'\b' + re.escape(operator) + r'\b'
+        if re.search(pattern, search_string.lower()):
+            errors.append(f"Trin {step_number}: Ugyldig operator '{operator}'. Brug AND/OR/NOT med store bogstaver")
+    
+    # Check for commas (should use semicolons)
+    if "," in search_string:
+        errors.append(f"Trin {step_number}: Brug semikolon ; i stedet for komma for parallelle variationer")
+    
+    # Check for unsupported operators
+    unsupported = ["+", "-", "*", "/", "=", "!=", "<", ">"]
+    for op in unsupported:
+        if op in search_string:
+            errors.append(f"Trin {step_number}: Uunderstøttet operator '{op}'")
+    
+    return errors
+
+def validate_filters(filters: dict, step_number: int) -> list[str]:
+    """Validate filters structure."""
+    errors = []
+    
+    # Allow empty filters but warn
+    if not filters:
+        # Don't add error, just return empty list - filters can be empty
+        return errors
+    
+    # Check for required filter categories
+    required_categories = ["geografi", "branche", "beløb"]
+    found_categories = []
+    
+    for key in filters.keys():
+        if any(cat in key.lower() for cat in required_categories):
+            found_categories.append(key)
+    
+    if not found_categories:
+        errors.append(f"Trin {step_number}: Filtre skal indeholde mindst én kategori (geografi, branche, beløb)")
+    
+    return errors
+
+def validate_notification(notification: str, step_number: int) -> list[str]:
+    """Validate notification cadence."""
+    errors = []
+    
+    valid_notifications = ["løbende", "daglig", "ugentlig", "interval", "instant", "daily", "weekly"]
+    
+    if notification.lower() not in valid_notifications:
+        errors.append(f"Trin {step_number}: Ugyldig notifikationskadence '{notification}'. Skal være: løbende, daglig, ugentlig, interval")
+    
+    return errors
+
+def format_validation_error(errors: list[str]) -> str:
+    """Format validation errors as UGYLDIG OPSKRIFT message."""
+    if not errors:
+        return ""
+    
+    error_list = "\n".join([f"• {error}" for error in errors])
+    return f"UGYLDIG OPSKRIFT – RET FØLGENDE:\n{error_list}"
 
 # --- API Endpoints ---
 @app.post(
@@ -689,7 +1239,7 @@ async def complete_recipe(recipe: dict, goal: str = "") -> dict:
     response_model=Any,
     responses={
         200: {"description": "Struktureret JSON-plan for journalistisk mål."},
-        422: {"description": "Ugyldig input."},
+        422: {"description": "Ugyldig input eller valideringsfejl."},
         429: {"description": "Rate limit exceeded."},
         500: {"description": "Intern serverfejl."}
     },
@@ -708,15 +1258,30 @@ async def generate_recipe_api(request: Request, body: RecipeRequest):
     if not goal:
         logger.warning("goal er tom efter strip")
         return JSONResponse(status_code=422, content={"error": "goal må ikke være tom"})
-    raw_recipe = await get_anthropic_response(goal)
+    
+    try:
+        raw_recipe = await get_anthropic_response(goal)
 
-    if "error" in raw_recipe:
-        logger.warning(f"Fejl fra get_anthropic_response: {raw_recipe['error']}")
-        return JSONResponse(status_code=500, content=raw_recipe)
+        if "error" in raw_recipe:
+            logger.warning(f"Fejl fra get_anthropic_response: {raw_recipe['error']}")
+            return JSONResponse(status_code=500, content=raw_recipe)
 
-    completed_recipe = await complete_recipe(raw_recipe, goal)
-    logger.info("Returnerer completed_recipe til frontend")
-    return JSONResponse(content=completed_recipe)
+        completed_recipe = await complete_recipe(raw_recipe, goal)
+        logger.info("Returnerer completed_recipe til frontend")
+        return JSONResponse(content=completed_recipe)
+        
+    except ValueError as e:
+        logger.error(f"Recipe validation fejl: {e}")
+        return JSONResponse(
+            status_code=422, 
+            content={"error": f"Recipe validation failed: {str(e)}"}
+        )
+    except Exception as e:
+        logger.error(f"Uventet fejl i generate_recipe_api: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500, 
+            content={"error": "Intern serverfejl under recipe generering"}
+        )
 
 @app.get("/health")
 async def health_check():
@@ -780,23 +1345,84 @@ async def clear_km24_cache():
     else:
         return JSONResponse(status_code=500, content=result)
 
+@app.get("/api/filter-catalog/status")
+async def get_filter_catalog_status():
+    """Hent status for filter-kataloget."""
+    try:
+        filter_catalog = get_filter_catalog()
+        status = await filter_catalog.load_all_filters()
+        return JSONResponse(content=status)
+    except Exception as e:
+        logger.error(f"Fejl ved hentning af filter-katalog status: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Fejl ved hentning af filter-katalog status: {str(e)}"}
+        )
+
+@app.post("/api/filter-catalog/recommendations")
+async def get_filter_recommendations(request: Request):
+    """Hent filter-anbefalinger baseret på et mål."""
+    try:
+        body = await request.json()
+        goal = body.get('goal', '')
+        modules = body.get('modules', [])
+        
+        if not goal:
+            return JSONResponse(
+                status_code=422,
+                content={"error": "goal er påkrævet"}
+            )
+        
+        filter_catalog = get_filter_catalog()
+        await filter_catalog.load_all_filters()
+        recommendations = filter_catalog.get_relevant_filters(goal, modules)
+        
+        # Konverter til JSON-serializable format
+        rec_data = []
+        for rec in recommendations:
+            rec_data.append({
+                "filter_type": rec.filter_type,
+                "values": rec.values,
+                "relevance_score": rec.relevance_score,
+                "reasoning": rec.reasoning,
+                "module_id": rec.module_id,
+                "module_part_id": rec.module_part_id
+            })
+        
+        return JSONResponse(content={
+            "goal": goal,
+            "modules": modules,
+            "recommendations": rec_data,
+            "total_recommendations": len(rec_data)
+        })
+    except Exception as e:
+        logger.error(f"Fejl ved hentning af filter-anbefalinger: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Fejl ved hentning af filter-anbefalinger: {str(e)}"}
+        )
+
 # --- Inspiration Prompts ---
 inspiration_prompts = [
     {
-        "title": "Systematisk opkøb",
-        "prompt": "Jeg vil undersøge, om en specifik udenlandsk kapitalfond systematisk opkøber og sammenlægger landbrugsejendomme i Vestjylland for at omgå reglerne."
+        "title": "🎯 Offshore ejendomsspekulation",
+        "prompt": "Undersøg om danske ejendomsselskaber systematisk flytter ejendomme til offshore-selskaber i skattely, og om dette sker samtidig med store ejendomshandler eller kommunale planer."
     },
     {
-        "title": "Inhabilitet i kommunen",
-        "prompt": "Undersøg om byrådsmedlemmer i [indsæt by] kommune har personlige økonomiske interesser i sager, de stemmer om, specifikt inden for byudvikling og salg af kommunale grunde."
+        "title": "🏭 Miljøkriminalitet & konkurser",
+        "prompt": "Afdæk mønstre hvor virksomheder der er involveret i miljøkriminalitet eller miljøsager, pludselig går konkurs eller opretter nye selskaber for at undgå ansvar og bøder."
     },
     {
-        "title": "Social dumping",
-        "prompt": "Afdæk om der er et mønster, hvor specifikke transportfirmaer, der vinder offentlige udbud, systematisk er involveret i sager om social dumping eller konkurser."
+        "title": "💰 Udbud & interessekonflikter",
+        "prompt": "Undersøg om kommunale embedsmænd eller politikere der arbejder med udbud, har personlige økonomiske interesser i virksomheder der vinder disse udbud, eller om deres familie/venner ejer sådanne virksomheder."
     },
     {
-        "title": "Forurening",
-        "prompt": "Er der en sammenhæng mellem klager over lugtgener fra en bestemt fabrik og fabrikkens ansøgninger om nye miljøgodkendelser eller ændringer i produktionen?"
+        "title": "🌾 Landbrug & kapitalfonde",
+        "prompt": "Afdæk om internationale kapitalfonde systematisk opkøber danske landbrugsejendomme gennem komplekse selskabsstrukturer, og om dette sker i områder med kommende infrastrukturprojekter eller byudvikling."
+    },
+    {
+        "title": "🏢 Ejendomsspekulation & politik",
+        "prompt": "Undersøg om lokale politikere eller deres familie systematisk køber ejendomme i områder hvor kommunen senere planlægger store udviklingsprojekter, infrastruktur eller ændringer i lokalplaner."
     }
 ]
 
@@ -810,5 +1436,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_item(request: Request):
-    logger.info("Serverer index.html til bruger")
-    return templates.TemplateResponse("index.html", {"request": request, "prompts": inspiration_prompts}) 
+    logger.info("Serverer index_new.html til bruger")
+    return templates.TemplateResponse("index_new.html", {"request": request, "prompts": inspiration_prompts}) 

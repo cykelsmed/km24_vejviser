@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KM24 Vejviser - Datadrevet Journalistik</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #1a202c;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ffffff, #f0f4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        header .lead {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .inspiration-container {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 16px;
+            border-left: 5px solid #667eea;
+        }
+
+        .inspiration-container small {
+            display: block;
+            margin-bottom: 1rem;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .inspiration-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .inspiration-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .inspiration-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .inspiration-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.25rem 2rem;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading progress {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+        }
+
+        .loading progress::-webkit-progress-bar {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .loading progress::-webkit-progress-value {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+
+        .result-container {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .result-title {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: #2d3748;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .strategy-summary {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .creative-approach {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border-left: 5px solid #f56565;
+        }
+
+        .creative-approach h4 {
+            color: #c53030;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .steps-container {
+            margin-top: 2.5rem;
+        }
+
+        .steps-container h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .step {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateY(-2px);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .step-title {
+            font-size: 1.4rem;
+            color: #2d3748;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .step-details {
+            margin-top: 1.5rem;
+        }
+
+        .module-info {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .module-name {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .step-rationale {
+            margin-bottom: 1.5rem;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .search-string {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .search-syntax {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid #667eea;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .notification-info {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border-left: 5px solid #3182ce;
+        }
+
+        .notification-strategy {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 3px solid #48bb78;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #c53030;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border-left: 5px solid #e53e3e;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+            color: #22543d;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border-left: 5px solid #48bb78;
+        }
+
+        .pipeline-summary {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .pipeline-summary h4 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .pipeline-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .pipeline-step {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .pipeline-step .step-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .pipeline-step .step-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .pipeline-step .step-desc {
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
+
+        .additional-sections {
+            margin-top: 3rem;
+        }
+
+        .section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .section h4 {
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.75rem;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .section li {
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .section li:last-child {
+            border-bottom: none;
+        }
+
+        .next-level-modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .next-level-module {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .next-level-module .module-name {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .next-level-module .module-desc {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .form-container,
+            .result-container {
+                padding: 1.5rem;
+            }
+            
+            .inspiration-buttons {
+                flex-direction: column;
+            }
+            
+            .step {
+                padding: 1.5rem;
+            }
+
+            .pipeline-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .next-level-modules {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Smooth animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-container {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .step {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>KM24 Vejviser</h1>
+            <p class="lead">Din guide til datadrevet journalistik</p>
+        </header>
+
+        <div class="form-container">
+            <form id="recipe-form">
+                <div class="form-group">
+                    <label for="goal">Beskriv dit journalistiske mål eller dækningsområde:</label>
+                    <textarea 
+                        id="goal" 
+                        name="goal" 
+                        rows="5" 
+                        required 
+                        placeholder="Jeg vil gerne undersøge, hvem der systematisk opkøber ejendomme i Skagen-området... (minimum 10 tegn)"
+                    ></textarea>
+                </div>
+
+                {% if prompts %}
+                <div class="inspiration-container">
+                    <small>Eller start med et eksempel:</small>
+                    <div class="inspiration-buttons">
+                        {% for p in prompts %}
+                        <button type="button" class="inspiration-btn" data-prompt="{{ p.prompt }}">
+                            {{ p.title }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    Generér Opskrift
+                </button>
+            </form>
+        </div>
+
+        <div class="result-container" id="result-container" style="display: none;">
+            <h2>Din Opskrift:</h2>
+            <div id="result">
+                <p>Resultatet af din forespørgsel vil blive vist her.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - initializing enhanced frontend');
+            
+            // Get DOM elements
+            const form = document.getElementById('recipe-form');
+            const goalField = document.getElementById('goal');
+            const submitBtn = document.getElementById('submit-btn');
+            const resultContainer = document.getElementById('result-container');
+            const resultDiv = document.getElementById('result');
+            
+            console.log('DOM elements found:', {
+                form: !!form,
+                goalField: !!goalField,
+                submitBtn: !!submitBtn,
+                resultContainer: !!resultContainer,
+                resultDiv: !!resultDiv
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('Form submitted');
+                
+                const goal = goalField.value.trim();
+                console.log('Goal value:', goal);
+                console.log('Goal length:', goal.length);
+                
+                // Validate input
+                if (goal.length < 10) {
+                    showError(`Dit mål skal være mindst 10 tegn langt. Du har skrevet ${goal.length} tegn.`);
+                    return;
+                }
+                
+                // Show loading state
+                setLoadingState(true);
+                showResultContainer();
+                
+                try {
+                    console.log('Sending request to /generate-recipe/');
+                    const response = await fetch('/generate-recipe/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ goal: goal })
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Response data received:', data);
+                    
+                    renderRecipe(data);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError(`Fejl: ${error.message}`);
+                } finally {
+                    setLoadingState(false);
+                }
+            });
+
+            // Handle inspiration buttons
+            const inspirationButtons = document.querySelectorAll('.inspiration-btn');
+            console.log('Found inspiration buttons:', inspirationButtons.length);
+            
+            inspirationButtons.forEach(function(button, index) {
+                console.log(`Inspiration button ${index}:`, button.textContent);
+                
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Inspiration button clicked:', button.textContent);
+                    
+                    const prompt = button.getAttribute('data-prompt');
+                    console.log('Setting goal to:', prompt);
+                    
+                    goalField.value = prompt;
+                    goalField.focus();
+                });
+            });
+
+            // Helper functions
+            function setLoadingState(loading) {
+                if (loading) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Genererer...';
+                    resultDiv.innerHTML = '<div class="loading"><progress></progress><p>Genererer din opskrift...</p></div>';
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Generér Opskrift';
+                }
+            }
+
+            function showResultContainer() {
+                resultContainer.style.display = 'block';
+            }
+
+            function showError(message) {
+                resultDiv.innerHTML = `<div class="error"><strong>Fejl:</strong> ${message}</div>`;
+                showResultContainer();
+            }
+
+            function showSuccess(message) {
+                resultDiv.innerHTML = `<div class="success">${message}</div>`;
+                showResultContainer();
+            }
+
+            function getModuleDisplayName(moduleName) {
+                const moduleMap = {
+                    'registrering': 'Registrering – nye selskaber fra VIRK',
+                    'tinglysning': 'Tinglysning – nye ejendomshandler',
+                    'kapitalændring': 'Kapitalændring – selskabsændringer fra VIRK',
+                    'lokalpolitik': 'Lokalpolitik – kommunale sager og planer',
+                    'miljøsager': 'Miljøsager – tilladelser og godkendelser',
+                    'regnskaber': 'Regnskaber – økonomisk sundhed'
+                };
+                
+                const lowerName = moduleName.toLowerCase();
+                for (const [key, displayName] of Object.entries(moduleMap)) {
+                    if (lowerName.includes(key)) {
+                        return displayName;
+                    }
+                }
+                return moduleName;
+            }
+
+            function getSearchSyntax(moduleName, searchString) {
+                const lowerName = moduleName.toLowerCase();
+                
+                // Standard KM24 syntax patterns
+                const syntaxPatterns = {
+                    'registrering': {
+                        'landbrug': 'landbrug;landbrugsvirksomhed;agriculture',
+                        'ejendom': 'ejendomsselskab;ejendomsudvikling;real_estate',
+                        'bygge': 'byggefirma;byggevirksomhed;construction',
+                        'detail': 'detailhandel;retail;butik',
+                        'restaurant': 'restaurant;café;cafe;spisested',
+                        'transport': 'transport;logistik;spedition',
+                        'finans': 'finans;bank;kapitalfond',
+                        'teknologi': 'teknologi;tech;software;it'
+                    },
+                    'tinglysning': {
+                        'landbrug': '~landbrugsejendom~',
+                        'ejendom': '~ejendomshandel~',
+                        'bygge': '~byggegrund~',
+                        'erhverv': '~erhvervsejendom~',
+                        'bolig': '~boligejendom~'
+                    },
+                    'kapitalændring': {
+                        'landbrug': 'kapitalfond;ejendomsselskab;landbrug',
+                        'ejendom': 'ejendomsselskab;kapitalfond;udvikling',
+                        'bygge': 'byggefirma;kapitalfond;udvikling',
+                        'finans': 'kapitalfond;finansselskab;investering'
+                    },
+                    'lokalpolitik': 'lokalplan;landzone;kommunal;politisk',
+                    'miljøsager': 'miljøtilladelse;husdyrgodkendelse;udvidelse;miljø',
+                    'regnskaber': 'regnskab;årsrapport;økonomi;finansiel'
+                };
+                
+                // Check for specific module patterns
+                if (syntaxPatterns[lowerName]) {
+                    const patterns = syntaxPatterns[lowerName];
+                    
+                    // For registrering, tinglysning, kapitalændring - try to match content
+                    if (typeof patterns === 'object' && !Array.isArray(patterns)) {
+                        for (const [key, pattern] of Object.entries(patterns)) {
+                            if (searchString.toLowerCase().includes(key)) {
+                                return pattern;
+                            }
+                        }
+                    }
+                    
+                    // For other modules, return default pattern
+                    if (typeof patterns === 'string') {
+                        return patterns;
+                    }
+                }
+                
+                return searchString;
+            }
+
+            function getNotificationStrategy(moduleName) {
+                const lowerName = moduleName.toLowerCase();
+                
+                if (lowerName.includes('registrering')) {
+                    return 'Interval – mange hits forventes, samlet besked sparer støj';
+                } else if (lowerName.includes('tinglysning') || lowerName.includes('kapitalændring')) {
+                    return 'Løbende – få, men vigtige hits der kræver øjeblikkelig opmærksomhed';
+                }
+                
+                return 'Daglig samlet besked';
+            }
+
+            function renderRecipe(data) {
+                console.log('Rendering recipe with data:', data);
+                
+                if (!data || typeof data !== 'object') {
+                    showError('Ugyldig data modtaget fra serveren.');
+                    return;
+                }
+
+                let html = '';
+
+                // Title
+                const title = data.title || data.overview?.title || 'Ingen titel';
+                html += `<h3 class="result-title">${title}</h3>`;
+
+                // Strategy summary
+                const strategy = data.strategy_summary || data.overview?.strategy_summary;
+                if (strategy) {
+                    html += `<div class="strategy-summary"><strong>Strategi:</strong> ${strategy}</div>`;
+                }
+
+                // Creative approach
+                const creativeApproach = data.creative_approach || data.overview?.creative_approach;
+                if (creativeApproach) {
+                    html += `
+                        <div class="creative-approach">
+                            <h4>🎨 Kreativ Tilgang</h4>
+                            <p>${creativeApproach}</p>
+                        </div>
+                    `;
+                }
+
+                // Steps
+                const steps = data.steps || data.investigation_steps || [];
+                if (Array.isArray(steps) && steps.length > 0) {
+                    html += '<div class="steps-container">';
+                    html += '<h4>Undersøgelses-trinn:</h4>';
+                    
+                    steps.forEach(function(step, index) {
+                        html += renderStep(step, index + 1);
+                    });
+                    
+                    html += '</div>';
+                }
+
+                // Pipeline summary
+                html += renderPipelineSummary();
+
+                // Additional sections
+                html += renderAdditionalSections(data);
+
+                resultDiv.innerHTML = html;
+                setupCopyButtons();
+            }
+
+            function renderStep(step, stepNumber) {
+                console.log('Rendering step:', step);
+                
+                let html = '<div class="step">';
+                
+                // Step header
+                html += `
+                    <div class="step-header">
+                        <div class="step-number">${stepNumber}</div>
+                        <h5 class="step-title">${step.title || 'Ingen titel'}</h5>
+                    </div>
+                `;
+
+                // Step details
+                html += '<div class="step-details">';
+
+                // Module info with precise naming
+                if (step.module) {
+                    const moduleName = step.module.name || step.module || 'Ukendt modul';
+                    const displayName = getModuleDisplayName(moduleName);
+                    html += `
+                        <div class="module-info">
+                            <div class="module-name">📊 ${displayName}</div>
+                        </div>
+                    `;
+                }
+
+                // Rationale
+                if (step.rationale) {
+                    html += `<div class="step-rationale"><strong>Formål:</strong> ${step.rationale}</div>`;
+                }
+
+                // Search string with syntax
+                const searchString = step.search_string || step.details?.search_string;
+                if (searchString) {
+                    const moduleName = step.module?.name || step.module || '';
+                    const searchSyntax = getSearchSyntax(moduleName, searchString);
+                    
+                    html += `
+                        <div class="search-string">
+                            <button class="copy-btn" data-text="${searchString.replace(/"/g, '&quot;')}">Kopiér</button>
+                            <strong>KM24 Standard Søgestreng:</strong><br>
+                            <code>${searchString}</code>
+                        </div>
+                    `;
+                    
+                    if (searchSyntax !== searchString) {
+                        html += `
+                            <div class="search-syntax">
+                                <strong>Power-user syntax (alternativ):</strong><br>
+                                <code>${searchSyntax}</code>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Notification info with strategy
+                if (step.notification) {
+                    const moduleName = step.module?.name || step.module || '';
+                    const notificationText = getNotificationText(step.notification);
+                    const notificationStrategy = getNotificationStrategy(moduleName);
+                    
+                    html += `
+                        <div class="notification-info">
+                            <strong>Notifikation:</strong> ${notificationText}
+                        </div>
+                        <div class="notification-strategy">
+                            <strong>Strategi:</strong> ${notificationStrategy}
+                        </div>
+                    `;
+                }
+
+                // Additional details
+                if (step.details) {
+                    if (step.details.explanation) {
+                        html += `<div class="step-rationale"><strong>Forklaring:</strong> ${step.details.explanation}</div>`;
+                    }
+                    
+                    if (step.details.strategic_note) {
+                        html += `<div class="notification-info"><strong>Strategisk note:</strong> ${step.details.strategic_note}</div>`;
+                    }
+                }
+
+                html += '</div>'; // step-details
+                html += '</div>'; // step
+                
+                return html;
+            }
+
+            function renderPipelineSummary() {
+                return `
+                    <div class="pipeline-summary">
+                        <h4>🔍 Undersøgelsespipeline</h4>
+                        <div class="pipeline-steps">
+                            <div class="pipeline-step">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-title">Find aktører</div>
+                                <div class="step-desc">Identificer relevante selskaber og personer</div>
+                            </div>
+                            <div class="pipeline-step">
+                                <div class="step-icon">✅</div>
+                                <div class="step-title">Bekræft handler</div>
+                                <div class="step-desc">Verificer ejendomshandler og ændringer</div>
+                            </div>
+                            <div class="pipeline-step">
+                                <div class="step-icon">💰</div>
+                                <div class="step-title">Følg pengene</div>
+                                <div class="step-desc">Spor kapitalændringer og investeringer</div>
+                            </div>
+                            <div class="pipeline-step">
+                                <div class="step-icon">📊</div>
+                                <div class="step-title">Sæt i kontekst</div>
+                                <div class="step-desc">Analyser mønstre og sammenhænge</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderAdditionalSections(data) {
+                let html = '<div class="additional-sections">';
+
+                // Next level questions with modules
+                if (data.next_level_questions && Array.isArray(data.next_level_questions) && data.next_level_questions.length > 0) {
+                    html += `
+                        <div class="section">
+                            <h4>🔍 Næste Niveau Spørgsmål</h4>
+                            <ul>
+                                ${data.next_level_questions.map(q => `<li>${q}</li>`).join('')}
+                            </ul>
+                            <div class="next-level-modules">
+                                <div class="next-level-module">
+                                    <div class="module-name">🏛️ Kommuner/Lokalpolitik</div>
+                                    <div class="module-desc">Lokalplaner, landzonegodkendelser, kommunale sager</div>
+                                </div>
+                                <div class="next-level-module">
+                                    <div class="module-name">🌱 Miljøsager</div>
+                                    <div class="module-desc">Udvidelser, husdyrgodkendelser, miljøtilladelser</div>
+                                </div>
+                                <div class="next-level-module">
+                                    <div class="module-name">📈 Regnskaber</div>
+                                    <div class="module-desc">Økonomisk sundhed hos selskaberne</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Potential story angles (always generated)
+                html += `
+                    <div class="section">
+                        <h4>📰 Potentielle Historievinkler</h4>
+                        <ul>
+                            <li>Systematisk opkøb af strategiske ejendomme</li>
+                            <li>Kapitalfonders rolle i lokal udvikling</li>
+                            <li>Regulatoriske udfordringer i landbrugssektoren</li>
+                            <li>Lokalsamfundets reaktion på store investeringer</li>
+                            <li>Økonomiske konsekvenser for eksisterende virksomheder</li>
+                        </ul>
+                    </div>
+                `;
+
+                // Creative cross references (always generated)
+                html += `
+                    <div class="section">
+                        <h4>🔗 Kreative Krydsrefereringer</h4>
+                        <ul>
+                            <li>Kombiner ejendomshandler med kapitalændringer for at spore investeringsmønstre</li>
+                            <li>Krydsreferer med miljøtilladelser for at identificere udvidelsesplaner</li>
+                            <li>Sammenlign med andre regioner for at afdække nationale mønstre</li>
+                            <li>Kombiner med kommunale planer for at forstå lokal kontekst</li>
+                            <li>Krydsreferer med regnskaber for at vurdere økonomisk sundhed</li>
+                        </ul>
+                    </div>
+                `;
+
+                // Creative cross references from data if available
+                if (data.creative_cross_references && Array.isArray(data.creative_cross_references) && data.creative_cross_references.length > 0) {
+                    html += `
+                        <div class="section">
+                            <h4>🎯 Specifikke Krydsrefereringer</h4>
+                            <ul>
+                                ${data.creative_cross_references.map(ref => `<li>${ref}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+                return html;
+            }
+
+            function getNotificationText(notification) {
+                const notificationMap = {
+                    'instant': 'Løbende notifikation - få besked med det samme',
+                    'daily': 'Daglig samlet besked',
+                    'weekly': 'Ugentlig samlet besked'
+                };
+                return notificationMap[notification] || notification;
+            }
+
+            function setupCopyButtons() {
+                const copyButtons = document.querySelectorAll('.copy-btn');
+                copyButtons.forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        const text = this.getAttribute('data-text');
+                        navigator.clipboard.writeText(text).then(function() {
+                            button.textContent = 'Kopieret!';
+                            button.classList.add('copied');
+                            setTimeout(function() {
+                                button.textContent = 'Kopiér';
+                                button.classList.remove('copied');
+                            }, 2000);
+                        }).catch(function(err) {
+                            console.error('Failed to copy text: ', err);
+                        });
+                    });
+                });
+            }
+
+            console.log('Enhanced frontend initialization complete');
+        });
+    </script>
+</body>
+</html>

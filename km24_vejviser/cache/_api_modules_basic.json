@@ -1,9 +1,9 @@
 {
-  "cached_at": "2025-08-16T12:51:39.147439",
+  "cached_at": "2025-08-29T00:09:37.307983",
   "data": {
-    "count": 45,
+    "count": 46,
     "countSubbed": 0,
-    "countActive": 45,
+    "countActive": 46,
     "items": [
       {
         "parts": [
@@ -33,6 +33,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 3
+          },
+          {
+            "id": 17,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
           },
           {
             "id": 15,
@@ -102,6 +111,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 4
+          },
+          {
+            "id": 223,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 224,
@@ -242,6 +260,15 @@
             "order": 3
           },
           {
+            "id": 21,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
             "id": 22,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -320,6 +347,15 @@
             "order": 6
           },
           {
+            "id": 28,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
             "id": 27,
             "part": "search_string",
             "name": "Søgeord",
@@ -369,6 +405,15 @@
             "slug": "soegeord",
             "canSelectMultiple": true,
             "order": 2
+          },
+          {
+            "id": 264,
+            "part": "person",
+            "name": "Person",
+            "info": "Du kan overvåge om navngivne personer er forslagsstillere eller medstillere til nye borgerforslag.",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 3
           },
           {
             "id": 265,
@@ -429,6 +474,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 4
+          },
+          {
+            "id": 36,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 37,
@@ -575,6 +629,15 @@
             "order": 1
           },
           {
+            "id": 56,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
             "id": 55,
             "part": "municipality",
             "name": "Kommune",
@@ -633,6 +696,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 3
+          },
+          {
+            "id": 63,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
           },
           {
             "id": 64,
@@ -702,6 +774,15 @@
             "slug": "virksomhed",
             "canSelectMultiple": true,
             "order": 4
+          },
+          {
+            "id": 69,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 70,
@@ -815,6 +896,15 @@
             "order": 3
           },
           {
+            "id": 84,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
             "id": 85,
             "part": "search_string",
             "name": "Søgeord",
@@ -882,6 +972,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 4
+          },
+          {
+            "id": 90,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 91,
@@ -968,6 +1067,15 @@
             "order": 1
           },
           {
+            "id": 96,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
             "id": 97,
             "part": "search_string",
             "name": "Søgeord",
@@ -1037,6 +1145,15 @@
             "order": 4
           },
           {
+            "id": 183,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
             "id": 184,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -1095,6 +1212,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 4
+          },
+          {
+            "id": 148,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 149,
@@ -1259,6 +1385,15 @@
             "order": 3
           },
           {
+            "id": 218,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
             "id": 219,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -1379,6 +1514,15 @@
             "order": 3
           },
           {
+            "id": 104,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
             "id": 105,
             "part": "search_string",
             "name": "Søgeord",
@@ -1446,6 +1590,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 4
+          },
+          {
+            "id": 237,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 235,
@@ -1524,6 +1677,15 @@
             "slug": "virksomhed",
             "canSelectMultiple": true,
             "order": 5
+          },
+          {
+            "id": 153,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
           },
           {
             "id": 154,
@@ -1682,6 +1844,15 @@
             "order": 5
           },
           {
+            "id": 258,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
             "id": 259,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -1742,6 +1913,15 @@
             "order": 4
           },
           {
+            "id": 110,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
             "id": 111,
             "part": "search_string",
             "name": "Søgeord",
@@ -1800,6 +1980,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 3
+          },
+          {
+            "id": 116,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
           },
           {
             "id": 117,
@@ -1913,6 +2102,15 @@
             "order": 3
           },
           {
+            "id": 121,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
             "id": 122,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -1971,6 +2169,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 4
+          },
+          {
+            "id": 191,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 192,
@@ -2042,6 +2249,15 @@
             "order": 4
           },
           {
+            "id": 49,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
             "id": 50,
             "part": "search_string",
             "name": "Søgeord",
@@ -2071,6 +2287,84 @@
         "emoji": "🏛️",
         "shortDescription": "Nye retslister fra Danmarks Domstole publiceres af de enkelte retter.",
         "longDescription": "I retslisteovervågningen kan du holde øje med nye retslister ved alle retsinstanser. Listerne offentliggøres før selve mødet i retten. Visse sagstyper behandles altid for lukkede døre og medtages ikke på retslisten.\r\n\r\nData hentes flere gange dagligt fra <a href=\"https://domstol.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstole</a>.\r\n\r\nModulet Retslister adskiller sig fra modulet Domme (som kan overvåges under <a href=\"/domsdatabasen/timeinterval\" target=\"_blank\">Domsdatabase</a>) på den måde, at det er de enkelte retter, der er ansvarlige for at publicere deres retsliste, og de bliver publiceret før selve forhandlingen eller mødet i retten.\r\n\r\nI domsdatabasen fremgår kun domme, hvor der er faldet afgørelse."
+      },
+      {
+        "parts": [
+          {
+            "id": 77,
+            "part": "generic_value",
+            "name": "Aktørtype",
+            "info": "Begræns til bestemte aktørtyper. Er ingen valgt får du hits for både personer og virksomheder.",
+            "slug": "aktoertype",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 196,
+            "part": "generic_value",
+            "name": "Virksomhedstype",
+            "info": "Begræns til bestemte virksomhedstyper. Er ingen valgt får du hits for alle virksomhedstyper.",
+            "slug": "virksomhedstype",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 72,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 73,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 74,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 75,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 76,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "skatteskyldnere",
+        "allowCatchAllSearchString": false,
+        "id": 290,
+        "title": "Skatteskyldnere",
+        "titleWbr": "Skat/te/skyld/nere",
+        "colorHex": "8E44ad",
+        "emoji": "🏘",
+        "shortDescription": "SKATs udlæg i fast ejendom, biler og andelsboliger.",
+        "longDescription": "Fra Tinglysningen  trækker vi udlæg i Tingbogen, Andelsbogen og Bilbogen. Det er SKATs udlæg i fast ejendom, biler og andelsboliger. Indeholder både enkeltpersoner og selskaber."
       },
       {
         "parts": [
@@ -2120,6 +2414,15 @@
             "order": 5
           },
           {
+            "id": 176,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
             "id": 177,
             "part": "search_string",
             "name": "Søgeord",
@@ -2153,20 +2456,20 @@
       {
         "parts": [
           {
-            "id": 163,
-            "part": "hit_logic",
-            "name": "Hitlogik",
-            "info": "",
-            "slug": "hitlogik",
-            "canSelectMultiple": false,
-            "order": 0
-          },
-          {
             "id": 253,
             "part": "generic_value",
             "name": "Kriterium",
             "info": "Sæt overvågning af Sø- og Handelsretten til her.",
             "slug": "kriterium",
+            "canSelectMultiple": false,
+            "order": 0
+          },
+          {
+            "id": 163,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
             "canSelectMultiple": false,
             "order": 0
           }
@@ -2240,6 +2543,15 @@
             "order": 6
           },
           {
+            "id": 251,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
             "id": 252,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -2307,6 +2619,15 @@
             "slug": "kommune",
             "canSelectMultiple": true,
             "order": 5
+          },
+          {
+            "id": 168,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
           },
           {
             "id": 169,
@@ -2507,6 +2828,15 @@
             "order": 6
           },
           {
+            "id": 212,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
             "id": 213,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -2594,6 +2924,15 @@
             "order": 7
           },
           {
+            "id": 127,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 8
+          },
+          {
             "id": 131,
             "part": "hit_logic",
             "name": "Hitlogik",
@@ -2634,6 +2973,15 @@
             "slug": "virksomhed",
             "canSelectMultiple": true,
             "order": 3
+          },
+          {
+            "id": 135,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
           },
           {
             "id": 136,

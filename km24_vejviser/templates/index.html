@@ -610,25 +610,31 @@
             console.log('DOM loaded, initializing script');
             const form = document.getElementById('recipe-form');
             const resultDiv = document.getElementById('result');
-            const submitButton = form.querySelector('button');
+            const submitButton = form.querySelector('button[type="submit"]');
             console.log('Form found:', form);
             console.log('Submit button found:', submitButton);
+            console.log('Submit button type:', submitButton ? submitButton.type : 'null');
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                console.log('Form submitted');
-                const goal = document.getElementById('goal').value;
-                console.log('Goal:', goal);
+                console.log('Form submitted - event prevented');
+                const goalField = document.getElementById('goal');
+                console.log('Goal field found:', goalField);
+                const goal = goalField ? goalField.value : '';
+                console.log('Goal value:', goal);
+                console.log('Goal length:', goal.length);
+                console.log('Goal field type:', typeof goalField);
+                console.log('Goal field value type:', typeof goal);
                 
                 // Valider input længde
                 if (goal.length < 10) {
-                    resultDiv.innerHTML = `<p style="color: red;"><strong>Fejl:</strong> Dit mål skal være mindst 10 tegn langt. Du har skrevet ${goal.length} tegn.</p>`;
+                    document.getElementById('result').innerHTML = `<p style="color: red;"><strong>Fejl:</strong> Dit mål skal være mindst 10 tegn langt. Du har skrevet ${goal.length} tegn.</p>`;
                     return;
                 }
                 
                 submitButton.setAttribute('aria-busy', 'true');
                 submitButton.disabled = true;
-                resultDiv.innerHTML = '<div class="loading"><progress></progress></div>';
+                document.getElementById('result').innerHTML = '<div class="loading"><progress></progress></div>';
 
                 try {
                     const response = await fetch('/generate-recipe/', {
@@ -648,32 +654,81 @@
 
                 } catch (error) {
                     console.error('Error:', error);
-                    resultDiv.innerHTML = `<p style="color: red;"><strong>Fejl:</strong> ${error.message}</p>`;
+                    document.getElementById('result').innerHTML = `<p style="color: red;"><strong>Fejl:</strong> ${error.message}</p>`;
                 } finally {
                     submitButton.setAttribute('aria-busy', 'false');
                     submitButton.disabled = false;
                 }
             });
 
-            document.querySelectorAll('.inspiration-prompt').forEach(button => {
-                button.addEventListener('click', () => {
-                    console.log('Inspiration prompt clicked');
+            // Debug inspiration prompts
+            const inspirationButtons = document.querySelectorAll('.inspiration-prompt');
+            console.log('Found inspiration buttons:', inspirationButtons.length);
+            console.log('Inspiration buttons:', inspirationButtons);
+            
+            inspirationButtons.forEach((button, index) => {
+                console.log(`Button ${index}:`, button.textContent, button.getAttribute('data-prompt'));
+                console.log(`Button ${index} element:`, button);
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Inspiration prompt clicked - event prevented');
                     const prompt = button.getAttribute('data-prompt');
                     console.log('Prompt:', prompt);
-                    document.getElementById('goal').value = prompt;
+                    const goalField = document.getElementById('goal');
+                    console.log('Goal field found:', goalField);
+                    if (goalField) {
+                        goalField.value = prompt;
+                        console.log('Goal field value set to:', goalField.value);
+                        console.log('Goal field value after setting:', document.getElementById('goal').value);
+                    } else {
+                        console.error('Goal field not found!');
+                    }
                 });
             });
 
             function renderJsonResponse(data) {
                 console.log('renderJsonResponse called with:', data);
-                let html = `<h4>${data.title}</h4>`;
-                html += `<p><strong>Strategi:</strong> ${data.strategy_summary}</p>`;
+                
+                // Defensive check for data
+                if (!data || typeof data !== 'object') {
+                    console.error('Invalid data received:', data);
+                    document.getElementById('result').innerHTML = '<p style="color: red;"><strong>Fejl:</strong> Ugyldig data modtaget fra serveren.</p>';
+                    return;
+                }
+                
+                console.log('Data keys:', Object.keys(data));
+                console.log('Steps/investigation_steps:', data.steps, data.investigation_steps);
+                
+                // Handle both old and new data structures
+                const title = data.title || data.overview?.title || 'Ingen titel';
+                const strategy = data.strategy_summary || data.overview?.strategy_summary || 'Ingen strategi';
+                const creativeApproach = data.creative_approach || data.overview?.creative_approach;
+                
+                let html = `<h4>${title}</h4>`;
+                html += `<p><strong>Strategi:</strong> ${strategy}</p>`;
+                
+                if (creativeApproach) {
+                    html += `<div class="creative-approach">`;
+                    html += `<h4>🎨 Kreativ Tilgang</h4>`;
+                    html += `<p>${creativeApproach}</p>`;
+                    html += `</div>`;
+                }
 
-                data.investigation_steps.forEach(step => {
+                // Defensive check for steps
+                const steps = data.steps || data.investigation_steps || [];
+                console.log('Steps array:', steps);
+                console.log('Steps type:', typeof steps);
+                console.log('Steps length:', steps.length);
+                
+                if (!Array.isArray(steps)) {
+                    console.error('Steps is not an array:', steps);
+                    html += '<p style="color: red;"><strong>Fejl:</strong> Steps data er ikke i korrekt format.</p>';
+                } else {
+                    steps.forEach(step => {
                     html += `
                         <div class="step">
                             <div class="step-header">
-                                <span class="step-number">${step.step}</span>
+                                <span class="step-number">${step.step_number || step.step}</span>
                                 <h5 class="step-title">${step.title}</h5>
                             </div>
                             <div class="step-details">`;
@@ -705,8 +760,10 @@
                             complexityClass = 'complexity-medium';
                         }
 
+                        const moduleName = step.module?.name || step.module || 'Ukendt modul';
+
                         console.log('Module card debug:', {
-                            module: step.module,
+                            module: moduleName,
                             totalFilters: filterCount,
                             complexityLevel: complexityText,
                             longDescription: card.long_description ? 'PRESENT' : 'MISSING'
@@ -717,7 +774,7 @@
                                 <div class="module-header">
                                     <span class="module-emoji">${card.emoji}</span>
                                     <div class="module-info">
-                                        <h6 class="module-title">${step.module}</h6>
+                                        <h6 class="module-title">${moduleName}</h6>
                                         <p class="module-frequency">📊 ${card.data_frequency}</p>
                                     </div>
                                     <span class="complexity-badge ${complexityClass}">${complexityText}</span>
@@ -733,7 +790,7 @@
 
                                 ${longDescHtml ? `
                                     <details open style="margin-top: 1rem;">
-                                        <summary style="cursor: pointer; font-weight: bold;">📖 Læs mere om ${step.module}</summary>
+                                        <summary style="cursor: pointer; font-weight: bold;">📖 Læs mere om ${moduleName}</summary>
                                         <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e6e6e6; font-size: 0.9rem; line-height: 1.5;">
                                             ${longDescHtml}
                                         </div>
@@ -743,37 +800,38 @@
                                 ${card.requires_source_selection ? '<p style="margin-top: 0.5rem;"><strong>⚠️ Kræver manuel kildevalg</strong></p>' : ''}
                             </div>`;
                     } else if (step.module) {
-                        html += `<p><strong>Modul:</strong> <em>${step.module}</em></p>`;
+                        const moduleName = step.module?.name || step.module || 'Ukendt modul';
+                        html += `<p><strong>Modul:</strong> <em>${moduleName}</em></p>`;
                     }
                     
                     html += `<p><strong>Formål:</strong> ${step.rationale}</p>`;
                     
-                    if (step.details) {
-                        if(step.details.strategic_note) {
+                    const details = step.details || {};
+                    if (details.strategic_note) {
                             html += `
                                 <div class="strategic-note">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11M12 18.75v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311a7.5 7.5 0 0 1-7.5 0c-1.421-.492-2.682-1.233-3.654-2.11m-9.58 3.28a13.5 13.5 0 0 1 2.083-1.611m-2.083 1.611a13.5 13.5 0 0 0 2.083-1.611M3.75 6.75A2.25 2.25 0 0 1 6 4.5h12A2.25 2.25 0 0 1 20.25 6.75v10.5A2.25 2.25 0 0 1 18 19.5H6A2.25 2.25 0 0 1 3.75 17.25V6.75Z" /></svg>
-                                    <div>${step.details.strategic_note}</div>
+                                    <div>${details.strategic_note}</div>
                                 </div>`;
                         }
 
-                        if (step.details.search_string) {
+                        if (details.search_string) {
                              html += `
                                 <strong>Søgestreng:</strong>
                                 <div class="search-string-container">
                                     <button class="copy-btn">Kopiér</button>
-                                    <pre><code>${step.details.search_string}</code></pre>
+                                    <pre><code>${details.search_string}</code></pre>
                                 </div>
                                 <strong>Forklaring:</strong>
-                                <p>${step.details.explanation}</p>`;
+                                <p>${details.explanation || step.explanation || ''}</p>`;
                         }
 
-                        if (step.details.logic) {
-                            html += `<strong>Logik:</strong> <p>${step.details.logic}</p>`;
+                        if (details.logic) {
+                            html += `<strong>Logik:</strong> <p>${details.logic}</p>`;
                         }
                         
-                        if(step.details.recommended_notification) {
-                            const notificationText = step.details.recommended_notification === 'løbende'
+                        if(details.recommended_notification) {
+                            const notificationText = details.recommended_notification === 'løbende'
                                 ? '<b>Løbende notifikation:</b> Få besked med det samme, når der er nye resultater. Godt til tidskritiske overvågninger.'
                                 : '<b>Interval notifikation:</b> Få en samlet besked dagligt eller ugentligt. Godt til mindre presserende overvågninger for at undgå støj.';
                             html += `
@@ -784,24 +842,24 @@
                         }
                         
                         // Add new creative sections
-                        if (step.details.creative_insights) {
-                            html += `<div class="creative-insights"><strong>💡 Kreativ Indsigt:</strong> ${step.details.creative_insights}</div>`;
+                        if (details.creative_insights) {
+                            html += `<div class="creative-insights"><strong>💡 Kreativ Indsigt:</strong> ${details.creative_insights}</div>`;
                         }
                         
-                        if (step.details.advanced_tactics) {
-                            html += `<div class="advanced-tactics"><strong>🎯 Avancerede Taktikker:</strong> ${step.details.advanced_tactics}</div>`;
+                        if (details.advanced_tactics) {
+                            html += `<div class="advanced-tactics"><strong>🎯 Avancerede Taktikker:</strong> ${details.advanced_tactics}</div>`;
                         }
                         
-                        if (step.details.search_examples) {
-                            html += `<div class="search-examples"><strong>🔍 Søge-eksempler:</strong><ul>${step.details.search_examples.map(ex => `<li><code>${ex}</code></li>`).join('')}</ul></div>`;
+                        if (details.search_examples && Array.isArray(details.search_examples) && details.search_examples.length > 0) {
+                            html += `<div class="search-examples"><strong>🔍 Søge-eksempler:</strong><ul>${details.search_examples.map(ex => `<li><code>${ex}</code></li>`).join('')}</ul></div>`;
                         }
                         
                         // Filter Recommendations
-                        if (step.details.filter_recommendations) {
-                            const rec = step.details.filter_recommendations;
+                        if (details.filter_recommendations) {
+                            const rec = details.filter_recommendations;
                             html += `<div class="filter-recommendations">`;
                             html += `<h6>🔧 Smart Filter-anbefaling</h6>`;
-                            if (rec.optimal_sequence && rec.optimal_sequence.length > 0) {
+                            if (rec.optimal_sequence && Array.isArray(rec.optimal_sequence) && rec.optimal_sequence.length > 0) {
                                 html += `<p><strong>Optimal rækkefølge:</strong></p>`;
                                 html += `<ol class="filter-sequence">`;
                                 rec.optimal_sequence.forEach(seq => {
@@ -812,15 +870,15 @@
                             if (rec.complexity_warning) {
                                 html += `<p><strong>⚠️ Advarsel:</strong> ${rec.complexity_warning}</p>`;
                             }
-                            if (rec.efficiency_tips && rec.efficiency_tips.length > 0) {
+                            if (rec.efficiency_tips && Array.isArray(rec.efficiency_tips) && rec.efficiency_tips.length > 0) {
                                 html += `<p><strong>💡 Tips:</strong> ${rec.efficiency_tips.slice(0,2).join('. ')}</p>`;
                             }
                             html += `</div>`;
                         }
 
                         // Complexity Analysis
-                        if (step.details.complexity_analysis) {
-                            const comp = step.details.complexity_analysis;
+                        if (details.complexity_analysis) {
+                            const comp = details.complexity_analysis;
                             html += `<div class="complexity-analysis">`;
                             html += `<h6>📊 Kompleksitets-analyse</h6>`;
                             html += `<div class="complexity-score">`;
@@ -832,42 +890,44 @@
                             if (comp.notification_recommendation) {
                                 html += `<p><strong>Notifikation:</strong> ${comp.notification_recommendation.type} - ${comp.notification_recommendation.reason}</p>`;
                             }
-                            if (comp.optimization_suggestions && comp.optimization_suggestions.length > 0) {
+                            if (comp.optimization_suggestions && Array.isArray(comp.optimization_suggestions) && comp.optimization_suggestions.length > 0) {
                                 html += `<p><strong>💡 Optimering:</strong> ${comp.optimization_suggestions[0]}</p>`;
                             }
                             html += `</div>`;
                         }
 
                         // Search Optimization
-                        if (step.details.search_optimization && step.details.search_optimization.optimal_config) {
-                            const opt = step.details.search_optimization;
+                        if (details.search_optimization && details.search_optimization.optimal_config) {
+                            const opt = details.search_optimization;
                             html += `<div class="search-optimization">`;
                             html += `<h6>🎯 Optimal Konfiguration</h6>`;
                             html += `<p>${opt.rationale}</p>`;
                             html += `<div class="optimal-config">`;
-                            Object.entries(opt.optimal_config).forEach(([key, value]) => {
-                                const displayValue = Array.isArray(value) ? value.join(', ') : value;
-                                html += `<strong>${key}:</strong> ${displayValue}<br>`;
-                            });
+                            if (opt.optimal_config && typeof opt.optimal_config === 'object') {
+                                Object.entries(opt.optimal_config).forEach(([key, value]) => {
+                                    const displayValue = Array.isArray(value) ? value.join(', ') : value;
+                                    html += `<strong>${key}:</strong> ${displayValue}<br>`;
+                                });
+                            }
                             html += `</div>`;
                             html += `</div>`;
                         }
 
-                        if (step.details.live_data_available) {
-                            html += `<div class="live-data-indicator">${step.details.data_source || 'Live data tilgængelig'}</div>`;
+                        if (details.live_data_available) {
+                            html += `<div class="live-data-indicator">${details.data_source || 'Live data tilgængelig'}</div>`;
                         }
                         
-                        if (step.details.geo_advice) {
+                        if (details.geo_advice) {
                             html += `
                                 <div class="geo-advice">
-                                    🌍 <strong>Geo-råd:</strong> ${step.details.geo_advice}
+                                    🌍 <strong>Geo-råd:</strong> ${details.geo_advice}
                                 </div>
                             `;
                         }
-                        if (step.details.power_tip) {
+                        if (details.power_tip) {
                             html += `
                                 <div class="power-tip">
-                                    ⚡ <strong>${step.details.power_tip.title}:</strong> ${step.details.power_tip.explanation}
+                                    ⚡ <strong>${details.power_tip.title}:</strong> ${details.power_tip.explanation}
                                 </div>
                             `;
                         }
@@ -877,8 +937,9 @@
                     
                     html += `</div></div>`;
                 });
+                } // End of else block for Array.isArray(steps)
 
-                if (data.next_level_questions && data.next_level_questions.length > 0) {
+                if (data.next_level_questions && Array.isArray(data.next_level_questions) && data.next_level_questions.length > 0) {
                     html += `<h4>Næste Niveau</h4><ul>`;
                     data.next_level_questions.forEach(q => {
                         html += `<li>${q}</li>`;
@@ -886,7 +947,7 @@
                     html += `</ul>`;
                 }
 
-                if (data.supplementary_modules && data.supplementary_modules.length > 0) {
+                if (data.supplementary_modules && Array.isArray(data.supplementary_modules) && data.supplementary_modules.length > 0) {
                     html += `<h4>Supplerende moduler at overveje</h4><ul class="supplementary-modules">`;
                     data.supplementary_modules.forEach(mod => {
                         html += `<li><strong>${mod.module}</strong>: ${mod.reason}</li>`;
@@ -895,12 +956,12 @@
                 }
 
                 // NEW: KM24 Module Validation Warnings
-                if (data.validation_warnings && data.validation_warnings.length > 0) {
+                if (data.validation_warnings && Array.isArray(data.validation_warnings) && data.validation_warnings.length > 0) {
                     html += `<h4>⚠️ KM24 Modul Validering</h4>`;
                     data.validation_warnings.forEach(warning => {
                         html += `<div class="validation-warning">`;
                         html += `<p><strong>${warning.message}</strong></p>`;
-                        if (warning.suggestions && warning.suggestions.length > 0) {
+                        if (warning.suggestions && Array.isArray(warning.suggestions) && warning.suggestions.length > 0) {
                             html += `<p><strong>Forslag til alternative moduler:</strong></p><ul>`;
                             warning.suggestions.forEach(suggestion => {
                                 html += `<li><strong>${suggestion.module}</strong> (${Math.round(suggestion.confidence * 100)}% match): ${suggestion.reason}</li>`;
@@ -912,7 +973,7 @@
                 }
 
                 // NEW: KM24 Module Suggestions
-                if (data.km24_module_suggestions && data.km24_module_suggestions.length > 0) {
+                if (data.km24_module_suggestions && Array.isArray(data.km24_module_suggestions) && data.km24_module_suggestions.length > 0) {
                     html += `<h4>🔍 KM24 Modul Forslag</h4>`;
                     html += `<p>Baseret på dit mål foreslår vi følgende KM24 moduler:</p>`;
                     html += `<ul class="km24-suggestions">`;
@@ -928,16 +989,11 @@
                     html += `</ul>`;
                 }
 
-                // NEW: Creative Approach
-                if (data.creative_approach) {
-                    html += `<div class="creative-approach">`;
-                    html += `<h4>🎨 Kreativ Tilgang</h4>`;
-                    html += `<p>${data.creative_approach}</p>`;
-                    html += `</div>`;
-                }
+                // NEW: Creative Approach (already handled above)
+                // Removed duplicate handling
 
                 // NEW: Potential Story Angles
-                if (data.potential_story_angles && data.potential_story_angles.length > 0) {
+                if (data.potential_story_angles && Array.isArray(data.potential_story_angles) && data.potential_story_angles.length > 0) {
                     html += `<div class="potential-story-angles">`;
                     html += `<h4>📰 Potentielle Historievinkler</h4>`;
                     html += `<ul>`;
@@ -949,7 +1005,7 @@
                 }
 
                 // NEW: Creative Cross References
-                if (data.creative_cross_references && data.creative_cross_references.length > 0) {
+                if (data.creative_cross_references && Array.isArray(data.creative_cross_references) && data.creative_cross_references.length > 0) {
                     html += `<div class="creative-cross-references">`;
                     html += `<h4>🔗 Kreative Krydsrefereringer</h4>`;
                     html += `<ul>`;
@@ -961,7 +1017,7 @@
                 }
 
                 // Cross-Module Intelligence
-                if (data.cross_module_intelligence && data.cross_module_intelligence.length > 0) {
+                if (data.cross_module_intelligence && Array.isArray(data.cross_module_intelligence) && data.cross_module_intelligence.length > 0) {
                     html += `<div class="cross-module-intelligence">`;
                     html += `<h4>🔗 Smart Modul-workflows</h4>`;
                     html += `<p>Disse moduler fungerer godt sammen i din undersøgelse:</p>`;
@@ -1021,7 +1077,7 @@
                 }
 
                 console.log('Setting innerHTML with html length:', html.length);
-                resultDiv.innerHTML = html;
+                document.getElementById('result').innerHTML = html;
                 addCopyFunctionality();
             }
 
