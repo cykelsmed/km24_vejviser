@@ -109,16 +109,17 @@ cd <projekt-mappe>
 
 **2. Opret og Aktivér et Virtuelt Miljø**
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
-*På Windows, brug `venv\Scripts\activate`*
+*På Windows, brug `.venv\Scripts\activate`*
 
 **3. Installér Afhængigheder**
 Fra projektets rodmappe, kør:
 ```bash
 pip install -r km24_vejviser/requirements.txt
 ```
+`pytest-asyncio` er inkluderet i `requirements.txt` for at understøtte `@pytest.mark.asyncio` tests.
 
 **4. Konfigurér API Nøgle**
 Opret en fil ved navn `.env` inde i `km24_vejviser`-mappen. Filen skal indeholde din Anthropic API nøgle:
