@@ -1576,89 +1576,36 @@ async def get_filter_recommendations(request: Request):
 # --- Inspiration Prompts ---
 inspiration_prompts = [
     {
-        "title": "🎯 Offshore ejendomsspekulation",
-        "prompt": "Undersøg om danske ejendomsselskaber systematisk flytter ejendomme til offshore-selskaber i skattely, og om dette sker samtidig med store ejendomshandler eller kommunale planer."
+        "title": "🗺️ Lokaljournalist i Tølløse",
+        "prompt": "Få et overblik over nye sager, handler og aktører i Tølløse de sidste 12 måneder. Hvad rører sig lokalt, og hvem går igen?"
     },
     {
-        "title": "🏭 Miljøkriminalitet & konkurser",
-        "prompt": "Afdæk mønstre hvor virksomheder der er involveret i miljøkriminalitet eller miljøsager, pludselig går konkurs eller opretter nye selskaber for at undgå ansvar og bøder."
+        "title": "🏗️ Developer med kig på kommunal grund",
+        "prompt": "Skaf et hurtigt billede af historik, beslutninger og centrale interessenter omkring en bestemt kommunal grund eller byggeprojekt i en valgt kommune."
     },
     {
-        "title": "💰 Udbud & interessekonflikter",
-        "prompt": "Undersøg om kommunale embedsmænd eller politikere der arbejder med udbud, har personlige økonomiske interesser i virksomheder der vinder disse udbud, eller om deres familie/venner ejer sådanne virksomheder."
+        "title": "🧭 Idéudvikling til ny dækning",
+        "prompt": "Find spirende mønstre i et tema (fx asbest i skoler eller store erhvervshandler) på tværs af landet de sidste 24 måneder for at spotte vinkler."
     },
     {
-        "title": "🌾 Landbrug & kapitalfonde",
-        "prompt": "Afdæk om internationale kapitalfonde systematisk opkøber danske landbrugsejendomme gennem komplekse selskabsstrukturer, og om dette sker i områder med kommende infrastrukturprojekter eller byudvikling."
+        "title": "💳 Finansiel screening (kredit)",
+        "prompt": "Lav en risikoscreening af kunder/leverandører i en branche eller region: konkurser, offentlige kontrakter, ledelsesændringer og omtale det sidste år."
     },
     {
-        "title": "🏢 Ejendomsspekulation & politik",
-        "prompt": "Undersøg om lokale politikere eller deres familie systematisk køber ejendomme i områder hvor kommunen senere planlægger store udviklingsprojekter, infrastruktur eller ændringer i lokalplaner."
-    },
-    # --- Korruption og interessekonflikter ---
-    {
-        "title": "⚖️ Udbud & politiske forbindelser",
-        "prompt": "Kortlæg kommunalpolitikere med økonomiske interesser i virksomheder der vinder kommunale udbud, og sammenlign tidslinjer i Lokalpolitik med Udbud og Registrering for at afdække mulige interessekonflikter."
+        "title": "👥 HR – før ansættelse",
+        "prompt": "Tjek offentlig omtale og myndighedsreaktioner relateret til en potentiel arbejdsgiver i et område, så du undgår ubehagelige overraskelser."
     },
     {
-        "title": "🔁 Embedsmænds jobskifte",
-        "prompt": "Identificér embedsmænd der har skiftet til private selskaber, de tidligere regulerede; brug Danske medier og Registrering til at følge personspor og Udbud for efterfølgende kontrakter."
+        "title": "🏪 SMV-ejer – konkurrentoverblik",
+        "prompt": "Overvåg konkurrenternes nye selskaber, offentlige sager og lokale beslutninger i dit nærområde – samlet i en let plan."
     },
     {
-        "title": "👪 Familieejerskab & sagsbehandling",
-        "prompt": "Find sager hvor beslutningstageres familiemedlemmer ejer virksomheder med aktive byggesager; kombiner Personbogen, Tinglysning og Lokalpolitik for at afdække sammenfald."
-    },
-    # --- Miljø og sundhed ---
-    {
-        "title": "🌍 Gentagne miljøbrud & nye tilladelser",
-        "prompt": "Find virksomheder med gentagne Arbejdstilsyn- eller Miljøsager-brud som alligevel får nye miljøtilladelser; krydsreferér Arbejdstilsyn, Miljøsager og Danske medier."
+        "title": "🌿 NGO – miljøtilladelser",
+        "prompt": "Følg nye miljøtilladelser, klager og relaterede beslutninger for et emne i en valgt kommune eller region, og se hvem der påvirkes."
     },
     {
-        "title": "🐖 Dyresygdomme & eksport",
-        "prompt": "Undersøg om udbrud af dyresygdomme følges af uændrede eller stigende eksportgodkendelser; brug Forskning, EU og Danske medier til at matche tidslinjer."
-    },
-    {
-        "title": "🥗 Fødevaresmiley vs. eksportaktivitet",
-        "prompt": "Sammenlign lave fødevaresmiley-resultater med virksomhedernes eksportaktivitet; brug Fødevaresmiley, Regnskaber og Danske medier for afvigelser."
-    },
-    # --- Erhverv og økonomi ---
-    {
-        "title": "💸 Offentlig støtte før konkurs",
-        "prompt": "Identificér virksomheder der modtager større offentlige kontrakter eller støtte kort før konkurs; brug Udbud, Regnskaber og Status til at dokumentere forløb."
-    },
-    {
-        "title": "🏦 Kapitalfonde & systematiske opkøb",
-        "prompt": "Kortlæg kapitalfondes systematiske opkøb af danske selskaber; kombiner Registrering, Kapitalændring og Børsmeddelelser for at se mønstre og timing."
-    },
-    {
-        "title": "📉 Regnskabsinflation før salg",
-        "prompt": "Find tegn på regnskabsinflation op til virksomhedssalg; brug Regnskaber og Børsmeddelelser sammen med Danske medier til at identificere uregelmæssigheder."
-    },
-    # --- Offentlige finanser ---
-    {
-        "title": "🧾 Konsulentforbrug i pressede kommuner",
-        "prompt": "Sammenhold stigende konsulentforbrug med kommuner med budgetunderskud; brug Lokalpolitik og Kommuner (kilder) samt Danske medier for budgetreferencer."
-    },
-    {
-        "title": "📑 Udbud & budgetoverskridelser",
-        "prompt": "Find sammenhæng mellem vundne udbud og efterfølgende budgetoverskridelser; brug Udbud og Lokalpolitik til at matche kontraktstart og økonomiopfølgning."
-    },
-    {
-        "title": "🏠 Offentlige ejendomshandler under markedspris",
-        "prompt": "Identificér kommunale ejendomssalg under markedspris ved at krydsreferere Tinglysning (beløb) med Lokalpolitik og Danske medier for beslutningsgrundlaget."
-    },
-    # --- Social dumping og arbejdsforhold ---
-    {
-        "title": "🛠️ Arbejdstilsynsbrud & udbudsvindere",
-        "prompt": "Find udenlandske virksomheder med alvorlige Arbejdstilsyns-reaktioner (Forbud/Strakspåbud) der samtidig vinder offentlige udbud; brug Arbejdstilsyn og Udbud."
-    },
-    {
-        "title": "💼 Konkurser & lønrestancer",
-        "prompt": "Undersøg mønstre hvor konkurser følges af lønrestancer og nye selskaber; kombiner Status, Registrering og Danske medier."
-    },
-    {
-        "title": "🧯 Sikkerhedsbrud i offentlige kontrakter",
-        "prompt": "Identificér leverandører med gentagne sikkerhedsbrud der har aktive offentlige kontrakter; brug Arbejdstilsyn og Udbud til at matche tidsmæssigt."
+        "title": "🧱 Lokale planer og udbud",
+        "prompt": "Hold øje med ændringer i lokalplaner og udbud inden for et tema (fx erhverv, bolig, infrastruktur) i en kommune – hvad ændres hvornår?"
     }
 ]
 
