@@ -1,0 +1,55 @@
+{
+  "cached_at": "2025-08-29T17:03:10.057876",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 7,
+    "items": [
+      {
+        "id": 276,
+        "name": "§21-påbud",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 273,
+        "name": "Afgørelse uden handlepligt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 275,
+        "name": "Forbud",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 272,
+        "name": "Påbud",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 274,
+        "name": "Påtale",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 277,
+        "name": "Rygelov Strakspåbud",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 271,
+        "name": "Strakspåbud",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

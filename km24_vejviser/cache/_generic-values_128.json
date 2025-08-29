@@ -1,0 +1,61 @@
+{
+  "cached_at": "2025-08-29T16:54:20.041845",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 8,
+    "items": [
+      {
+        "id": 226,
+        "name": "Anden",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 219,
+        "name": "Enfamiliesejendom",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 221,
+        "name": "Erhvervsejendom",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 222,
+        "name": "Flerfamiliesejendom",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 223,
+        "name": "Fritidsejendom",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 224,
+        "name": "Landbrug",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 225,
+        "name": "Ubebygget grund",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 227,
+        "name": "Ukendt",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

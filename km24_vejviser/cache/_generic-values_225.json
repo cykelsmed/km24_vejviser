@@ -1,0 +1,37 @@
+{
+  "cached_at": "2025-08-29T22:48:13.663387",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 4,
+    "items": [
+      {
+        "id": 386,
+        "name": "Afskedigelsesnævnet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 385,
+        "name": "Arbejdsretten",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 384,
+        "name": "Faglige voldgiftsretter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 387,
+        "name": "Tjenestemandsretterne",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

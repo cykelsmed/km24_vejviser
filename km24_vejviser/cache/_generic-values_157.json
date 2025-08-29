@@ -1,0 +1,25 @@
+{
+  "cached_at": "2025-08-29T16:59:24.204551",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 2,
+    "items": [
+      {
+        "id": 125,
+        "name": "Dagsordener",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 126,
+        "name": "Referater",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

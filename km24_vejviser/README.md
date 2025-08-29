@@ -1,4 +1,4 @@
-# KM24 Vejviser (Version 3.4)
+# KM24 Vejviser (Version 3.5)
 
 En avanceret, pædagogisk assistent, der lærer journalister at mestre KM24-overvågningsplatformen med dynamisk filter-anbefaling.
 
@@ -12,6 +12,7 @@ Vejviserens primære mål er ikke kun at levere en løsning, men at **undervise 
 
 - **Struktureret JSON Output:** Genererer en robust og forudsigelig JSON-plan, der let kan integreres med andre systemer.
 - **Dynamisk Filter-Anbefaling:** Automatisk generering af relevante filtre (geografi, branchekoder, perioder, beløbsgrænser) baseret på målbeskrivelsen.
+- **Hyper-relevante, modul-specifikke anbefalinger:** Udleder domænespecifik viden fra hvert moduls `longDescription` og foreslår konkrete `generic_value`-værdier og kilder (fx Arbejdstilsyn → Problem: "Asbest"; Danske medier → lokale medier for Esbjerg).
 - **Pædagogisk Design:** Hvert trin i planen indeholder et `rationale`, en `strategic_note` og en `explanation`, der forklarer de strategiske og tekniske overvejelser.
 - **Avanceret Videnbase:** Indeholder en dybdegående YAML-baseret videnbase om:
     - 45 officielle KM24-moduler.
@@ -30,7 +31,8 @@ km24_vejviser/
 │   ├── __init__.py
 │   ├── main.py             # FastAPI applikation og LLM integration
 │   ├── km24_client.py      # KM24 API klient
-│   ├── filter_catalog.py   # Dynamisk filter-anbefaling
+│   ├── filter_catalog.py   # Dynamisk + hyper-relevant filter-anbefaling
+│   ├── knowledge_base.py   # Ekstraktion af modul-viden fra longDescription
 │   ├── module_validator.py # Modul validering
 │   ├── models/             # Pydantic modeller
 │   ├── templates/          # HTML templates
@@ -38,6 +40,7 @@ km24_vejviser/
 ├── tests/                  # Testfiler
 │   ├── __init__.py
 │   ├── test_main.py
+│   ├── test_hyper_relevance.py
 │   ├── test_km24_validation.py
 │   ├── test_km24_syntax.py
 │   └── ...
@@ -141,9 +144,9 @@ ANTHROPIC_API_KEY="din_api_nøgle_her"
 **5. Kør Applikationen**
 Fra projektets rodmappe, kør:
 ```bash
-uvicorn km24_vejviser.main:app --reload --port 8001
+uvicorn km24_vejviser.main:app --reload --host 127.0.0.1 --port 8000
 ```
-Applikationen vil nu være tilgængelig på `http://127.0.0.1:8001`.
+Applikationen vil nu være tilgængelig på `http://127.0.0.1:8000`.
 
 ## Testning
 
@@ -174,10 +177,29 @@ pytest -v
 
 ### Filter-katalog endpoints
 - `GET /api/filter-catalog/status` - Status for filter-katalog
-- `POST /api/filter-catalog/recommendations` - Få filter-anbefalinger
+- `POST /api/filter-catalog/recommendations` - Få filter-anbefalinger (inkl. hyper-relevante, konkrete værdier)
 - `GET /api/filter-catalog/municipalities` - Kommuner
 - `GET /api/filter-catalog/branch-codes` - Branchekoder
 - `DELETE /api/clear-cache` - Ryd cache
+
+#### Eksempel: Hyper-relevante anbefalinger
+
+Request:
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/filter-catalog/recommendations \
+  -H 'Content-Type: application/json' \
+  -d '{"goal":"Undersøg alvorlige asbest-sager i Esbjerg","modules":["Arbejdstilsyn","Danske medier"]}'
+```
+
+Respons (uddrag):
+```json
+{
+  "recommendations": [
+    {"filter_type": "Problem", "values": ["Asbest"], "reasoning": "Mål nævner asbest → foreslå Problem: Asbest (Arbejdstilsyn)"},
+    {"filter_type": "web_source", "values": ["JydskeVestkysten", "Esbjerg Ugeavis"], "reasoning": "Lokale medier identificeret via geografiske nøgleord i målet"}
+  ]
+}
+```
 
 ## Udvikling
 

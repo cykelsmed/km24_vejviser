@@ -1,0 +1,3112 @@
+{
+  "cached_at": "2025-08-29T23:09:51.996810",
+  "data": {
+    "count": 46,
+    "countSubbed": 0,
+    "countActive": 46,
+    "items": [
+      {
+        "parts": [
+          {
+            "id": 12,
+            "part": "industry",
+            "name": "Branche",
+            "info": "Her kan du indsnævre søgningen til kun at omfatte bestemte brancher, sådan som de fremgår af registreringen i CVR. Dvs. at du kun får hit, hvis en virksomhed inden for den pågældende branche indgår i oplysningerne fra Tinglysningen. Der er i alt 742 brancher. Hvis du ikke vælger en branche, bruger vi ikke dette til at afgrænse udsøgningen, dvs. du har i praksis valgt alle brancher.",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 13,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 14,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "Her kan du vælge blandt 98 kommuner, som du vil overvåge. Christiansø optræder nogle steder som en selvstændig kommune - idet data herfra ikke er tilknyttet en eksisterende kommune. Endelig vil der være mulighed for at vælge uoplyst, hvor data ikke kan knyttes til en kommune. Klikker du ikke kommuner ud, har du i praksis valgt alt, også uoplyst og Christiansø.",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 17,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 15,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 16,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 6
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "andelsboligbogen",
+        "allowCatchAllSearchString": false,
+        "id": 1240,
+        "title": "Andelsboligbogen",
+        "titleWbr": "Andels/bolig/bog/en",
+        "colorHex": "5b0000",
+        "emoji": "🏠",
+        "shortDescription": "Pant og udlæg i Andelsboligforeninger.",
+        "longDescription": "I Andelsboligbogen registrerer kreditorer deres rettigheder (pant, udlæg mv.) over andele i Andelsboligforeninger samt aktier og anparter i henholdsvis boligaktieselskaber og boliganpartsselskaber. Andelsboligbogsovervågningen er en overvågning af dette. Der hentes data fra <a href=\"https://domstol.dk/tinglysningsretten/tingboegerne/andelsboligbogen/\">Andelsboligbogen</a> flere gange dagligt."
+      },
+      {
+        "parts": [
+          {
+            "id": 225,
+            "part": "generic_value",
+            "name": "Kategori",
+            "info": "Begræns kategorier for Arbejdsretten.",
+            "slug": "kategori",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 222,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 221,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 220,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 223,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 224,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 226,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "arbejdsretten",
+        "allowCatchAllSearchString": false,
+        "id": 1701,
+        "title": "Arbejdsretten",
+        "titleWbr": "Ar/bejds/ret/ten",
+        "colorHex": "78858b",
+        "emoji": "👨",
+        "shortDescription": "Domme og kendelser fra Arbejdsretten, der behandler arbejdsretlige konflikter.",
+        "longDescription": "Arbejdsretlige konflikter fra <a href=\"https://www.arbejdsretten.dk/soeg/\" target=\"_blank\" rel=\"noopener noreferrer\">Arbejdsretten</a>. \r\nSagerne vedrører bl.a. brud på overenskomster, fortolkning af aftaler, kollektive konflikter og forligsmændenes kompetence. De kan ikke behandles ved almindelige domstole, men enkeltpersoner kan anlægge sag om tilgodehavender, hvis deres faglige organisation ikke tager sagen op."
+      },
+      {
+        "parts": [
+          {
+            "id": 204,
+            "part": "generic_value",
+            "name": "Oprindelsesland",
+            "info": "Arbejdstilsynet offentliggør tilsyn for danske og udenlandske virksomheder, der er registreret i RUT-registret.\r\nFor de udenlandske er der ikke oplysning om adresse - og dermed heller ikke kommune, ligesom oplysning om branche mangler.",
+            "slug": "oprindelsesland",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 205,
+            "part": "generic_value",
+            "name": "Problem",
+            "info": "Arbejdstilsynet opdeler problemerne i forskellige typer som asbest, høreskadende støj, fugt, skimmelsvamp, vold og traumatiske hændelser etc.",
+            "slug": "problem",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 206,
+            "part": "generic_value",
+            "name": "Reaktion",
+            "info": "Arbejdstilsynet har forskellige reaktioner på et problem. Forbud, påtale, påbud og strakspåbud er de vigtigste.",
+            "slug": "reaktion",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 3,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 2,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
+            "id": 9,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 9
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "arbejdstilsyn",
+        "allowCatchAllSearchString": false,
+        "id": 110,
+        "title": "Arbejdstilsyn",
+        "titleWbr": "Ar/bejds/til/syn",
+        "colorHex": "b8aa40",
+        "emoji": "🙁",
+        "shortDescription": "Arbejdstilsynets kritik af virksomheder",
+        "longDescription": "Arbejdstilsynet offentliggør resultatet af kontrolbesøg på både danske og udenlandske virksomheder. Det gælder dog kun konklusionerne. Ønsker du indsigt i tilsynsrapporten, skal du bede om aktindsigt i rapporten med henvisning til offentlighedsloven og angivelse af virksomhed og tilsynsdato og evt. anden præcisering. Send pr. email til at@at.dk.\r\nFor kontrol af arbejdsmiljøet på udenlandske virksomheder gælder det, at tilsynet ikke viser branchekoder eller den geografiske placering af arbejdet."
+      },
+      {
+        "parts": [
+          {
+            "id": 18,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 19,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 20,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 21,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 22,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 5
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "bilbogen",
+        "allowCatchAllSearchString": false,
+        "id": 1260,
+        "title": "Bilbogen",
+        "titleWbr": "Bil/bog/en",
+        "colorHex": "8e3200",
+        "emoji": "🚗",
+        "shortDescription": "Pant i køretøjer.",
+        "longDescription": "Nye registreringer af pant i køretøjer, både for enkeltpersoner og selskaber. Bilbogsovervågningen er en overvågning af <a href=\"https://domstol.dk/tinglysningsretten/tingboegerne/bilbogen/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstoles afdeling for Bilbogen</a>, hvor vi henter data flere gange dagligt."
+      },
+      {
+        "parts": [
+          {
+            "id": 31,
+            "part": "generic_value",
+            "name": "Adressetype",
+            "info": "Her kan du vælge mellem de 18 forskellige ejendomstyper, som boligsiden inddeler adresserne i. Vælger du ikke mindst én adressetype, vil overvågningen gælde for samtlige adressetyper.",
+            "slug": "adressetype",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 30,
+            "part": "amount_selection",
+            "name": "Beløb",
+            "info": "Du kan her begrænse boligopslag til kun dem, der overstiger et bestemt beløb.",
+            "slug": "beloeb",
+            "canSelectMultiple": false,
+            "order": 2
+          },
+          {
+            "id": 245,
+            "part": "custom_number",
+            "name": "BFE",
+            "info": "Ønsker du overvågning på bestemte BFE-numre, kan du sætte det op her. For hvert BFE-nummer du opretter, kan du også tilknytte en note, så det er nemmere at huske, hvad nummeret knytter sig til.",
+            "slug": "bfe",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 24,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 25,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 26,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 28,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
+            "id": 27,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 8
+          },
+          {
+            "id": 29,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 9
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "boligsiden",
+        "allowCatchAllSearchString": false,
+        "id": 1400,
+        "title": "Boligsiden",
+        "titleWbr": "Bolig/si/den",
+        "colorHex": "e40920",
+        "emoji": "🏠",
+        "shortDescription": "Alle nye boliger til salg i Danmark.",
+        "longDescription": "Vi henter data flere gange dagligt fra <a href=\"https://www.boligsiden.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">Boligsiden</a> om nye boliger sat til salg i Danmark."
+      },
+      {
+        "parts": [
+          {
+            "id": 263,
+            "part": "generic_value",
+            "name": "Begivenhed",
+            "info": "Her kan du abonnere på diverse begivenheder for borgerforslag. Såfremt du ikke vælger noget her (og har udvalgt andre overvågningskriterier for Borgerforslag) svarer det til kun at abonnere på \"Nyt forslag\"-begivenheden.\r\n\r\nVær opmærksom på, at hver begivenhed for et givent forslag vil figurere som et unikt hit i standard-hitlogikken. Du kan derfor fx godt opleve at modtage flere hits om det samme borgerforslag i den samme mail, såfremt et forslag opnår flere milepæle på kort tid. Du kan ændre hitlogik til maksimalt at modtage et hit pr. borgerforslag.",
+            "slug": "begivenhed",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 262,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 264,
+            "part": "person",
+            "name": "Person",
+            "info": "Du kan overvåge om navngivne personer er forslagsstillere eller medstillere til nye borgerforslag.",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 265,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "borgerforslag",
+        "allowCatchAllSearchString": false,
+        "id": 1706,
+        "title": "Borgerforslag",
+        "titleWbr": "Borger/for/slag",
+        "colorHex": "FF0000",
+        "emoji": "🚩",
+        "shortDescription": "Borgerforslag og antal stemmer på dem.",
+        "longDescription": "Folketinget har oprettet <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.borgerforslag.dk\">borgerforslag.dk</a>, hvor folk kan stille og støtte borgerforslag. Hvis 50.000 personer med stemmeret til folketingsvalg støtter forslaget, kan det blive fremsat som beslutningsforslag i Folketinget."
+      },
+      {
+        "parts": [
+          {
+            "id": 35,
+            "part": "generic_value",
+            "name": "Marked",
+            "info": "Her kan du vælge mellem de forskellige markeder, som børsmeddelelserne er sendt til.",
+            "slug": "marked",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 32,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 33,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 34,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 36,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 37,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 38,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "boersmeddelelser",
+        "allowCatchAllSearchString": false,
+        "id": 220,
+        "title": "Børsmeddelelser",
+        "titleWbr": "Børs/med/del/el/ser",
+        "colorHex": "231955",
+        "emoji": "💰",
+        "shortDescription": "Nye børsmeddelelser fra Nasdaq.",
+        "longDescription": "Børsmeddelelsesovervågningen er en overvågning af nyeste børsmeddelelser fra <a href=\"http://www.nasdaqomxnordic.com/nyheder/selskabsmeddelelser\" target=\"_blank\" rel=\"noopener noreferrer\">Nasdaq</a>. Der hentes nye data flere gange dagligt. Meddelelser stammer fra ni markeder, men der kan begrænses til det danske marked."
+      },
+      {
+        "parts": [
+          {
+            "id": 41,
+            "part": "web_source",
+            "name": "Kilde",
+            "info": "Her kan du se alle kilder fra centraladministrationen, der p.t. kan overvåges. Vi tjekker nyt indhold på de pågældende kilders nyhedssider. Dvs. vi tjekker ikke ændringer på alle eksisterende sider.",
+            "slug": "kilde",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 40,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 39,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 160,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "centraladministrationen",
+        "allowCatchAllSearchString": true,
+        "id": 1360,
+        "title": "Centraladministrationen",
+        "titleWbr": "Cen/tralad/mi/ni/stra/tion/en",
+        "colorHex": "303030",
+        "emoji": "📂",
+        "shortDescription": "Nyt indhold fra danske ministerier og styrelser.",
+        "longDescription": "Vi overvåger websites i ministerier og i en række styrelser, direktorater mv."
+      },
+      {
+        "parts": [
+          {
+            "id": 54,
+            "part": "web_source",
+            "name": "Medie",
+            "info": "Her kan du se alle danske medier, der p.t. kan overvåges. Vær opmærksom på, at dette er en prædefineret liste af danske medier. Hvis du ønsker at abonnere på et medie, som ikke fremgår af listen, så kan du benytte modulet Webstedsovervågning i stedet, hvor du kan oprette et abonnement på ethvert websted.\r\nMedierne er inddelt i de tre kategorier, landsdækkende, lokale eller specialmedier.",
+            "slug": "medie",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 52,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 53,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 198,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "danske-medier",
+        "allowCatchAllSearchString": true,
+        "id": 510,
+        "title": "Danske medier",
+        "titleWbr": "Dan/ske me/di/er",
+        "colorHex": "5132a8",
+        "emoji": "📰",
+        "shortDescription": "Nyt indhold på danske mediesites.",
+        "longDescription": "Vi søger på nyt indhold på sites fra landsdækkende medier, lokale medier og specialmedier, men ikke på indhold bag evt. betalingsmure."
+      },
+      {
+        "parts": [
+          {
+            "id": 58,
+            "part": "amount_selection",
+            "name": "Alder",
+            "info": "Du kan her indstille din nedre og øvre aldersgrænse for dødsfald.\r\nHvis du fx. indstiller 30 år for nedre grænse og 105 år for øvre grænse, vil du kun få et hit, hvis en  person, der døde (evt. begrænset til kommuner du har udvalgt) var yngre end 30 år (0-29,99 år) eller ældre end 105 år (105,0+).",
+            "slug": "alder",
+            "canSelectMultiple": false,
+            "order": 1
+          },
+          {
+            "id": 56,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 55,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 57,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "doedsfald",
+        "allowCatchAllSearchString": false,
+        "id": 1100,
+        "title": "Dødsfald",
+        "titleWbr": "Døds/fald",
+        "colorHex": "000000",
+        "emoji": "💀",
+        "shortDescription": "Nye dødsfald fra Datafordeleren og Statstidende.",
+        "longDescription": "I dødsfaldsovervågningen kan du få besked, når personer dør. Vi henter data dagligt fra Datafordeleren og Statstidende. Datafordeleren oplyser om dødsfald for ejere af fast ejendom, mens Statstidende oplyser om behandling af dødsboer (arvesager). Døde uden for de to grupper har vi ikke oplysninger om."
+      },
+      {
+        "parts": [
+          {
+            "id": 60,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 61,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 62,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 63,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 64,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 65,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 6
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "domaener",
+        "allowCatchAllSearchString": false,
+        "id": 80,
+        "title": "Domæner",
+        "titleWbr": "Do/mæn/er",
+        "colorHex": "545454",
+        "emoji": "🔗",
+        "shortDescription": "Nye dk-internetdomæner.",
+        "longDescription": "I domæneovervågningen kan du få holde øje med .dk domæner. Vi samler info om domæner og registranters navn og adresse, hvis der er købt eller fornyet et sikkerhedscertifikat. Vi registrerer først domænet, når det tages i brug, hvorved der udstedes et sikkerhedscertifikat."
+      },
+      {
+        "parts": [
+          {
+            "id": 197,
+            "part": "generic_value",
+            "name": "Ret",
+            "info": "Her kan du vælge, hvilke retter du ønsker overvåget. Vælger du ingen, bliver alle overvåget.",
+            "slug": "ret",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 283,
+            "part": "generic_value",
+            "name": "Gerningskode",
+            "info": "For straffesager tildeler politiet en gerningskode såsom \"Salg af narkotika\" eller \"Skydevåben, særligt skærpende, offentligt sted\". Vær dog opmærksom på, at det KUN er for straffesager disse gerningskoder tildeles. Hvis du stadig ønsker at få hit på civile sager, eller sager hvor gerningskoden af andre årsager ikke er kendt, skal du derfor også vælge \"*Ukendt/Ikke relevant\".\r\nDer er ikke garanti for, at gerningskoder er med i alle straffesager, så kombiner også gerne med søgeord.",
+            "slug": "gerningskode",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 66,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 67,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 69,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 70,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 71,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "domme",
+        "allowCatchAllSearchString": false,
+        "id": 250,
+        "title": "Domme",
+        "titleWbr": "Dom/me",
+        "colorHex": "800080",
+        "emoji": "🏛️",
+        "shortDescription": "Nye domme fra den offentlige domsdatabase.",
+        "longDescription": "I domsdatabaseovervågningen kan du overvåge nye afgørelser fra landets retter. Sø- og Handelsretten indgår ikke. Data hentes flere gange dagligt fra <a href=\"https://domsdatabasen.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">domsdatabasen</a>.\r\n\r\nModulet Domme adskiller sig fra modulet Retslister ved, at der i domsdatabasen kun fremgår domme, hvor der er faldet afgørelse. Retslisterne offentliggøres, før retssagen begynder.\r\n\r\nDomsdatabasen er et relativt nyt initiativ og publicerer også historiske domme. Siden nyhedsværdien er lav, bliver historiske domme ikke medtaget i KM24."
+      },
+      {
+        "parts": [
+          {
+            "id": 79,
+            "part": "web_source",
+            "name": "Organisation",
+            "info": "",
+            "slug": "organisation",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 78,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 80,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 159,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "eu",
+        "allowCatchAllSearchString": true,
+        "id": 1380,
+        "title": "EU",
+        "titleWbr": "EU",
+        "colorHex": "001489",
+        "emoji": "🇪🇺",
+        "shortDescription": "Nyt fra EU-organer.",
+        "longDescription": "Nyt indhold på websites tilhørende EU-kommissionen, EU's generaldirektorater og andre EU-organer. Hvis du ønsker at abonnere på en DU-kilde, som ikke fremgår af listen, så kan du benytte modulet Webstedsovervågning. Her kan du oprette en overvågning af ethvert websted."
+      },
+      {
+        "parts": [
+          {
+            "id": 81,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 82,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 83,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 84,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 85,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 86,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 6
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "finanstilsynet",
+        "allowCatchAllSearchString": false,
+        "id": 210,
+        "title": "Finanstilsynet",
+        "titleWbr": "Fi/nans/til/sy/net",
+        "colorHex": "e8aa42",
+        "emoji": "💰",
+        "shortDescription": "Tilsynsreaktioner fra Finanstilsynet.",
+        "longDescription": "Finanstilsynsovervågningen er en overvågning af nye tilsynreaktioner inden for fem typer (politianmeldelser, domme og bøder, påbud, påtaler samt andre afgørelser). Desuden overvåges advarsler mod ulovlig virksomhed. Der hentes data fra <a href=\"https://www.finanstilsynet.dk/Tilsyn/Tilsynsreaktioner\" target=\"_blank\" rel=\"noopener noreferrer\">Finanstilsynet</a>\r\nflere gange dagligt."
+      },
+      {
+        "parts": [
+          {
+            "id": 93,
+            "part": "generic_value",
+            "name": "Niveau",
+            "info": "Her kan du vælge, hvilke typer smileys du vil se.",
+            "slug": "niveau",
+            "canSelectMultiple": false,
+            "order": 1
+          },
+          {
+            "id": 87,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 88,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 89,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 90,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 91,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 92,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "foedevaresmiley",
+        "allowCatchAllSearchString": false,
+        "id": 6,
+        "title": "Fødevaresmiley",
+        "titleWbr": "Fød/e/va/re/smi/ley",
+        "colorHex": "c46c00",
+        "emoji": "🙁",
+        "shortDescription": "Nye smileys (de to sureste typer) fra Fødevarestyrelsen til butikker, kantiner, institutionskøkkener mv.",
+        "longDescription": "Her kan du få besked, når Fødevarestyrelsen tildeler en af de to sureste smiley-typer til butikker, kantiner, institutionskøkkener mv.\r\nDer hentes data fra <a href=\"https://www.findsmiley.dk/Sider/Forside.aspx\" target=\"_blank\" rel=\"noopener noreferrer\">findsmiley.dk</a> flere gange dagligt."
+      },
+      {
+        "parts": [
+          {
+            "id": 280,
+            "part": "web_source",
+            "name": "Kilde",
+            "info": "Her kan du se alle nyhedssteder for forskning, der p.t. kan overvåges. Vær opmærksom på, at dette er en prædefineret liste. Hvis du ønsker at abonnere på en kilde, som ikke fremgår af listen, så kan du benytte modulet Webstedsovervågning i stedet, hvor du kan oprette et abonnement på ethvert websted.",
+            "slug": "kilde",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 281,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 282,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 3
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "forskning",
+        "allowCatchAllSearchString": true,
+        "id": 1710,
+        "title": "Forskning",
+        "titleWbr": "Forsk/ning",
+        "colorHex": "5b0000",
+        "emoji": "🏫",
+        "shortDescription": "Nyt indhold på danske og udenlandske sites med relation til forskning.",
+        "longDescription": "Vi søger nyheder på sites, relaterede til forskning, men ikke på indhold bag evt. betalingsmure."
+      },
+      {
+        "parts": [
+          {
+            "id": 94,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 96,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 97,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 95,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "gaeldssanering",
+        "allowCatchAllSearchString": false,
+        "id": 1220,
+        "title": "Gældssanering",
+        "titleWbr": "Gælds/sa/ne/ring",
+        "colorHex": "303030",
+        "emoji": "💳",
+        "shortDescription": "Gældssanering fra Statstidende.",
+        "longDescription": "Gældssaneringsovervågningen er en overvågning af <a href=\"https://www.domstol.dk/alle-emner/gaeld/gaeldssanering/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstoles afdeling for Gældssanering</a>.\r\n\r\nFlere gange dagligt henter vi data fra Statstidende, hvor gældssaneringssager offentliggøres."
+      },
+      {
+        "parts": [
+          {
+            "id": 185,
+            "part": "amount_selection",
+            "name": "Beløb",
+            "info": "Du kan her indstille dine beløbsgrænser for kapitalændringer. Hvis du fx. indstiller en grænse på -10.000.000 kr. for negativ kapitalændringer, vil du modtage en notifikation, hvis en virksomhed sænker kapitalen med 10.000.000 kr. eller mere (og matcher på evt. andre kriterier, du har sat op). Tilsvarende for positiv kapitalændringer, således at hvis du sætter det til 30.000.000, så får du en notifikation, hvis kapitalen hæves med 30.000.000 eller mere.",
+            "slug": "beloeb",
+            "canSelectMultiple": false,
+            "order": 1
+          },
+          {
+            "id": 181,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 182,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 202,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 183,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 184,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 6
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "kapitalaendring",
+        "allowCatchAllSearchString": false,
+        "id": 630,
+        "title": "Kapitalændring",
+        "titleWbr": "Ka/pi/tal/æn/dring",
+        "colorHex": "ffc107",
+        "emoji": "📈",
+        "shortDescription": "Kapitalændringer i selskaber - hentet fra VIRK.",
+        "longDescription": "Dette er en overvågning af kapitalændringer, der baserer sig på data fra <a href=\"https://virk.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">VIRK</a>."
+      },
+      {
+        "parts": [
+          {
+            "id": 11,
+            "part": "generic_value",
+            "name": "Klageinstans",
+            "info": "Hvis du kun ønsker at overvåge kendelser fra særlige klage- og ankenævn, kan du foretage dine valg herunder.\nVælger du ikke mindst ét nævn, vil overvågningen gælde for samtlige instanser.",
+            "slug": "klageinstans",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 145,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 146,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 147,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 148,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 149,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 150,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "klagenaevn",
+        "allowCatchAllSearchString": false,
+        "id": 240,
+        "title": "Klagenævn",
+        "titleWbr": "Klag/e/nævn",
+        "colorHex": "324da8",
+        "emoji": "⚠️",
+        "shortDescription": "Nye kendelser fra 17 forskellige anke- og klagenævn.",
+        "longDescription": "I klagenævnsovervågningen kan du overvåge virksomheder og søgeord i kendelser fra forskellige klagenævn. Du kan se alle klagenævn, vi henter data fra, samt begrænse hvilke du ønsker at overvåge, under \"instanser\".\r\n<br/>\r\n<br/>\r\nVi henter data flere gange dagligt fra:\r\n<ul>\r\n  <li>\r\n    <a href=\"https://naevneneshus.dk/start-din-klage\" target=\"_blank\" rel=\"noopener noreferrer\">Nævnenes Hus</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://www.kfst.dk\" target=\"_blank\" rel=\"noopener noreferrer\">Konkurrence- og Forbrugerstyrelsen</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://ankeforsikring.dk/kendelser/Sider/kendelser.aspx\" target=\"_blank\" rel=\"noopener noreferrer\">Ankenævnet for Forsikring</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://fanke.dk/soeg-i-afgoerelser/\" target=\"_blank\" rel=\"noopener noreferrer\">Det Finansielle Ankenævn</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://www.energianke.dk/afgoerelser/\" target=\"_blank\" rel=\"noopener noreferrer\">Ankenævnet på Energiområdet</a>\r\n  </li>\r\n</ul>"
+      },
+      {
+        "parts": [
+          {
+            "id": 43,
+            "part": "web_source",
+            "name": "Kilde",
+            "info": "",
+            "slug": "kilde",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 44,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 42,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 199,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "klima",
+        "allowCatchAllSearchString": true,
+        "id": 1320,
+        "title": "Klima",
+        "titleWbr": "Kli/ma",
+        "colorHex": "023020",
+        "emoji": "🌱",
+        "shortDescription": "Nyt indhold på klima- og energikilder.",
+        "longDescription": "Her kan du overvåge nyt indhold i de største og vigtigste kilder inden for klima og energi. Der søges ikke efter indhold bag evt. betalingsmure."
+      },
+      {
+        "parts": [
+          {
+            "id": 99,
+            "part": "web_source",
+            "name": "Kilde",
+            "info": "",
+            "slug": "kilde",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 98,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 100,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 161,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "kommuner",
+        "allowCatchAllSearchString": true,
+        "id": 1340,
+        "title": "Kommuner",
+        "titleWbr": "Kom/mun/er",
+        "colorHex": "303030",
+        "emoji": "🏛️",
+        "shortDescription": "Nyt indhold på websites fra de 98 kommuner, fem regioner, KL og Danske Regioner.",
+        "longDescription": "Nyt indhold på websites fra de 98 kommuner, fem regioner, KL og Danske Regioner. Vi registrerer ikke alt indhold, men primært det, der karakteriseres som ”Nyheder” på den enkelte hjemmeside. Ringsted Kommune er ikke med på nuværende tidspunkt. Nogle kommuner og en region lægger kun deres nyheder på generelle nyhedssites, så der vil også optræde nyheder fra andre kilder fra disse sites.\r\n\r\nHvis du vil overvåge dagsordener og referater fra politiske møder i kommunerne, skal du benytte modulet \"Lokalpolitik\"."
+      },
+      {
+        "parts": [
+          {
+            "id": 215,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 216,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 217,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 218,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 219,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 5
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "konflikt",
+        "allowCatchAllSearchString": false,
+        "id": 1700,
+        "title": "Konflikt",
+        "titleWbr": "Kon/flikt",
+        "colorHex": "dd0f51",
+        "emoji": "⚔️",
+        "shortDescription": "Sympatikonflikter i fagforeninger",
+        "longDescription": "Varslede og effektuerede sympatikonflikter i fagforeninger og mellem ansatte og arbejdsgivere.\r\n<br/>\r\nNår en fagforening iværksætter en konflikt mod en virksomhed med det formål at få virksomheden dækket af en overenskomst, har fagforeningen mulighed for at anvende forskellige konfliktmidler. Et af de mest omfattende midler er sympatikonflikten. Under en sympatikonflikt må medarbejdere hos andre virksomheder, som er medlem af samme hovedorganisation, ikke udføre arbejde, der har relation til eller er tiltænkt den konfliktramte virksomhed."
+      },
+      {
+        "parts": [
+          {
+            "id": 266,
+            "part": "generic_value",
+            "name": "Register",
+            "info": "Kritik med navn eller tilsyn",
+            "slug": "register",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 267,
+            "part": "generic_value",
+            "name": "Sanktion",
+            "info": "",
+            "slug": "sanktion",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 269,
+            "part": "generic_value",
+            "name": "Erhverv",
+            "info": "",
+            "slug": "erhverv",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 272,
+            "part": "generic_value",
+            "name": "Retskreds",
+            "info": "Det er retskredsen, som den er oplyst i teksten. For eksempel kan det være Kbh. eller Frb. retskreds. Men det kan også være Københavns retskreds. Retskreds kan også være ukendt.",
+            "slug": "retskreds",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 271,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 270,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 6
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "kritik-af-sundhedspersoner",
+        "allowCatchAllSearchString": false,
+        "id": 1707,
+        "title": "Kritik af sundhedspersoner",
+        "titleWbr": "Kri/tik af sund/heds/per/son/er",
+        "colorHex": "001489",
+        "emoji": "👨",
+        "shortDescription": "Udvalgte afgørelser fra Sundhedsvæsenets Disciplinærnævn samt indhold fra Autorisationsregistret",
+        "longDescription": "Data stammer fra to kilder: Dels fra <a href=\"https://www.stpk.dk/afgorelser-og-domme/afgorelser-fra-sundhedsvaesenets-disciplinaernaevn/\" rel=\"noopener noreferrer\" target=\"_blank\">Afgørelser fra Sundhedsvæsenets Disciplinærnævn</a>. Det er kun udvalgte afgørelser, og de har alle resultatet i kritik. Dels fra opslag i <a href=\"https://autregweb.sst.dk/authorizationsearch.aspx\" rel=\"noopener noreferrer\" target=\"_blank\">Autorisationsregistret</a>."
+      },
+      {
+        "parts": [
+          {
+            "id": 101,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 102,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 103,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 104,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 105,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 106,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 6
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "kystdirektoratet",
+        "allowCatchAllSearchString": false,
+        "id": 1200,
+        "title": "Kystdirektoratet",
+        "titleWbr": "Kyst/di/rek/to/ra/tet",
+        "colorHex": "324da8",
+        "emoji": "💦",
+        "shortDescription": "Alle nye afgørelser og høringer fra Kystdirektoratet.",
+        "longDescription": "Kystdirektoratsovervågningen er en overvågning af nye afgørelser og høringer fra Kystdirektoratet. Der hentes data fra <a href=\"https://kyst.dk/offentliggoerelser/\" target=\"_blank\" rel=\"noopener noreferrer\">Kystdirektoratet</a> flere gange dagligt."
+      },
+      {
+        "parts": [
+          {
+            "id": 243,
+            "part": "generic_value",
+            "name": "Kategori",
+            "info": "Officielt opdeles sagerne i disse kategorier:\r\nAa - Egne arrangementer.\r\nAb - Sponsorater til arrangører.\r\nAc - Udstilling.\r\nAd - Sponsorater til sundhedspersoner.\r\nR - Reklame.\r\nFO - Forhåndsgodkendelse.\r\nKO - Klage.\r\nKH - Hasteklage.\r\nAN - Ankesag.\r\nEN - Sag rejst af ENLI.\r\n\r\nI praksis er det kategorierne, du ser nedenfor, som de opdeles efter.",
+            "slug": "kategori",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 236,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 234,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 233,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 237,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 235,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 238,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "laegemiddelindustrien",
+        "allowCatchAllSearchString": false,
+        "id": 1703,
+        "title": "Lægemiddelindustrien",
+        "titleWbr": "Læ/ge/mid/del/in/du/stri/en",
+        "colorHex": "990f02",
+        "emoji": "👨",
+        "shortDescription": "Etisk Nævn for Lægemiddelindustrien (ENLI) har siden 2011 offentliggjort afgørelser om etiske forhold i lægemiddelindustrien.",
+        "longDescription": "ENLI består af to instanser, Granskningspanelet (1. instans) og Ankenævnet (2. instans). \r\nSe mere på <a href=\"https://www.enli.dk/om-etisk-naevn-for-laegemiddelindustrien\" target=\"_blank\" rel=\"noopener noreferrer\">Om ENLI</a>.\r\nVi scraper alle offentliggjorte sager."
+      },
+      {
+        "parts": [
+          {
+            "id": 10,
+            "part": "generic_value",
+            "name": "Kommune/Region",
+            "info": "Hvis du kun ønsker at overvåge udvalgte kommuner/regioner, kan du foretage dine valg herunder. Vælger du ikke mindst en lokalpolitisk instans, vil overvågningen gælde for samtlige.",
+            "slug": "kommune-region",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 201,
+            "part": "search_string",
+            "name": "Udvalg",
+            "info": "Du kan oprette søgeord som \"social\", \"sundhed\", \"teknisk\", \"økonomi\" og lignende for at søge udvalg af en bestemt type i kommunerne. Har du ikke oprettet noget søgeord, søger systemet på alle udvalg.",
+            "slug": "udvalg",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 157,
+            "part": "generic_value",
+            "name": "Dokumenttype",
+            "info": "Her kan du begrænse til kun at få mails for bestemte dokumenttyper.",
+            "slug": "dokumenttype",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 203,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 152,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 153,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 154,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "Søgeordene her benyttes til at søge i de individuelle punkter i dagsordenerne.\r\nVær opmærksom på, at vi ikke scraper bilag, så du kan ikke søge i bilagsteksterne.",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
+            "id": 156,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 8
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "lokalpolitik",
+        "allowCatchAllSearchString": false,
+        "id": 1500,
+        "title": "Lokalpolitik",
+        "titleWbr": "Lo/kal/po/li/tik",
+        "colorHex": "303030",
+        "emoji": "🏛️",
+        "shortDescription": "Dagsordener og referater fra kommuner og regioner.",
+        "longDescription": "Lokalpolitik-overvågningen er en overvågning af nye dagsordener og referater fra faste udvalgs-, byråds- og regionrådsmøder i kommuner og regioner. Alle regioner og kommuner er med."
+      },
+      {
+        "parts": [
+          {
+            "id": 289,
+            "part": "generic_value",
+            "name": "Forslags-ID",
+            "info": "Lovforslagets nummer",
+            "slug": "forslags-id",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 288,
+            "part": "generic_value",
+            "name": "Ministerområde",
+            "info": "Det ministerium, som lovforslaget hører under, og som efter en vedtagelse skal administrere loven.",
+            "slug": "ministeromraade",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 286,
+            "part": "generic_value",
+            "name": "Parti",
+            "info": "Parti eller partier bag et lovforlag.",
+            "slug": "parti",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 285,
+            "part": "generic_value",
+            "name": "Politiker",
+            "info": "De enkelte politikere, der foreslår loven.",
+            "slug": "politiker",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 287,
+            "part": "generic_value",
+            "name": "Status",
+            "info": "Lovforslagets vej gennem Folketinget. Du kan for eksempel nøjes med at abonnere på nye forslag eller kun endeligt vedtagne.",
+            "slug": "status",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 290,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 291,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "lovforslag",
+        "allowCatchAllSearchString": false,
+        "id": 1711,
+        "title": "Lovforslag",
+        "titleWbr": "Lov/for/slag",
+        "colorHex": "a6192e",
+        "emoji": "🧑",
+        "shortDescription": "Lovforslag fra Folketinget",
+        "longDescription": "Al behandling af lovforslag i Folketinget, lige fra fremsættelse, debat, høringer, de forskellige behandlinger og (muligvis) frem til den endelige vedtagelse."
+      },
+      {
+        "parts": [
+          {
+            "id": 261,
+            "part": "generic_value",
+            "name": "Kilde",
+            "info": "Kilden, hvor data er hentet fra.",
+            "slug": "kilde",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 257,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 255,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 254,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 256,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 258,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 259,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "miljoe-annonceringer",
+        "allowCatchAllSearchString": false,
+        "id": 1705,
+        "title": "Miljø-annonceringer",
+        "titleWbr": "Mil/jø-an/non/ce/ring/er",
+        "colorHex": "0E4743",
+        "emoji": "🌱",
+        "shortDescription": "Annonceringer fra Miljøstyrelsen.",
+        "longDescription": "Annonceringer (nyheder) fra <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://mst.dk/annonceringer\">Miljøstyrelsen</a> og fra <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://sgavmst.dk/annonceringer\">Styrelsen for Grøn Arealomlægning og Vandmiljø</a>."
+      },
+      {
+        "parts": [
+          {
+            "id": 200,
+            "part": "generic_value",
+            "name": "Type",
+            "info": "Hvis du kun ønsker specielle typer af miljøtilsyn, kan du her udvælge disse.",
+            "slug": "type",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 107,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 108,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 109,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 110,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 111,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 112,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "miljoesager",
+        "allowCatchAllSearchString": false,
+        "id": 230,
+        "title": "Miljøsager",
+        "titleWbr": "Mil/jø/sag/er",
+        "colorHex": "268540",
+        "emoji": "🌲",
+        "shortDescription": "Offentliggørelser på Digital Miljøadministration fra landets 99 miljømyndigheder.",
+        "longDescription": "I modulet kan du overvåge miljøsager, som offentliggøres på siden Digital Miljøadministration (DMA) af landets 98 kommuner og Miljøstyrelsen. Miljøsagerne hentes flere gange dagligt fra <a href=\"https://dma.mst.dk/seneste-offentliggoerelser#\">Miljøstyrelsen</a>.\r\n\r\nMiljøsager, der kan overvåges, omfatter afslag på miljøtilladelser, tilsyn, risiko- og VVM-afgørelser samt offentliggørelse af håndhævelser som indskærpelser, påbud og forbud.\r\n\r\nDet er som regel ved at læse indskærpelser og påbud, at man kan se, om en virksomhed overtræder loven eller bevæger sig på kanten af den. Nogle gange ligger fulde tilsynsrapporter tilgængelige, men som regel skal der søges aktindsigt i sagerne for at se indholdet. Det tager ganske få minutter at gøre:\r\n\r\nFølg linket i dit hit. De oplysninger om virksomheden, som du skal bruge, står på siden, du føres til.\r\nPå siden finder du også et link til den miljømyndighed, som har behandlet sagen. Her er der en mailadresse, som aktindsigten kan sendes til.\r\n\r\nAktindsigten kan se således ud:\r\n\r\n\"Jeg vil gerne bede om indsigt i [håndhævelsen] meddelt [dato] til[virksomhedens navn], [virksomhedens CVR-nummer],[virksomhedens P-nummer] samt den fulde tilsynsrapport, der ligger til grund for håndhævelsen.\r\nHvis [håndhævelsen] er en del af et dokument, ønskes hele dokumentet udleveret.\""
+      },
+      {
+        "parts": [
+          {
+            "id": 113,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 114,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 115,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 116,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 117,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 118,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 6
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "personbogen",
+        "allowCatchAllSearchString": false,
+        "id": 1280,
+        "title": "Personbogen",
+        "titleWbr": "Person/bog/en",
+        "colorHex": "22224b",
+        "emoji": "📔",
+        "shortDescription": "Pant i løsøre, virksomhedspant, årets høst samt ægtepagter og afgørelser om værgemål.",
+        "longDescription": "Personbogsovervågningen er en overvågning af <a href=\"https://domstol.dk/tinglysningsretten/tingboegerne/personbogen/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstoles afdeling for Personbogen</a>, hvor vi henter data flere gange dagligt.\r\nPersonbogen indeholder alle tinglysninger af pant i løsøre, virksomhedspant, årets høst, ægtepagter og afgørelser om værgemål."
+      },
+      {
+        "parts": [
+          {
+            "id": 274,
+            "part": "generic_value",
+            "name": "Opslagstype",
+            "info": "Du kan begrænse din søgning til kun døgnrapporter eller andet. Vælger du intet, overvåger vi det hele.",
+            "slug": "opslagstype",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 273,
+            "part": "generic_value",
+            "name": "Politikreds",
+            "info": "Vi opdeler data i politikredse. Du kan vælge dem, du ønsker at overvåge. Vælger du ingen, overvåger vi alle.",
+            "slug": "politikreds",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 275,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 276,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "politi",
+        "allowCatchAllSearchString": false,
+        "id": 1708,
+        "title": "Politi",
+        "titleWbr": "Po/li/ti",
+        "colorHex": "001e3c",
+        "emoji": "👮",
+        "shortDescription": "Nyheder, døgnrapporter, beredskabsmeddelelser og mere fra den danske rigspolitistyrke.",
+        "longDescription": "Data fra <a href=\"https://politi.dk/nyhedsliste\" target=\"_blank\" rel=\"noopener noreferrer\">Politiets nyhedsliste</a>."
+      },
+      {
+        "parts": [
+          {
+            "id": 119,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 120,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 187,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 121,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 122,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 5
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "registrering",
+        "allowCatchAllSearchString": false,
+        "id": 610,
+        "title": "Registrering",
+        "titleWbr": "Re/gi/stre/ring",
+        "colorHex": "2e0249",
+        "emoji": "®️",
+        "shortDescription": "Nye registreringer fra VIRK.",
+        "longDescription": "Dette er en overvågning af nye registreringer, som hentes flere gange dagligt fra VIRK."
+      },
+      {
+        "parts": [
+          {
+            "id": 193,
+            "part": "amount_selection",
+            "name": "Beløbsgrænse",
+            "info": "Du kan her indstille dine beløbsgrænser for virksomhedens resultat. Hvis du fx. indstiller en grænse på -10.000.000 kr. for underskud, vil du modtage en notifikation, hvis en virksomhed har et underskud på 10.000.000 kr. eller større (og matcher på evt. andre kriterier, du har sat op). Tilsvarende for overskud, således at hvis du sætter det til 30.000.000, så får du en notifikation, hvis overskuddet er 30.000.000 eller mere.",
+            "slug": "beloebsgraense",
+            "canSelectMultiple": false,
+            "order": 1
+          },
+          {
+            "id": 189,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 190,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 188,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 191,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 192,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 195,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "regnskaber",
+        "allowCatchAllSearchString": false,
+        "id": 620,
+        "title": "Regnskaber",
+        "titleWbr": "Regn/skab/er",
+        "colorHex": "a82733",
+        "emoji": "📙",
+        "shortDescription": "Alle nye regnskaber offentliggjort på VIRK.",
+        "longDescription": "Vi tjekker VIRK for nye regnskaber flere gange dagligt. Mange brugere foretrækker at sætte beløbsgrænser, da det hjælper til med at frasortere regnskaber med små overskud eller underskud."
+      },
+      {
+        "parts": [
+          {
+            "id": 51,
+            "part": "generic_value",
+            "name": "Ret",
+            "info": "",
+            "slug": "ret",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 284,
+            "part": "generic_value",
+            "name": "Gerningskode",
+            "info": "For straffesager tildeler politiet en gerningskode såsom \"Salg af narkotika\" eller \"Skydevåben, særligt skærpende, offentligt sted\". Vær dog opmærksom på, at det KUN er for straffesager disse gerningskoder tildeles. Hvis du stadig ønsker at få hit på civile sager, eller sager hvor gerningskoden af andre årsager ikke er kendt, skal du derfor også vælge \"*Ukendt/Ikke relevant\".\r\nØnsker du kun at få hit på civile sager, skal du altså vælge \"*Ukendt/Ikke relevant\".\r\nDer er ikke garanti for, at gerningskoder er med i alle straffesager, så kombiner også gerne med søgeord.",
+            "slug": "gerningskode",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 47,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 48,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 49,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 50,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 162,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "retslister",
+        "allowCatchAllSearchString": false,
+        "id": 30,
+        "title": "Retslister",
+        "titleWbr": "Rets/list/er",
+        "colorHex": "a83632",
+        "emoji": "🏛️",
+        "shortDescription": "Nye retslister fra Danmarks Domstole publiceres af de enkelte retter.",
+        "longDescription": "I retslisteovervågningen kan du holde øje med nye retslister ved alle retsinstanser. Listerne offentliggøres før selve mødet i retten. Visse sagstyper behandles altid for lukkede døre og medtages ikke på retslisten.\r\n\r\nData hentes flere gange dagligt fra <a href=\"https://domstol.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstole</a>.\r\n\r\nModulet Retslister adskiller sig fra modulet Domme (som kan overvåges under <a href=\"/domsdatabasen/timeinterval\" target=\"_blank\">Domsdatabase</a>) på den måde, at det er de enkelte retter, der er ansvarlige for at publicere deres retsliste, og de bliver publiceret før selve forhandlingen eller mødet i retten.\r\n\r\nI domsdatabasen fremgår kun domme, hvor der er faldet afgørelse."
+      },
+      {
+        "parts": [
+          {
+            "id": 77,
+            "part": "generic_value",
+            "name": "Aktørtype",
+            "info": "Begræns til bestemte aktørtyper. Er ingen valgt får du hits for både personer og virksomheder.",
+            "slug": "aktoertype",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 196,
+            "part": "generic_value",
+            "name": "Virksomhedstype",
+            "info": "Begræns til bestemte virksomhedstyper. Er ingen valgt får du hits for alle virksomhedstyper.",
+            "slug": "virksomhedstype",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 72,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 73,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 74,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 75,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 76,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "skatteskyldnere",
+        "allowCatchAllSearchString": false,
+        "id": 290,
+        "title": "Skatteskyldnere",
+        "titleWbr": "Skat/te/skyld/nere",
+        "colorHex": "8E44ad",
+        "emoji": "🏘",
+        "shortDescription": "SKATs udlæg i fast ejendom, biler og andelsboliger.",
+        "longDescription": "Fra Tinglysningen  trækker vi udlæg i Tingbogen, Andelsbogen og Bilbogen. Det er SKATs udlæg i fast ejendom, biler og andelsboliger. Indeholder både enkeltpersoner og selskaber."
+      },
+      {
+        "parts": [
+          {
+            "id": 179,
+            "part": "generic_value",
+            "name": "Ejerforhold",
+            "info": "Begræns hvilke ejerforhold der skal udløse mail.",
+            "slug": "ejerforhold",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 180,
+            "part": "generic_value",
+            "name": "Enhedstype",
+            "info": "Begræns til enten kun personer eller kun virksomheder.",
+            "slug": "enhedstype",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 173,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 174,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 175,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 176,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 177,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
+            "id": 178,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 8
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "skibsregistret",
+        "allowCatchAllSearchString": false,
+        "id": 1300,
+        "title": "Skibsregistret",
+        "titleWbr": "Skibs/regist/ret",
+        "colorHex": "001489",
+        "emoji": "🚢",
+        "shortDescription": "Nye registreringer om danske skibe.",
+        "longDescription": "Skibsregisterovervågningen er en overvågning af <a href=\"https://shipregister.dma.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">Skibsregistrene</a>, hvor vi henter data flere gange dagligt."
+      },
+      {
+        "parts": [
+          {
+            "id": 253,
+            "part": "generic_value",
+            "name": "Kriterium",
+            "info": "Sæt overvågning af Sø- og Handelsretten til her.",
+            "slug": "kriterium",
+            "canSelectMultiple": false,
+            "order": 0
+          },
+          {
+            "id": 163,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 0
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "soe-og-handelsretten",
+        "allowCatchAllSearchString": false,
+        "id": 34,
+        "title": "Sø- og Handelsretten",
+        "titleWbr": "Sø- og Hand/els/ret/ten",
+        "colorHex": "21618C",
+        "emoji": "🏛️",
+        "shortDescription": "Nye domme fra Sø- og Handelsretten. Disse domme er ikke medtaget under modulet Domme.",
+        "longDescription": "I Sø- og Handelsrets-overvågningen kan du følge med i nye domme fra Sø- og Handelsretten. Dommene hentes flere gange dagligt fra <a href=\"https://domstol.fe1.tangora.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Sø- og Handelsretten</a>.\r\n\r\nDenne overvågning adskiller sig fra modulet Retslister på den måde, at det kun er domme, hvor der er faldet afgørelse, der publiceres her.\r\n\r\nDer er ikke nogle filtreringer at vælge i dette modul."
+      },
+      {
+        "parts": [
+          {
+            "id": 246,
+            "part": "generic_value",
+            "name": "Retskreds",
+            "info": "",
+            "slug": "retskreds",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 260,
+            "part": "generic_value",
+            "name": "Land",
+            "info": "Landet for den senest kendte adresse. Du kan også vælge \"Ukendt\". Vælger du ingen, søger på du alle.",
+            "slug": "land",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 250,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 248,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 247,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 249,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 251,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
+            "id": 252,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 8
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "staevninger",
+        "allowCatchAllSearchString": false,
+        "id": 1704,
+        "title": "Stævninger",
+        "titleWbr": "Stæv/ning/er",
+        "colorHex": "c31230",
+        "emoji": "📨",
+        "shortDescription": "Stævninger fra Statstidende",
+        "longDescription": "De enkelte retskredse offentliggør stævninger i Statstidende, hvis politiet ikke kan finde den indstævnede. Kun stævninger fra Statstidende medtages i dette modul."
+      },
+      {
+        "parts": [
+          {
+            "id": 171,
+            "part": "generic_value",
+            "name": "Statustype",
+            "info": "Hvis du kun ønsker at overvåge udvalgte statustyper, kan du foretage dine valg herunder. Vælger du ikke mindst én statustype, vil overvågningen gælde for samtlige statustyper.",
+            "slug": "statustype",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 170,
+            "part": "generic_value",
+            "name": "Virksomhedstype",
+            "info": "Her kan du begrænse, hvilke virksomhedstyper du vil overvåge. Er ingen valgt, får du mails for alle virksomhedstyper.",
+            "slug": "virksomhedstype",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 166,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 167,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 172,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 168,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 169,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "status",
+        "allowCatchAllSearchString": false,
+        "id": 300,
+        "title": "Status",
+        "titleWbr": "Status",
+        "colorHex": "a83287",
+        "emoji": "↔️",
+        "shortDescription": "Statusændringer for virksomheder.",
+        "longDescription": "I statusovervågningen kan du få besked, når udvalgte virksomheder jf. <a href=\"https://www.virk.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">VIRK</a> ændrer status, fx. når de bliver tvangsopløst."
+      },
+      {
+        "parts": [
+          {
+            "id": 277,
+            "part": "web_source",
+            "name": "Kilde",
+            "info": "Her kan du se alle nyhedssteder for sundhed, der p.t. kan overvåges. Vær opmærksom på, at dette er en prædefineret liste. Hvis du ønsker at abonnere på en kilde, som ikke fremgår af listen, så kan du benytte modulet Webstedsovervågning i stedet, hvor du kan oprette et abonnement på ethvert websted.",
+            "slug": "kilde",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 278,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 279,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 3
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "sundhed",
+        "allowCatchAllSearchString": true,
+        "id": 1709,
+        "title": "Sundhed",
+        "titleWbr": "Sund/hed",
+        "colorHex": "8E44ad",
+        "emoji": "🧑",
+        "shortDescription": "Nyt indhold på sites med relation til sygdom og sundhed.",
+        "longDescription": "Vi søger efter nyheder på sites, relaterede til sundhed og sygdom - fx patientforeninger - men vi viser ikke indhold bag evt. betalingsmure."
+      },
+      {
+        "parts": [
+          {
+            "id": 231,
+            "part": "generic_value",
+            "name": "Sanktion",
+            "info": "Styrelsen arbejder med fire niveauer. Ingen sanktion, henstilling, påbud eller forbud.",
+            "slug": "sanktion",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 244,
+            "part": "generic_value",
+            "name": "Enhed",
+            "info": "Styrelsen arbejder med 36 forskellige behandlingssteder/plejeenheder, som du kan filtrere efter her.",
+            "slug": "enhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 228,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 229,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 227,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 230,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 232,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "sundhedstilsyn",
+        "allowCatchAllSearchString": false,
+        "id": 1702,
+        "title": "Sundhedstilsyn",
+        "titleWbr": "Sund/heds/til/syn",
+        "colorHex": "0041c2",
+        "emoji": "🤒",
+        "shortDescription": "Styrelsen for Patientsikkerheds tilsyn med behandlingssteder i sundhedsvæsenet.",
+        "longDescription": "Styrelsen for Patientsikkerhed offentliggør rapporter over dens stikprøvebaserede og reaktive <a href=\"https://stps.dk/sundhedsfaglig/tilsyn/tilsynsrapporter\" target=\"_blank\" rel=\"noopener noreferrer\">tilsyn</a> med behandlingssteder, hvor der er tilknyttet autoriserede sundhedspersoner. Tilsynet kan munde ud i sanktioner. Hos styrelsen vil man kun kunne se den seneste rapport fra et konkret behandlingssted."
+      },
+      {
+        "parts": [
+          {
+            "id": 207,
+            "part": "generic_value",
+            "name": "Tilbudstype",
+            "info": "Viser de forskellige typer af tilbud efter målgruppe.",
+            "slug": "tilbudstype",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 208,
+            "part": "generic_value",
+            "name": "Status",
+            "info": "Viser de forskellige reaktionstyper, som kommer i et tilsyn, for eksempel godkendt eller skærpet tilsyn.",
+            "slug": "status",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 209,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 210,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 211,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 214,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 212,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
+            "id": 213,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": true,
+            "order": 8
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "tilbudsportalen",
+        "allowCatchAllSearchString": false,
+        "id": 1600,
+        "title": "Tilbudsportalen",
+        "titleWbr": "Til/buds/por/tal/en",
+        "colorHex": "fc64a9",
+        "emoji": "🛍",
+        "shortDescription": "Flere end 4.000 tilbud, som regioner har til udsatte grupper.",
+        "longDescription": "Tilbud scrapet fra Tilbudsportalen, som indsamler og udstiller oplysninger om plejefamilier og tilbud til mennesker med en funktionsnedsættelse eller et socialt problem."
+      },
+      {
+        "parts": [
+          {
+            "id": 129,
+            "part": "amount_selection",
+            "name": "Ejendomshandel",
+            "info": "Få besked om alle tinglyste ejendomshandler større end eller lig med et beløb, du definerer. Vi anbefaler de fleste af vores brugere at sætte en beløbsgrænse, da dette kan frasortere handler med lav nyhedsværdi.",
+            "slug": "ejendomshandel",
+            "canSelectMultiple": false,
+            "order": 1
+          },
+          {
+            "id": 130,
+            "part": "amount_selection",
+            "name": "Samlehandel",
+            "info": "Samlet handel med mindst 11 ejendomme. Købesum enten sat til 0 kr. eller større end eller lig med et beløb, du definerer. Vi anbefaler de fleste af vores brugere at sætte en beløbsgrænse, da dette kan frasortere handler med lav nyhedsværdi.",
+            "slug": "samlehandel",
+            "canSelectMultiple": false,
+            "order": 2
+          },
+          {
+            "id": 128,
+            "part": "generic_value",
+            "name": "Ejendomstype",
+            "info": "Her kan du indsnævre overvågningen til kun at gælde bestemte ejendomstyper.",
+            "slug": "ejendomstype",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 123,
+            "part": "custom_number",
+            "name": "BFE",
+            "info": "Ønsker du overvågning på bestemte BFE-numre, kan du sætte det op her. For hvert BFE-nummer du opretter, kan du også tilknytte en note, så det er nemmere at huske, hvad nummeret knytter sig til.",
+            "slug": "bfe",
+            "canSelectMultiple": true,
+            "order": 4
+          },
+          {
+            "id": 124,
+            "part": "industry",
+            "name": "Branche",
+            "info": "",
+            "slug": "branche",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 125,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 126,
+            "part": "municipality",
+            "name": "Kommune",
+            "info": "",
+            "slug": "kommune",
+            "canSelectMultiple": true,
+            "order": 7
+          },
+          {
+            "id": 127,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 8
+          },
+          {
+            "id": 131,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 9
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "tinglysning",
+        "allowCatchAllSearchString": false,
+        "id": 102,
+        "title": "Tinglysning",
+        "titleWbr": "Ting/lys/ning",
+        "colorHex": "268540",
+        "emoji": "🏠",
+        "shortDescription": "Nye tinglyste ejendomshandler fra Tinglysningen. Følg ejendomshandler og samlehandler over en beløbsgrænse, som du selv definerer.",
+        "longDescription": "Tinglysningsovervågningen er en overvågning af nye ejendomshandler baseret på data fra <a href=\"https://www.tinglysning.dk\" target=\"_blank\" rel=\"noopener noreferrer\">Tinglysning</a>. Vi overvåger alle ejendomshandler og samlehandler (handel af mange ejendomme i et skøde).\r\n<br/>\r\n<br/>\r\nMange af vores brugere sætter beløbsgrænser for både ejendomshandler og samlehandler, da de kun ønsker at få hits, når handelsprisen overstiger et konkret større beløb. Som standard er der ingen beløbsgrænser."
+      },
+      {
+        "parts": [
+          {
+            "id": 137,
+            "part": "amount_selection",
+            "name": "Kontraktværdi",
+            "info": "Begræns udbud-hits til kun at inkludere udbud, hvor den omtrentlige værdi af kontrakten kunne udtrækkes fra teksten, og værdien er større end eller lig med et beløb, du definerer.\r\n\r\nDu kan sætte beløbet til 0 kroner for at få alle udbud inklusiv dem, hvor kontraktbeløbet ikke kunne udtrækkes fra udbuds-teksten.",
+            "slug": "kontraktvaerdi",
+            "canSelectMultiple": false,
+            "order": 1
+          },
+          {
+            "id": 133,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 135,
+            "part": "person",
+            "name": "Person",
+            "info": "",
+            "slug": "person",
+            "canSelectMultiple": true,
+            "order": 5
+          },
+          {
+            "id": 136,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 6
+          },
+          {
+            "id": 138,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 7
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "udbud",
+        "allowCatchAllSearchString": false,
+        "id": 280,
+        "title": "Udbud",
+        "titleWbr": "Ud/bud",
+        "colorHex": "507d2a",
+        "emoji": "🏗",
+        "shortDescription": "Alle nye danske offentlige udbud fra udbud.dk.",
+        "longDescription": "Udbudsovervågningen er en overvågning af de nye udbud, der offentliggøres på <a href=\"https://www.udbud.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">udbud.dk</a>. Vi henter data flere gange dagligt."
+      },
+      {
+        "parts": [
+          {
+            "id": 141,
+            "part": "web_source",
+            "name": "Medie",
+            "info": "Her kan du se alle udenlandske medier, der p.t. kan overvåges. Vær opmærksom på, at dette er en prædefineret liste af udenlandske medier. Hvis du ønsker at abonnere på et medie, som ikke fremgår af listen, så kan du i stedet benytte modulet Webstedsovervågning.",
+            "slug": "medie",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 140,
+            "part": "company",
+            "name": "Virksomhed",
+            "info": "",
+            "slug": "virksomhed",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 142,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 3
+          },
+          {
+            "id": 164,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 4
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "udenlandske-medier",
+        "allowCatchAllSearchString": true,
+        "id": 520,
+        "title": "Udenlandske medier",
+        "titleWbr": "Ud/en/land/ske me/di/er",
+        "colorHex": "5132a8",
+        "emoji": "📰",
+        "shortDescription": "Nyt indhold på udenlandske mediesites",
+        "longDescription": "Her kan du overvåge nyt indhold på de største og vigtigste udenlandske online-medier.\r\nListen af udenlandske medier er fast defineret af KM24, men du kan tilføje søgeord efter behov.\r\nDu starter med at vælge, hvilke medier og søgeord du er interesseret i. Der søges efter hits på alle dine tilvalgte søgeord på alle dine tilvalgte udenlandske medier. Du skal altså vælge mindst ét medie og ét søgeord, før der potentielt kan være hit."
+      },
+      {
+        "parts": [
+          {
+            "id": 144,
+            "part": "web_source",
+            "name": "Webkilde",
+            "info": "Her kan du se alle websteder, der p.t. kan overvåges. Hvis du mener, at nogle websteder mangler, kan du tilføje dem. Dog højst 25. Hvis du klikker på rediger, kan du indføje en række regler for den pågældende URL, dvs. du kan frasortere undersider og for eksempel tilvælge oversættelser af overskrifter til engelsk.",
+            "slug": "webkilde",
+            "canSelectMultiple": true,
+            "order": 1
+          },
+          {
+            "id": 143,
+            "part": "search_string",
+            "name": "Søgeord",
+            "info": "",
+            "slug": "soegeord",
+            "canSelectMultiple": true,
+            "order": 2
+          },
+          {
+            "id": 165,
+            "part": "hit_logic",
+            "name": "Hitlogik",
+            "info": "",
+            "slug": "hitlogik",
+            "canSelectMultiple": false,
+            "order": 3
+          }
+        ],
+        "activated": true,
+        "isSubbed": false,
+        "slug": "webstedsovervaagning",
+        "allowCatchAllSearchString": true,
+        "id": 530,
+        "title": "Webstedsovervågning",
+        "titleWbr": "Web/steds/ov/er/våg/ning",
+        "colorHex": "5132a8",
+        "emoji": "📰",
+        "shortDescription": "Her kan indtastes URL'er på sites, der ønskes overvåget for nyt indhold.",
+        "longDescription": "I webstedsovervågningen kan du selv vælge sites, du vil overvåge. Du kan derefter få besked, når der findes hit på udvalgte søgeord på de hjemmesider, du selv har valgt at overvåge.  Modulet kan benyttes, hvis du vil overvåge websteder, der ikke indgår i vores standard medieovervågning eller i de øvrige moduler. Webstedsovervågning kan fx bruges til konkurrentovervågning.\r\n\r\nHvis de websteder, du ønsker at overvåge, er store danske eller udenlandske medier, anbefaler vi, at du i stedet benytter de eksisterende overvågninger af disse.\r\n\r\nVær opmærksom på, at mængden af egne valgte URL'er, der kan oprettes i systemet, er begrænset. Vi tager forbehold for, at nogle sites måske spærrer for robotter og derfor ikke kan overvåges. Det er også kun nye sider på sitet, vi kan overvåge. Vi overvåger ikke ændringer på allerede publicerede URL'er."
+      }
+    ]
+  }
+}

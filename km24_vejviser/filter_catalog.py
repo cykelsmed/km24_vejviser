@@ -6,13 +6,16 @@ fra KM24 API'et, samt intelligent matching mellem emner og relevante filtre.
 """
 
 import logging
+import json
 import re
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import asyncio
+from pathlib import Path
 
 from .km24_client import get_km24_client, KM24APIClient
+from .knowledge_base import extract_terms_from_text, map_terms_to_parts
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,7 @@ class FilterRecommendation:
     reasoning: str
     module_id: Optional[int] = None
     module_part_id: Optional[int] = None
+    part_name: Optional[str] = None
 
 @dataclass
 class Municipality:
@@ -56,6 +60,11 @@ class FilterCatalog:
         self._web_sources: Dict[int, List[Dict[str, Any]]] = {}
         self._regions: Dict[int, Dict[str, Any]] = {}
         self._court_districts: Dict[int, Dict[str, Any]] = {}
+        # Map from module title/id to parts and helpful reverse lookups
+        self._module_id_by_title: Dict[str, int] = {}
+        self._parts_by_module_id: Dict[int, List[Dict[str, Any]]] = {}
+        # Knowledge extracted from modules/basic longDescription
+        self._module_knowledge_base: Dict[str, Dict[str, Any]] = {}
         
         # Cache timestamps
         self._cache_timestamps: Dict[str, datetime] = {}
@@ -74,16 +83,24 @@ class FilterCatalog:
             'uddannelse': ['skole', 'education', 'universitet', 'læring', 'undervisning'],
             'politik': ['politik', 'politisk', 'valg', 'parti', 'regering', 'folketing']
         }
+
+        # Build internal knowledge base from cached modules/basic
+        try:
+            self._extract_knowledge_from_modules()
+        except Exception as e:
+            logger.warning(f"Kunne ikke opbygge intern videnbase fra modules/basic: {e}")
     
     async def load_all_filters(self, force_refresh: bool = False) -> Dict[str, Any]:
         """Hent alle filter-data fra KM24 API."""
         logger.info("Indlæser alle filter-data fra KM24 API")
         
+        # Also pre-load modules basic to build id/title map for module-specific parts
         tasks = [
             self._load_municipalities(force_refresh),
             self._load_branch_codes(force_refresh),
             self._load_regions(force_refresh),
-            self._load_court_districts(force_refresh)
+            self._load_court_districts(force_refresh),
+            self._load_modules_basic(force_refresh)
         ]
         
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -96,8 +113,96 @@ class FilterCatalog:
             "branch_codes": len(self._branch_codes),
             "regions": len(self._regions),
             "court_districts": len(self._court_districts),
+            "modules": len(self._module_id_by_title),
             "cache_age": self._get_cache_age()
         }
+
+    def _extract_knowledge_from_modules(self) -> None:
+        """Indlæs `_api_modules_basic.json` og udtræk modul-viden.
+
+        Opbygger `self._module_knowledge_base` som et mapping fra modul-slug
+        til en struktur med udtrukne nøgleord og part-relationer.
+        """
+
+        cache_path = Path(__file__).parent / "cache" / "_api_modules_basic.json"
+        if not cache_path.exists():
+            logger.info("Ingen lokal modules/basic cache fundet – skipper videnudtræk")
+            return
+
+        try:
+            with open(cache_path, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            # Cache format fra klienten: {'cached_at': ..., 'data': {...}}
+            data = cached.get("data") if isinstance(cached, dict) and "data" in cached else cached
+            items = data.get("items", []) if isinstance(data, dict) else []
+        except Exception as e:
+            logger.warning(f"Kunne ikke læse modules/basic cache: {e}")
+            return
+
+        knowledge: Dict[str, Dict[str, Any]] = {}
+
+        for item in items:
+            try:
+                module_id = int(item.get("id")) if item.get("id") is not None else None
+            except Exception:
+                module_id = None
+            slug = str(item.get("slug", "")).strip()
+            title = str(item.get("title", "")).strip()
+            long_description = str(item.get("longDescription", ""))
+            parts = item.get("parts", []) or []
+
+            if not slug:
+                # Fald tilbage til titel som nøgle hvis slug mangler
+                slug = title.casefold().replace(" ", "-") if title else "module-unknown"
+
+            terms = extract_terms_from_text(long_description)
+            # Map til parts – vi gemmer part-id/type og foreslåede værdier
+            mappings = map_terms_to_parts(terms, parts, module_id or -1)
+
+            knowledge[slug] = {
+                "module_id": module_id,
+                "title": title,
+                "terms": sorted(terms),
+                "mappings": [
+                    {
+                        "term": m.term,
+                        "part_id": m.part_id,
+                        "part_name": m.part_name,
+                        "part_type": m.part_type,
+                        "suggested_values": m.suggested_values,
+                        "confidence": m.confidence,
+                        "evidence": m.evidence,
+                    }
+                    for m in mappings
+                ],
+            }
+
+            # Også prime `_module_id_by_title` og `_parts_by_module_id` hvis muligt
+            if module_id is not None:
+                if title:
+                    self._module_id_by_title[title] = module_id
+                if parts:
+                    self._parts_by_module_id[module_id] = parts
+
+        self._module_knowledge_base = knowledge
+        logger.info(f"Opbygget intern videnbase for {len(self._module_knowledge_base)} moduler")
+
+    async def _load_modules_basic(self, force_refresh: bool = False) -> None:
+        """Indlæs moduler (basic) og bygg opslags-tabeller for parts."""
+        try:
+            resp = await self.client.get_modules_basic(force_refresh)
+            if resp.success and resp.data:
+                items = resp.data.get('items', [])
+                self._module_id_by_title = {item.get('title', ''): int(item.get('id')) for item in items if item.get('id') is not None}
+                # Prime parts cache with whatever basic response includes
+                for item in items:
+                    mid = int(item.get('id')) if item.get('id') is not None else None
+                    if mid is None:
+                        continue
+                    if 'parts' in item:
+                        self._parts_by_module_id[mid] = item.get('parts', [])
+        except Exception as e:
+            logger.warning(f"Kunne ikke indlæse modules basic i filter catalog: {e}")
     
     async def _load_municipalities(self, force_refresh: bool = False) -> None:
         """Indlæs kommuner fra API."""
@@ -302,6 +407,8 @@ class FilterCatalog:
             
             module_data = module_response.data
             parts = module_data.get('parts', [])
+            # Cache parts
+            self._parts_by_module_id[int(module_id)] = parts
             
             tasks = []
             for part in parts:
@@ -361,22 +468,94 @@ class FilterCatalog:
     
     def get_relevant_filters(self, goal: str, modules: List[str]) -> List[FilterRecommendation]:
         """Returner relevante filtre baseret på mål og moduler."""
-        recommendations = []
+        recommendations: List[FilterRecommendation] = []
         goal_lower = goal.lower()
-        
-        # Kommuner baseret på geografiske keywords
-        municipality_recs = self._get_relevant_municipalities(goal_lower)
-        recommendations.extend(municipality_recs)
-        
-        # Branchekoder baseret på branche-keywords
-        branch_recs = self._get_relevant_branch_codes(goal_lower)
-        recommendations.extend(branch_recs)
-        
-        # Regioner baseret på geografiske keywords
-        region_recs = self._get_relevant_regions(goal_lower)
-        recommendations.extend(region_recs)
-        
+
+        # 1) Klassiske heuristikker (kommuner/brancher/regioner)
+        recommendations.extend(self._get_relevant_municipalities(goal_lower))
+        recommendations.extend(self._get_relevant_branch_codes(goal_lower))
+        recommendations.extend(self._get_relevant_regions(goal_lower))
+
+        # 2) Hyper-relevant viden fra modules/basic longDescription
+        try:
+            # Uddrag termer fra målet (samme heuristik som knowledge_base)
+            goal_terms = set(extract_terms_from_text(goal))
+
+            # Begrænsning til valgte moduler (hvis angivet)
+            selected_titles_lower = {m.lower() for m in modules} if modules else None
+
+            for slug, entry in self._module_knowledge_base.items():
+                title = (entry.get("title") or "").strip()
+                if selected_titles_lower is not None and title.lower() not in selected_titles_lower:
+                    continue
+
+                module_id = entry.get("module_id")
+                mappings = entry.get("mappings", [])
+                for m in mappings:
+                    term = m.get("term")
+                    if term and term in goal_terms:
+                        values = [v.capitalize() if isinstance(v, str) else v for v in m.get("suggested_values", []) or [term]]
+                        part_name = m.get("part_name")
+                        # FilterRecommendation expects a filter_type; vi bruger part-navn hvis kendt
+                        filter_type = part_name if part_name else "module_specific"
+                        # Saml anbefaling
+                        recommendations.append(
+                            FilterRecommendation(
+                                filter_type=filter_type,
+                                values=values,
+                                relevance_score=0.95,
+                                reasoning=f"Match mellem mål-termen '{term}' og {title} ({filter_type})",
+                                module_id=module_id,
+                                module_part_id=m.get("part_id"),
+                                part_name=part_name,
+                            )
+                        )
+
+            # 3) Konkrete lokale medie-forslag for udvalgte kommuner (heuristik)
+            local_media = self._suggest_local_media(goal_lower)
+            if local_media:
+                recommendations.append(
+                    FilterRecommendation(
+                        filter_type="web_source",
+                        values=local_media,
+                        relevance_score=0.92,
+                        reasoning="Lokale medier identificeret via geografiske nøgleord i målet",
+                    )
+                )
+
+            # 4) Fallback: Kendte stærke modulspecifikke termer uden longDescription-match
+            # Hvis 'asbest' nævnes, foreslå Problem: Asbest for Arbejdstilsyn
+            if "asbest" in goal_terms:
+                # Undgå dubletter hvis allerede foreslået
+                already_has_asbest = any(
+                    any((isinstance(v, str) and v.lower() == "asbest") for v in r.values)
+                    for r in recommendations
+                )
+                if not already_has_asbest:
+                    filter_type = "Problem"
+                    module_id = self._get_module_id("Arbejdstilsyn")
+                    recommendations.append(
+                        FilterRecommendation(
+                            filter_type=filter_type,
+                            values=["Asbest"],
+                            relevance_score=0.94,
+                            reasoning="Mål nævner asbest → foreslå Problem: Asbest (Arbejdstilsyn)",
+                            module_id=module_id,
+                            part_name="Problem",
+                        )
+                    )
+
+        except Exception as e:
+            logger.warning(f"Fejl i hyper-relevant videnudtræk: {e}")
+
         return sorted(recommendations, key=lambda x: x.relevance_score, reverse=True)
+
+    def _suggest_local_media(self, goal_lower: str) -> List[str]:
+        """Returnér konkrete lokale medier for udvalgte områder (heuristik)."""
+        # Denne kan udvides gradvist; starter med 'Esbjerg'
+        if "esbjerg" in goal_lower:
+            return ["JydskeVestkysten", "Esbjerg Ugeavis"]
+        return []
     
     def _get_relevant_municipalities(self, goal: str) -> List[FilterRecommendation]:
         """Find relevante kommuner baseret på mål."""
@@ -511,14 +690,25 @@ class FilterCatalog:
             await self.load_module_specific_filters(module_id)
             
             # Hent generic_values for modulet
-            generic_values = self.get_generic_values_for_module(module_name)
-            if generic_values:
+            # Resolve all generic_value lists from cached module parts
+            generic_parts = [p for p in self._parts_by_module_id.get(module_id, []) if p.get('part') == 'generic_value']
+            generic_value_part_ids = [p.get('id') for p in generic_parts]
+            gathered_values: List[str] = []
+            part_name: Optional[str] = None
+            for pid in generic_value_part_ids:
+                items = self._generic_values.get(pid, [])
+                gathered_values.extend([i.get('name', '') for i in items if i.get('name')])
+            if generic_parts:
+                # Use the first generic part name as a label (e.g., Problem, Reaktion, Type)
+                part_name = generic_parts[0].get('name')
+            if gathered_values:
                 recommendations.append(FilterRecommendation(
                     filter_type="module_specific",
-                    values=generic_values[:5],  # Top 5 værdier
+                    values=gathered_values[:5],  # Top 5 værdier
                     relevance_score=0.9,
                     reasoning=f"Modulspecifikke kategorier for {module_name}",
-                    module_id=module_id
+                    module_id=module_id,
+                    part_name=part_name
                 ))
             
             # Hent web_sources for modulet
@@ -532,44 +722,51 @@ class FilterCatalog:
                     module_id=module_id
                 ))
         
+        # Heuristics for specific modules when goal suggests severe violations
+        g = goal.lower()
+        if 'arbejdstilsyn' in module_name.lower() and any(k in g for k in ['alvorlig', 'alvorlige', 'overtrædelse', 'ulovlig', 'kritik']):
+            recommendations.append(FilterRecommendation(
+                filter_type="module_specific",
+                values=["Forbud", "Strakspåbud"],
+                relevance_score=0.95,
+                reasoning="Ved alvorlige overtrædelser anbefales Reaktion: Forbud/Strakspåbud",
+                part_name="Reaktion"
+            ))
+            if 'asbest' in g:
+                recommendations.append(FilterRecommendation(
+                    filter_type="module_specific",
+                    values=["Asbest"],
+                    relevance_score=0.92,
+                    reasoning="Asbest relaterede sager: Problem = Asbest",
+                    part_name="Problem"
+                ))
+
+        if 'tinglysning' in module_name.lower() and any(k in g for k in ['ejendom', 'ejendomshandel', 'handel']):
+            recommendations.append(FilterRecommendation(
+                filter_type="module_specific",
+                values=["erhvervsejendom", "landbrugsejendom"],
+                relevance_score=0.9,
+                reasoning="Tinglysning: ejendomstyper via generic_value",
+                part_name="Ejendomstype"
+            ))
+
         return recommendations
     
     def _get_module_id(self, module_name: str) -> Optional[int]:
         """Hent modul ID baseret på modulnavn."""
-        # Mapping af modulnavne til IDs (dette skal udvides med rigtige data)
-        module_mapping = {
-            'registrering': 1,
-            'status': 2,
-            'tinglysning': 3,
-            'lokalpolitik': 4,
-            'udbud': 5,
-            'miljøsager': 6,
-            'personbogen': 7,
-            'danske_medier': 8,
-            'udenlandske_medier': 9,
-            'webstedsovervågning': 10
-        }
-        return module_mapping.get(module_name.lower(), None)
+        if self._module_id_by_title:
+            # Direct title match first
+            mid = self._module_id_by_title.get(module_name)
+            if mid is not None:
+                return mid
+            # Try a case-insensitive match
+            for title, mid in self._module_id_by_title.items():
+                if title.lower() == module_name.lower():
+                    return mid
+        return None
     
     def get_generic_values_for_module(self, module_name: str) -> List[str]:
-        """Hent generic_values for et specifikt modul."""
-        module_id = self._get_module_id(module_name)
-        if module_id:
-            # Dette skal udvides med rigtige data fra API'et
-            # For nu returnerer vi eksempeldata
-            module_generic_values = {
-                'registrering': ['Ny virksomhed', 'Stiftelse', 'Fusion', 'Ophør', 'Konkurs'],
-                'status': ['Aktiv', 'Konkurs', 'Tvangsopløst', 'Fusioneret', 'Ophørt'],
-                'tinglysning': ['Køb', 'Salg', 'Pant', 'Håndpant', 'Leje'],
-                'lokalpolitik': ['Byråd', 'Udvalg', 'Møde', 'Beslutning', 'Forslag'],
-                'udbud': ['Offentligt udbud', 'Privat udbud', 'Rammeaftale', 'Direkte udbud'],
-                'miljøsager': ['Miljøgodkendelse', 'Forurening', 'Affald', 'Klima', 'Bæredygtighed'],
-                'personbogen': ['Pant', 'Håndpant', 'Arrest', 'Fogedret', 'Auktion'],
-                'danske_medier': ['Avis', 'TV', 'Radio', 'Online', 'Magasin'],
-                'udenlandske_medier': ['International', 'EU', 'USA', 'Asien', 'Afrika'],
-                'webstedsovervågning': ['Website', 'Social media', 'Blog', 'Forum', 'Nyhedsside']
-            }
-            return module_generic_values.get(module_name.lower(), [])
+        """Deprecated: Brug get_module_specific_recommendations i stedet."""
         return []
 
 # Global filter catalog instance

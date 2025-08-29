@@ -494,6 +494,36 @@
             color: #4a5568;
         }
 
+        .filters {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .filters ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filters li {
+            display: inline-block;
+        }
+
+        .pill {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            padding: 0.3rem 0.7rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -913,6 +943,27 @@
                             </div>
                         `;
                     }
+                }
+
+                // Filters (generic & module-specific)
+                const filters = step.filters || step.details?.filters || {};
+                if (filters && Object.keys(filters).length > 0) {
+                    const preferredOrder = ['geografi','branchekode','region','beløbsgrænse','periode'];
+                    const keys = [...new Set([...preferredOrder, ...Object.keys(filters)])]
+                        .filter(k => filters[k] !== undefined);
+                    html += `<div class="filters"><strong>Filtre:</strong><ul>`;
+                    keys.forEach(k => {
+                        const v = filters[k];
+                        const val = Array.isArray(v) ? v.join(', ') : String(v);
+                        html += `<li><span class="pill">${k}</span>: ${val}</li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+
+                // Source selection for web modules
+                const sources = step.source_selection || [];
+                if (Array.isArray(sources) && sources.length > 0) {
+                    html += `<div class="filters"><strong>Kilder:</strong> ${sources.join(', ')}</div>`;
                 }
 
                 // Notification info with strategy

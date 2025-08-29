@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-29T22:49:21.205407",
+  "data": {
+    "parts": [
+      {
+        "id": 171,
+        "part": "generic_value",
+        "name": "Statustype",
+        "info": "Hvis du kun ønsker at overvåge udvalgte statustyper, kan du foretage dine valg herunder. Vælger du ikke mindst én statustype, vil overvågningen gælde for samtlige statustyper.",
+        "slug": "statustype",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 170,
+        "part": "generic_value",
+        "name": "Virksomhedstype",
+        "info": "Her kan du begrænse, hvilke virksomhedstyper du vil overvåge. Er ingen valgt, får du mails for alle virksomhedstyper.",
+        "slug": "virksomhedstype",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 166,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 167,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 172,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 168,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 169,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "status",
+    "allowCatchAllSearchString": false,
+    "id": 300,
+    "title": "Status",
+    "titleWbr": "Status",
+    "colorHex": "a83287",
+    "emoji": "↔️",
+    "shortDescription": "Statusændringer for virksomheder.",
+    "longDescription": "I statusovervågningen kan du få besked, når udvalgte virksomheder jf. <a href=\"https://www.virk.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">VIRK</a> ændrer status, fx. når de bliver tvangsopløst."
+  }
+}

@@ -68,6 +68,9 @@ class ModuleValidator:
         self._modules_cache: Optional[List[Dict[str, Any]]] = None
         self._module_titles: Optional[List[str]] = None
         self._module_slugs: Optional[List[str]] = None
+        # Cache for detailed module parts by module id
+        self._module_parts_by_id: Dict[int, List[Dict[str, Any]]] = {}
+        self._module_id_by_title: Dict[str, int] = {}
     
     async def _load_modules(self) -> bool:
         """Indlæs alle KM24 moduler fra API."""
@@ -77,6 +80,7 @@ class ModuleValidator:
                 self._modules_cache = result.data.get('items', [])
                 self._module_titles = [mod.get('title', '') for mod in self._modules_cache]
                 self._module_slugs = [mod.get('slug', '') for mod in self._modules_cache]
+                self._module_id_by_title = {mod.get('title', ''): int(mod.get('id')) for mod in self._modules_cache if mod.get('id') is not None}
                 logger.info(f"Indlæst {len(self._modules_cache)} moduler fra KM24 API")
                 return True
             else:
@@ -85,6 +89,93 @@ class ModuleValidator:
         except Exception as e:
             logger.error(f"Fejl ved indlæsning af moduler: {e}", exc_info=True)
             return False
+
+    async def _ensure_module_parts(self, module_id: int) -> List[Dict[str, Any]]:
+        """Sørg for at parts for et modul er cachet og returnér dem.
+
+        Args:
+            module_id: ID for modulet
+
+        Returns:
+            Liste af parts-objekter fra API (kan være tom liste)
+        """
+        if module_id in self._module_parts_by_id:
+            return self._module_parts_by_id[module_id]
+        try:
+            details = await self.client.get_module_details(int(module_id))
+            if details.success and details.data:
+                parts = details.data.get('parts', [])
+                self._module_parts_by_id[module_id] = parts
+                return parts
+            logger.warning(f"Kunne ikke hente parts for modul {module_id}: {details.error}")
+            self._module_parts_by_id[module_id] = []
+            return []
+        except Exception as e:
+            logger.error(f"Fejl ved hentning af module details for {module_id}: {e}")
+            self._module_parts_by_id[module_id] = []
+            return []
+
+    async def get_module_parts_by_title(self, module_title: str) -> List[Dict[str, Any]]:
+        """Hent parts for modulnavn via cache/API."""
+        if not await self._load_modules():
+            return []
+        module_id = self._module_id_by_title.get(module_title)
+        if module_id is None:
+            return []
+        return await self._ensure_module_parts(module_id)
+
+    @staticmethod
+    def _map_friendly_filter_key_to_part_type(key: str) -> Optional[str]:
+        """Map danske filter-nøgler til KM24 part-typer."""
+        k = key.lower().strip()
+        if k in {"geografi", "kommune", "kommuner"}:
+            return "municipality"
+        if k in {"branche", "branchekode", "branchekoder"}:
+            return "industry"
+        if any(term in k for term in ["beløb", "beløbsgrænse", "amount", "kontraktværdi", "ejendomshandel"]):
+            return "amount_selection"
+        if k in {"virksomhed", "company", "cvr"}:
+            return "company"
+        # Domain specific generic_value groups (e.g., Arbejdstilsyn)
+        # Will be validated by comparing against generic_value part names
+        return None
+
+    async def validate_filters_against_parts(self, module_title: str, filters: Dict[str, Any]) -> List[str]:
+        """Valider at angivne filtre matcher faktiske parts for modulet.
+
+        Returnerer advarsler for filtre, der ikke kan understøttes af modulet.
+        """
+        warnings: List[str] = []
+        if not filters:
+            return warnings
+
+        parts = await self.get_module_parts_by_title(module_title)
+        if not parts:
+            return warnings  # Kan ikke validere uden parts
+
+        part_types = {p.get('part'): p for p in parts}
+        generic_names = {p.get('name', '').lower(): p for p in parts if p.get('part') == 'generic_value'}
+        has_web_source = 'web_source' in part_types
+
+        for key in list(filters.keys()):
+            mapped = self._map_friendly_filter_key_to_part_type(key)
+            if mapped:
+                if mapped not in part_types:
+                    warnings.append(f"Modul '{module_title}' understøtter ikke filter '{key}' ({mapped})")
+                continue
+            # Check domain-specific generic_value names e.g. 'reaktion', 'problem'
+            if key.lower() in generic_names:
+                continue
+            # Unknown key not directly mappable; if module has no matching part names, warn
+            if key.lower() not in {"periode", "hitlogik", "region"}:
+                warnings.append(f"Filter-nøgle '{key}' matcher ingen kendt part for modulet '{module_title}'")
+
+        # Validate that web source modules include sources in filters/selection handled elsewhere
+        if has_web_source and not filters.get('source_selection'):
+            # Not a direct filter field, but provide a guiding warning here
+            warnings.append(f"Webkilde-modul '{module_title}' kræver 'source_selection' (kildevalg)")
+
+        return warnings
     
     def _calculate_similarity(self, text1: str, text2: str) -> float:
         """Beregn lighed mellem to tekster."""

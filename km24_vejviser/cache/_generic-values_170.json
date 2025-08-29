@@ -1,0 +1,31 @@
+{
+  "cached_at": "2025-08-29T22:49:21.833065",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 3,
+    "items": [
+      {
+        "id": 217,
+        "name": "A/S",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 218,
+        "name": "Andet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 216,
+        "name": "ApS",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

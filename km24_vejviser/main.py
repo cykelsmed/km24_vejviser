@@ -166,18 +166,23 @@ async def get_anthropic_response(goal: str) -> dict:
     filter_catalog = get_filter_catalog()
     filter_data = await filter_catalog.load_all_filters()
     
-    # Hent relevante filtre baseret på mål
+    # Hent relevante (konkrete) filtre baseret på mål
     relevant_filters = filter_catalog.get_relevant_filters(goal, [])
-    
-    # Byg filter-katalog tekst til system prompt
-    filter_catalog_text = ""
+
+    # Byg dynamisk, letlæselig streng med konkrete anbefalinger
+    concrete_recommendations_text = ""
     if relevant_filters:
-        filter_entries = []
-        for rec in relevant_filters[:5]:  # Top 5 anbefalinger
-            filter_entries.append(f"- **{rec.filter_type}**: {', '.join(rec.values)} (relevans: {rec.relevance_score:.2f})")
-        filter_catalog_text = "\n".join(filter_entries)
+        lines = []
+        for rec in relevant_filters[:10]:  # vis op til 10 for mere dækning
+            values_str = ", ".join(rec.values)
+            # Medtag begrundelse hvis tilgængelig for kontekst (inkl. modulnavn)
+            if getattr(rec, "reasoning", None):
+                lines.append(f"- {rec.filter_type}: [{values_str}] – {rec.reasoning}")
+            else:
+                lines.append(f"- {rec.filter_type}: [{values_str}]")
+        concrete_recommendations_text = "\n".join(lines)
     else:
-        filter_catalog_text = "Ingen specifikke filter-anbefalinger fundet"
+        concrete_recommendations_text = "Ingen specifikke filter-anbefalinger fundet"
 
     module_list_text = ""
     if modules_response.success and modules_response.data:
@@ -230,10 +235,10 @@ Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skj
     3.  **ADVAR OM KILDEVALG:** Hvis et modul har `requires_source_selection: true`, **SKAL** du tilføje en `strategic_note`, der advarer brugeren om, at de manuelt skal vælge kilder for at få resultater.
     4.  **BRUG DYNAMISKE FILTRE:** Du **SKAL** bruge de dynamisk hentede filtre nedenfor til at give konkrete og relevante filter-anbefalinger i hvert trin.
 
-**3. DYNAMISKE FILTER-DATA (OBLIGATORISK AT BRUGE)**
-Baseret på dit mål er følgende filtre identificeret som relevante:
+**3. DYNAMISKE OG KONKRETE FILTER-ANBEFALINGER (OBLIGATORISK AT BRUGE)**
+Baseret på dit mål er følgende **konkrete** filtre identificeret som høj-relevante. Du SKAL bruge disse værdier direkte i dine trin (i `filters` og/eller `source_selection`):
 
-{filter_catalog_text}
+{concrete_recommendations_text}
 
 **FILTER-KATALOG STATUS:**
 - Kommuner indlæst: {filter_data.get('municipalities', 0)}
@@ -242,11 +247,12 @@ Baseret på dit mål er følgende filtre identificeret som relevante:
 - Retskredse indlæst: {filter_data.get('court_districts', 0)}
 
 **OBLIGATORISK FILTER-BRUG:**
-- **Hvert trin SKAL indeholde konkrete filtre** baseret på de relevante filtre ovenfor
-- **Kommuner**: Brug specifikke kommuner fra filter-anbefalingerne (f.eks. "Aarhus", "Vejle", "Horsens")
-- **Branchekoder**: Brug relevante branchekoder fra filter-anbefalingerne (f.eks. "41.1", "41.2" for byggeri)
+- **Hvert trin SKAL indeholde konkrete filtre** baseret på anbefalingerne ovenfor
+- **Kommuner**: Brug specifikke kommuner fra anbefalingerne (f.eks. "Aarhus", "Vejle", "Horsens")
+- **Branchekoder**: Brug relevante branchekoder fra anbefalingerne (f.eks. "41.1", "41.2" for byggeri)
 - **Regioner**: Brug regioner når geografisk fokus er bredere (f.eks. "midtjylland", "vestjylland")
 - **Beløbsgrænser**: Brug konkrete beløbsgrænser for amount_selection moduler
+- **Modulspecifikke parts**: Når der er anbefalinger som "Problem: Asbest" eller "Reaktion: Strakspåbud", **SKAL** du sætte disse som `generic_value`-filtre
 
 **EKSEMPEL PÅ KORREKT FILTER-BRUG I JSON:**
 ```json
@@ -384,6 +390,13 @@ For hvert trin i din JSON-output skal du:
 
 **VIGTIGE MODULER OG DERES FUNKTIONER:**
 {module_list_text}
+
+**MODULSPECIFIKKE PARTS-INSTRUKTIONER (KRITISK):**
+- For Tinglysning: Brug `amount_selection` (beløbsgrænse) OG `generic_value` for ejendomstype. Eksempel: beløbsgrænse ">= 5.000.000" og ejendomstype `["erhvervsejendom", "landbrugsejendom"]`.
+- For Arbejdstilsyn: Brug `generic_value` for underkategorierne "Problem" og "Reaktion". Ved alvorlige overtrædelser, foreslå `reaktion`: `["Forbud", "Strakspåbud"]` og `problem`: `["Asbest"]` hvis relevant.
+- For Danske medier, EU, Kommuner, Udenlandske medier, Webstedsovervågning og andre webkilde-moduler: `web_source` (kildevalg) er PÅKRÆVET. Angiv altid konkrete kilder i `source_selection`.
+- Når et modul har `generic_value`-parts, foreslå konkrete værdier (fx domstyper, sagskategorier, reaktionstyper) fremfor generiske søgeord.
+- Brug altid parts fra KM24 API's dokumenterede `parts` for det valgte modul (se dokumentation). Ignorér ikke parts, hvis de findes – de giver den mest præcise filtrering.
 
 **STRATEGISKE PRINCIPLER:**
 - **Geografisk præcision**: Omsæt regioner til specifikke kommuner
@@ -859,6 +872,75 @@ def _ensure_filters_before_search_string(step: dict, goal: str = "") -> dict:
     logger.info(f"Final filters: {step['filters']}")
     return step
 
+async def _enrich_with_module_specific_filters(step: dict, goal: str) -> dict:
+    """Berig et step med parts-baserede filtre og kilder baseret på modul og mål.
+
+    - Anvender KM24 parts (generic_value, web_source, amount_selection)
+    - Tilføjer defaults hvor passende
+    """
+    try:
+        if not step or not isinstance(step, dict):
+            return step
+        module_name = step.get("module", {}).get("name") if isinstance(step.get("module"), dict) else step.get("module")
+        if not module_name:
+            return step
+        step.setdefault("filters", {})
+
+        # Hent modul-kort for at se tilgængelige parts
+        module_validator = get_module_validator()
+        module_card = await module_validator.get_enhanced_module_card(module_name)
+        if not module_card:
+            return step
+
+        # amount_selection default (beløbsgrænse) hvis part findes
+        has_amount = any(p.get('type') == 'amount_selection' for p in module_card.available_filters)
+        if has_amount and not any('beløb' in k.lower() for k in step["filters"].keys()):
+            # Heuristik: hvis mål nævner mio/store → højere default
+            goal_l = (goal or "").lower()
+            default_amount = "1000000" if not any(w in goal_l for w in ["stor", "større", "million", "mio", ">"] ) else "10000000"
+            step["filters"]["beløbsgrænse"] = default_amount
+
+        # Hent modulspecifikke anbefalinger (generic_value + web_source)
+        filter_catalog = get_filter_catalog()
+        recs = await filter_catalog.get_module_specific_recommendations(goal, module_name)
+        # Anvend web source anbefalinger
+        if module_card.requires_source_selection and (not step.get("source_selection")):
+            ws = next((r for r in recs if r.filter_type == "web_sources" and r.values), None)
+            if ws:
+                step["source_selection"] = ws.values
+                if not step.get("strategic_note"):
+                    step["strategic_note"] = "PÅKRÆVET: Dette modul kræver manuelt kildevalg (source_selection)."
+            else:
+                # Fallback: brug globale hyper-relevante anbefalinger (fx lokale medier for Esbjerg)
+                global_recs = filter_catalog.get_relevant_filters(goal, [module_name])
+                ws_global = next(
+                    (r for r in global_recs if r.filter_type in ("web_source", "web_sources") and r.values),
+                    None,
+                )
+                if ws_global:
+                    step["source_selection"] = ws_global.values
+                    if not step.get("strategic_note"):
+                        step["strategic_note"] = "PÅKRÆVET: Dette modul kræver manuelt kildevalg (source_selection)."
+
+        # Anvend generic_value anbefalinger med part labels
+        for r in recs:
+            if r.filter_type == "module_specific" and r.values:
+                key = (r.part_name or "modulspecifik").strip().lower()
+                if key not in step["filters"]:
+                    step["filters"][key] = r.values
+
+        # Valider filtre mod parts og tilføj advarsler
+        warnings = await module_validator.validate_filters_against_parts(module_card.title, step["filters"])  # type: ignore[arg-type]
+        if warnings:
+            quality = step.setdefault("quality", {})  # temporary container; will be lifted later
+            q_w = quality.setdefault("warnings", [])
+            q_w.extend(warnings)
+
+        return step
+    except Exception as e:
+        logger.warning(f"Kunne ikke berige step med modulspecifikke filtre: {e}")
+        return step
+
 def coerce_raw_to_target_shape(raw: dict, goal: str) -> dict:
     """
     Normalize LLM JSON output to target structure.
@@ -1046,6 +1128,9 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
                             "method": "POST",
                             "body": module_card.api_example
                         }
+                    # Enrich with module-specific filters and defaults
+                    enriched = await _enrich_with_module_specific_filters(step, goal)
+                    step.update(enriched)
             except Exception as e:
                 logger.warning(f"Kunne ikke validere modul {module_name}: {e}")
     
@@ -1062,6 +1147,15 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
         logger.info(f"Step {i+1}: module={module.get('name', 'Unknown')}, is_web_source={module.get('is_web_source', False)}, source_selection={step.get('source_selection', [])}")
     
     try:
+        # Move any step-level quality.warnings up to global recipe quality
+        for s in recipe.get("steps", []):
+            if isinstance(s, dict) and s.get("quality", {}).get("warnings"):
+                quality = recipe.setdefault("quality", {})
+                warn = quality.setdefault("warnings", [])
+                warn.extend(s.get("quality", {}).get("warnings", []))
+                # Clean up temporary quality on step
+                s.pop("quality", None)
+
         # Validate against KM24 rules first (record warnings instead of raising)
         is_valid, km24_errors = validate_km24_recipe(recipe)
         if not is_valid:

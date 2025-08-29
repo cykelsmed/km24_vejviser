@@ -1,0 +1,163 @@
+{
+  "cached_at": "2025-08-29T17:03:09.707676",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 4,
+    "previous": null,
+    "next": "http://km24.dk/api/generic-values/205?page=2",
+    "count": 77,
+    "items": [
+      {
+        "id": 349,
+        "name": "Akut risiko for livstruende forgiftning",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 370,
+        "name": "Alenearbejde",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 322,
+        "name": "Allergifremkaldende belastninger",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 316,
+        "name": "Andre lovpligtige uddannelser",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 380,
+        "name": "Arbejde i skiftende temperaturer",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 373,
+        "name": "Arbejde i stærk kulde og træk",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 323,
+        "name": "Arbejdsmiljøorganisation (AMO)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 305,
+        "name": "Arbejdsmiljøproblem",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 317,
+        "name": "Arbejdsmiljøuddannelse",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 315,
+        "name": "Arbejdspladsvurdering (APV)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 348,
+        "name": "Arbejdsstillinger og -bevægelser",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 367,
+        "name": "Arbejdstid, hviletid, fridøgn",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 361,
+        "name": "Arbejdsulykker",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 340,
+        "name": "Årlig arbejdsmiljødrøftelse",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 311,
+        "name": "Asbest",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 352,
+        "name": "ATEX APV",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 330,
+        "name": "Bæring",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 371,
+        "name": "Belysning, bygge-/anlæg",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 372,
+        "name": "Belysning, dagslys",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 355,
+        "name": "Brugsanvis. maskiner og tekniske hjælpemidl.",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 356,
+        "name": "Bygherrer",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 377,
+        "name": "Covid-19-planer / Rygepolitik",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 329,
+        "name": "Eftersyn",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 320,
+        "name": "Ergonomisk arbejdsmiljø, unge",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 306,
+        "name": "Fald til lavere niveau",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

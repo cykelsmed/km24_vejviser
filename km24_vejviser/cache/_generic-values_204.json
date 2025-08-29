@@ -1,0 +1,25 @@
+{
+  "cached_at": "2025-08-29T17:03:09.387163",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 2,
+    "items": [
+      {
+        "id": 253,
+        "name": "Danmark",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 254,
+        "name": "Udland",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

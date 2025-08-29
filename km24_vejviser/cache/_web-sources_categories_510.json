@@ -1,0 +1,33 @@
+{
+  "cached_at": "2025-08-29T17:03:10.748581",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 4,
+    "items": [
+      {
+        "id": 307,
+        "name": "Landsdækkende",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 308,
+        "name": "Lokale",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 309,
+        "name": "Miljø og klima",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 310,
+        "name": "Specialmedier",
+        "creatorName": "KM24"
+      }
+    ]
+  }
+}
