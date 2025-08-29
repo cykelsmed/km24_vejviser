@@ -121,6 +121,17 @@ pip install -r km24_vejviser/requirements.txt
 ```
 `pytest-asyncio` er inkluderet i `requirements.txt` for at understøtte `@pytest.mark.asyncio` tests.
 
+**(Valgfrit) Reproducerbart miljø med lockfile**
+```bash
+# Generér lockfile (fra aktiv .venv)
+pip freeze > requirements.lock
+
+# Installer fra lockfile i en ren env
+python3 -m venv .venv-lock
+source .venv-lock/bin/activate
+pip install -r requirements.lock
+```
+
 **4. Konfigurér API Nøgle**
 Opret en fil ved navn `.env` inde i `km24_vejviser`-mappen. Filen skal indeholde din Anthropic API nøgle:
 ```
