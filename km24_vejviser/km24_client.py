@@ -37,7 +37,8 @@ class KM24APIClient:
     """KM24 API client med intelligent caching og fejlhåndtering."""
     
     def __init__(self):
-        self.base_url = "https://km24.dk"  # External KM24 API server (base URL)
+        # Base URL can be configured; default to documented API base
+        self.base_url = os.getenv("KM24_BASE", "https://km24.dk/api")
         self.api_key = os.getenv("KM24_API_KEY")
         self.cache_dir = Path(__file__).parent / "cache"
         self.cache_dir.mkdir(exist_ok=True)
@@ -132,13 +133,27 @@ class KM24APIClient:
             response = requests.get(url, headers=headers, timeout=30)
             
             if response.status_code == 200:
-                data = response.json()
+                try:
+                    data = response.json()
+                except ValueError:
+                    error_msg = "API svarede med ikke-JSON indhold"
+                    logger.error(error_msg)
+                    return KM24APIResponse(success=False, error=error_msg)
                 self._save_cache(cache_path, data)
                 return KM24APIResponse(success=True, data=data)
-            else:
-                error_msg = f"API fejl {response.status_code}: {response.text}"
+            # Specific auth errors
+            if response.status_code in (401, 403):
+                error_msg = "Authentication fejlede (401/403). Tjek KM24_API_KEY og tilladelser."
                 logger.error(error_msg)
                 return KM24APIResponse(success=False, error=error_msg)
+            # 404/405 commonly return HTML
+            if response.status_code in (404, 405):
+                logger.error(f"API fejl {response.status_code}: endpoint findes ikke eller metode ikke tilladt")
+                return KM24APIResponse(success=False, error=f"API fejl {response.status_code}: endpoint ikke fundet / metode ikke tilladt")
+            # Generic error
+            error_msg = f"API fejl {response.status_code}: {response.text}"
+            logger.error(error_msg)
+            return KM24APIResponse(success=False, error=error_msg)
                 
         except requests.exceptions.Timeout:
             error_msg = "API timeout - serveren svarede ikke inden for 30 sekunder"
@@ -154,56 +169,60 @@ class KM24APIClient:
             return KM24APIResponse(success=False, error=error_msg)
     
     async def get_modules_basic(self, force_refresh: bool = False) -> KM24APIResponse:
-        """Hent alle KM24 moduler."""
-        return await self._make_request("/api/modules/basic", force_refresh)
+        """Hent alle KM24 moduler (basic)."""
+        return await self._make_request("/modules/basic", force_refresh)
+
+    async def get_modules_detailed(self, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent detaljeret modul-liste."""
+        return await self._make_request("/modules/detailed", force_refresh)
     
-    async def get_module_details(self, module_slug: str, force_refresh: bool = False) -> KM24APIResponse:
-        """Hent detaljer for et specifikt modul."""
-        return await self._make_request(f"/api/modules/{module_slug}", force_refresh)
+    async def get_module_details(self, module_id: int, force_refresh: bool = False) -> KM24APIResponse:
+        """Hent detaljer for et specifikt modul (basic/{id})."""
+        return await self._make_request(f"/modules/basic/{module_id}", force_refresh)
     
     async def get_branch_codes(self, force_refresh: bool = False) -> KM24APIResponse:
-        """Hent branchekode-lister med beskrivelser."""
-        return await self._make_request("/api/branch-codes", force_refresh)
+        """Hent branchekode-lister (basis)."""
+        return await self._make_request("/branch-codes", force_refresh)
     
     async def get_filter_options(self, module_slug: str, filter_type: str, force_refresh: bool = False) -> KM24APIResponse:
-        """Hent filtreringsmuligheder for et specifikt modul og filter type."""
-        return await self._make_request(f"/api/modules/{module_slug}/filters/{filter_type}", force_refresh)
+        """Ikke dokumenteret i API. Returnerer fejl for at undgå falsk kontrakt."""
+        return KM24APIResponse(success=False, error="Endpoint ikke dokumenteret: modules/{slug}/filters/{type}")
     
     async def get_media_sources(self, media_type: str = "danish", force_refresh: bool = False) -> KM24APIResponse:
-        """Hent lister over mediekilder (Landsdækkende, Lokale, etc.)."""
-        return await self._make_request(f"/api/media-sources/{media_type}", force_refresh)
+        """Hent lister over mediekilder (hvis tilgængeligt)."""
+        return await self._make_request(f"/media-sources/{media_type}", force_refresh)
     
     async def get_search_examples(self, module_slug: str, force_refresh: bool = False) -> KM24APIResponse:
-        """Hent eksempel-søgestrenge for et specifikt modul."""
-        return await self._make_request(f"/api/modules/{module_slug}/search-examples", force_refresh)
+        """Hent eksempel-søgestrenge for et specifikt modul (hvis tilgængeligt)."""
+        return await self._make_request(f"/modules/{module_slug}/search-examples", force_refresh)
     
     async def get_generic_values(self, module_part_id: int, force_refresh: bool = False) -> KM24APIResponse:
         """Hent modulspecifikke kategorier (generic_values) for en specifik modulpart."""
-        return await self._make_request(f"/api/generic-values/{module_part_id}", force_refresh)
+        return await self._make_request(f"/generic-values/{module_part_id}", force_refresh)
     
     async def get_web_sources(self, module_id: int, force_refresh: bool = False) -> KM24APIResponse:
         """Hent webkilder for et specifikt modul."""
-        return await self._make_request(f"/api/web-sources/categories/{module_id}", force_refresh)
+        return await self._make_request(f"/web-sources/categories/{module_id}", force_refresh)
     
     async def get_municipalities(self, force_refresh: bool = False) -> KM24APIResponse:
         """Hent alle danske kommuner."""
-        return await self._make_request("/api/municipalities", force_refresh)
+        return await self._make_request("/municipalities", force_refresh)
     
     async def get_branch_codes_detailed(self, force_refresh: bool = False) -> KM24APIResponse:
         """Hent detaljerede branchekoder med beskrivelser."""
-        return await self._make_request("/api/branch-codes/detailed", force_refresh)
+        return await self._make_request("/branch-codes/detailed", force_refresh)
     
     async def get_court_districts(self, force_refresh: bool = False) -> KM24APIResponse:
         """Hent retskredse."""
-        return await self._make_request("/api/court-districts", force_refresh)
+        return await self._make_request("/court-districts", force_refresh)
     
     async def get_regions(self, force_refresh: bool = False) -> KM24APIResponse:
         """Hent danske regioner."""
-        return await self._make_request("/api/regions", force_refresh)
+        return await self._make_request("/regions", force_refresh)
     
     async def get_filter_options_for_module(self, module_id: int, force_refresh: bool = False) -> KM24APIResponse:
-        """Hent alle filter-options for et specifikt modul."""
-        return await self._make_request(f"/api/modules/{module_id}/filter-options", force_refresh)
+        """Ikke dokumenteret. Brug get_module_details + parts + generic-values/web-sources i stedet."""
+        return KM24APIResponse(success=False, error="Endpoint ikke dokumenteret: modules/{id}/filter-options")
     
     async def get_health_status(self) -> Dict[str, Any]:
         """Tjek KM24 API status."""

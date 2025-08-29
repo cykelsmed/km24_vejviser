@@ -296,7 +296,7 @@ class FilterCatalog:
         
         try:
             # Hent modul detaljer for at få parts
-            module_response = await self.client.get_module_details(str(module_id), force_refresh)
+            module_response = await self.client.get_module_details(int(module_id), force_refresh)
             if not module_response.success:
                 return {"error": f"Kunne ikke hente modul {module_id}"}
             
