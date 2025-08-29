@@ -1,8 +1,8 @@
 {
-  "cached_at": "2025-08-30T01:23:53.230778",
+  "cached_at": "2025-08-30T01:45:41.143385",
   "data": {
     "count": 46,
-    "countSubbed": 0,
+    "countSubbed": 1,
     "countActive": 46,
     "items": [
       {
@@ -2355,7 +2355,7 @@
           }
         ],
         "activated": true,
-        "isSubbed": false,
+        "isSubbed": true,
         "slug": "skatteskyldnere",
         "allowCatchAllSearchString": false,
         "id": 290,

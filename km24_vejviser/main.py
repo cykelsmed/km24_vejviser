@@ -924,7 +924,19 @@ async def _enrich_with_module_specific_filters(step: dict, goal: str) -> dict:
 
         # Anvend generic_value anbefalinger med part labels
         for r in recs:
-            if r.filter_type == "module_specific" and r.values:
+            # Map normalized granular types to filters
+            if r.filter_type in ("crime_codes", "branch_codes", "property_types", "reaction", "problem") and r.values:
+                key_map = {
+                    "crime_codes": "crime_codes",
+                    "branch_codes": "branchekode",
+                    "property_types": "ejendomstype",
+                    "reaction": "reaktion",
+                    "problem": "problem",
+                }
+                filters_key = key_map.get(r.filter_type, (r.part_name or "modulspecifik").strip().lower())
+                if filters_key not in step["filters"]:
+                    step["filters"][filters_key] = r.values
+            elif r.filter_type == "module_specific" and r.values:
                 key = (r.part_name or "modulspecifik").strip().lower()
                 if key not in step["filters"]:
                     step["filters"][key] = r.values

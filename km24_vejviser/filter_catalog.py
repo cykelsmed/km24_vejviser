@@ -689,27 +689,42 @@ class FilterCatalog:
         if module_id:
             await self.load_module_specific_filters(module_id)
             
-            # Hent generic_values for modulet
+            # Hent generic_values for modulet (med semantisk scoring)
             # Resolve all generic_value lists from cached module parts
             generic_parts = [p for p in self._parts_by_module_id.get(module_id, []) if p.get('part') == 'generic_value']
             generic_value_part_ids = [p.get('id') for p in generic_parts]
-            gathered_values: List[str] = []
-            part_name: Optional[str] = None
-            for pid in generic_value_part_ids:
+            goal_lower = (goal or "").lower()
+            for part in generic_parts:
+                pid = part.get('id')
+                pname = part.get('name') or ''
                 items = self._generic_values.get(pid, [])
-                gathered_values.extend([i.get('name', '') for i in items if i.get('name')])
-            if generic_parts:
-                # Use the first generic part name as a label (e.g., Problem, Reaktion, Type)
-                part_name = generic_parts[0].get('name')
-            if gathered_values:
-                recommendations.append(FilterRecommendation(
-                    filter_type="module_specific",
-                    values=gathered_values[:5],  # Top 5 værdier
-                    relevance_score=0.9,
-                    reasoning=f"Modulspecifikke kategorier for {module_name}",
-                    module_id=module_id,
-                    part_name=part_name
-                ))
+                if not items:
+                    continue
+                # Semantisk scoring af hver værdi ud fra navn/beskrivelse
+                scored: List[Tuple[float, str]] = []
+                for it in items:
+                    name = str(it.get('name', '')).strip()
+                    desc = str(it.get('description', '') or '')
+                    score = self._semantic_match_score(goal_lower, f"{name} {desc}")
+                    if score > 0:
+                        scored.append((score, name))
+                # Hvis intet scorede positivt, vælg nogle repræsentative defaults (top N alfabetisk)
+                selected: List[str] = []
+                if scored:
+                    scored.sort(key=lambda x: x[0], reverse=True)
+                    selected = [n for _, n in scored[:5]]
+                else:
+                    selected = [str(it.get('name')) for it in items[:3] if it.get('name')]
+                if selected:
+                    filter_type = self._normalized_filter_type_from_part_name(pname)
+                    recommendations.append(FilterRecommendation(
+                        filter_type=filter_type or "module_specific",
+                        values=selected,
+                        relevance_score=0.9 if scored else 0.7,
+                        reasoning=f"Udvalgt fra {pname} for {module_name}",
+                        module_id=module_id,
+                        part_name=pname
+                    ))
             
             # Hent web_sources for modulet
             web_sources = self.get_web_sources_for_module(module_id)
@@ -751,6 +766,53 @@ class FilterCatalog:
             ))
 
         return recommendations
+
+    def _normalized_filter_type_from_part_name(self, part_name: Optional[str]) -> Optional[str]:
+        if not part_name:
+            return None
+        n = part_name.lower()
+        # Common normalizations across modules
+        if 'gernings' in n or 'crime' in n:
+            return 'crime_codes'
+        if 'branche' in n or 'industry' in n:
+            return 'branch_codes'
+        if 'problem' in n:
+            return 'problem'
+        if 'reaktion' in n or 'reaction' in n:
+            return 'reaction'
+        if 'ejendom' in n or 'property' in n:
+            return 'property_types'
+        return None
+
+    def _semantic_match_score(self, goal_lower: str, text: str) -> float:
+        """Simpel semantisk scoring baseret på domæne-ordlister og substring-match."""
+        if not goal_lower or not text:
+            return 0.0
+        t = text.lower()
+        score = 0.0
+        # Domain term buckets
+        buckets = {
+            'corruption': ['korruption', 'bestikkelse', 'bestikk', 'habilitet', 'inhabil', 'smørelse'],
+            'fraud': ['bedrageri', 'svig', 'falsk', 'økonomisk kriminalitet'],
+            'environment': ['miljø', 'forurening', 'udledning', 'tilladelse', 'asbest', 'klima'],
+            'labour': ['arbejdstilsyn', 'forbud', 'strakspåbud', 'ulykke', 'sikkerhed'],
+            'construction': ['bygge', 'byggeri', 'entrepren', 'udvikling', 'ejendom'],
+            'procurement': ['udbud', 'kontrakt', 'tildeling', 'offentlig'],
+            'media': ['medie', 'avis', 'ugeavis', 'nyhed']
+        }
+        for key, terms in buckets.items():
+            bucket_hits = 0
+            for term in terms:
+                if term in goal_lower and term in t:
+                    bucket_hits += 1
+            if bucket_hits:
+                # Weight by number of overlapping terms
+                score += 0.4 + 0.2 * min(bucket_hits, 3)
+        # Fallback: direct keyword overlap by tokens
+        for token in set(goal_lower.split()):
+            if len(token) > 4 and token in t:
+                score += 0.1
+        return score
     
     def _get_module_id(self, module_name: str) -> Optional[int]:
         """Hent modul ID baseret på modulnavn."""
