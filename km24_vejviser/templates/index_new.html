@@ -674,33 +674,11 @@
                 setLoadingState(true);
                 showResultContainer();
                 
-                try {
-                    console.log('Sending request to /generate-recipe/');
-                    const response = await fetch('/generate-recipe/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ goal: goal })
-                    });
-                    
-                    console.log('Response status:', response.status);
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    console.log('Response data received:', data);
-                    
-                    renderRecipe(data);
-                    
-                } catch (error) {
-                    console.error('Error:', error);
-                    showError(`Fejl: ${error.message}`);
-                } finally {
-                    setLoadingState(false);
+                // Prefer SSE streaming for granular progress; fallback to classic fetch
+                if (window.EventSource) {
+                    startSSE(goal);
+                } else {
+                    await classicFetch(goal);
                 }
             });
 
@@ -728,11 +706,77 @@
                 if (loading) {
                     submitBtn.disabled = true;
                     submitBtn.textContent = 'Genererer...';
-                    resultDiv.innerHTML = '<div class="loading"><progress></progress><p>Genererer din opskrift...</p></div>';
+                    resultDiv.innerHTML = `
+                        <div class="loading">
+                            <div class="progress-container">
+                                <div class="progress-text" id="progressText">Starter...</div>
+                                <progress id="progressBar" max="100" value="1"></progress>
+                                <div class="progress-details" id="progressDetails">Forbereder analyse</div>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Generér Opskrift';
                 }
+            }
+
+            async function classicFetch(goal) {
+                try {
+                    console.log('Fallback: Sending request to /generate-recipe/');
+                    const response = await fetch('/generate-recipe/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ goal })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    renderRecipe(data);
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError(`Fejl: ${error.message}`);
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+
+            function startSSE(goal) {
+                const bar = () => document.getElementById('progressBar');
+                const text = () => document.getElementById('progressText');
+                const details = () => document.getElementById('progressDetails');
+
+                const url = `/generate-recipe-stream/?goal=${encodeURIComponent(goal)}`;
+                console.log('Opening EventSource:', url);
+                const es = new EventSource(url);
+
+                es.onmessage = (e) => {
+                    try {
+                        const payload = JSON.parse(e.data);
+                        if (payload.progress !== undefined) {
+                            if (bar()) bar().value = payload.progress;
+                            if (text()) text().textContent = payload.message || 'Arbejder...';
+                            if (details()) details().textContent = payload.details || '';
+                        }
+                        if (payload.result) {
+                            console.log('SSE received result');
+                            es.close();
+                            setLoadingState(false);
+                            renderRecipe(payload.result);
+                        }
+                    } catch (err) {
+                        console.warn('Non-JSON SSE message or parse error:', err, e.data);
+                    }
+                };
+
+                es.onerror = (err) => {
+                    console.error('SSE error, falling back:', err);
+                    es.close();
+                    // Fallback to classic fetch
+                    classicFetch(goal);
+                };
             }
 
             function showResultContainer() {
