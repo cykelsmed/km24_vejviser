@@ -1,0 +1,163 @@
+{
+  "cached_at": "2025-08-30T02:21:22.914203",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 88,
+    "previous": null,
+    "next": "http://km24.dk/api/generic-values/284?page=2",
+    "count": 2187,
+    "items": [
+      {
+        "id": 5448,
+        "name": "§ 26-afhøring, udlændingeloven",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9112,
+        "name": "*Ukendt/Ikke relevant",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5319,
+        "name": "A-tilladelser/B-status/statistik",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5877,
+        "name": "Adgangsmiddel datasystem, uberett. anskaf./videregiv., betal. brugere",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5876,
+        "name": "Adgangsmiddel datasystem, uberett. anskaf./videregiv., personoplysn.",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5875,
+        "name": "Adgangsmiddel datasystem, uberett. anskaf./videregiv., samfundsvigtigt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5873,
+        "name": "Adgangsmiddel datasystem, uberett. salg/udbredelse",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5874,
+        "name": "Adgangsmiddel datasystem, uberett. videregivelse større antal",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5441,
+        "name": "Administrativ sagsbehandling I udlændingesager i øvrigt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5267,
+        "name": "Administrative forskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5410,
+        "name": "Adoption",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5406,
+        "name": "Ægteskab",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5087,
+        "name": "Ændring af foranstaltning",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5889,
+        "name": "Ærekrænkelser",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5890,
+        "name": "Ærekrænkelser overfor døde",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 6470,
+        "name": "Afgiftslove for drikkevarer, tobak, benzin",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 6033,
+        "name": "Afpresning",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 6034,
+        "name": "Åger",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5626,
+        "name": "Aggressionsforbrydelse",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5086,
+        "name": "Aktindsigt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 6316,
+        "name": "Aktive kriminelle",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5092,
+        "name": "Alarm 112, klage",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5242,
+        "name": "Alarmeringsplaner",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 5093,
+        "name": "Alarmplaner, generelle",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 6620,
+        "name": "Alkohol, salg t/unge under 16 år",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

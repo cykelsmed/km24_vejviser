@@ -470,7 +470,7 @@ class FilterCatalog:
         """Returner relevante filtre baseret på mål og moduler."""
         recommendations: List[FilterRecommendation] = []
         goal_lower = goal.lower()
-
+        
         # 1) Klassiske heuristikker (kommuner/brancher/regioner)
         recommendations.extend(self._get_relevant_municipalities(goal_lower))
         recommendations.extend(self._get_relevant_branch_codes(goal_lower))
@@ -545,10 +545,74 @@ class FilterCatalog:
                         )
                     )
 
+            # 5) Målrettet indhentning af specifikke værdier flyttet til async metode
+
         except Exception as e:
             logger.warning(f"Fejl i hyper-relevant videnudtræk: {e}")
-
+        
         return sorted(recommendations, key=lambda x: x.relevance_score, reverse=True)
+
+    async def get_relevant_filters_with_values(self, goal: str, modules: List[str]) -> List[FilterRecommendation]:
+        """Udvidede anbefalinger med dynamisk indhentede, konkrete værdier for relevante parts.
+
+        Starter med basisanbefalinger og supplerer med semantisk udvalgte `generic_values`
+        fra KM24 API for de moduler der er angivet i `modules`.
+        """
+        base_recs = self.get_relevant_filters(goal, modules)
+        goal_lower = (goal or "").lower()
+
+        if not modules:
+            return base_recs
+
+        augmented: List[FilterRecommendation] = list(base_recs)
+        for module_name in modules:
+            module_id = self._get_module_id(module_name)
+            if not module_id:
+                continue
+            try:
+                await self.load_module_specific_filters(module_id)
+            except Exception:
+                pass
+            parts = self._parts_by_module_id.get(module_id, [])
+            for part in parts:
+                if part.get('part') != 'generic_value':
+                    continue
+                pid = part.get('id')
+                pname = part.get('name') or ''
+                values = self._generic_values.get(pid, [])
+                if not values:
+                    try:
+                        await self._load_generic_values(pid)
+                        values = self._generic_values.get(pid, [])
+                    except Exception:
+                        values = []
+                if not values:
+                    continue
+                scored: List[Tuple[float, str]] = []
+                for it in values:
+                    name = str(it.get('name', '')).strip()
+                    desc = str(it.get('description', '') or '')
+                    score = self._semantic_match_score(goal_lower, f"{name} {desc}")
+                    if score > 0:
+                        scored.append((score, name))
+                if not scored:
+                    continue
+                scored.sort(key=lambda x: x[0], reverse=True)
+                top_values = [n for _, n in scored[:5]]
+                filter_type = self._normalized_filter_type_from_part_name(pname) or (pname or "module_specific").strip().lower()
+                augmented.append(
+                    FilterRecommendation(
+                        filter_type=filter_type,
+                        values=top_values,
+                        relevance_score=0.96,
+                        reasoning=f"Semantisk match mellem mål og {pname} i {module_name}",
+                        module_id=module_id,
+                        module_part_id=pid,
+                        part_name=pname,
+                    )
+                )
+
+        return sorted(augmented, key=lambda x: x.relevance_score, reverse=True)
 
     def _suggest_local_media(self, goal_lower: str) -> List[str]:
         """Returnér konkrete lokale medier for udvalgte områder (heuristik)."""
@@ -717,14 +781,14 @@ class FilterCatalog:
                     selected = [str(it.get('name')) for it in items[:3] if it.get('name')]
                 if selected:
                     filter_type = self._normalized_filter_type_from_part_name(pname)
-                    recommendations.append(FilterRecommendation(
+                recommendations.append(FilterRecommendation(
                         filter_type=filter_type or "module_specific",
                         values=selected,
                         relevance_score=0.9 if scored else 0.7,
                         reasoning=f"Udvalgt fra {pname} for {module_name}",
-                        module_id=module_id,
+                    module_id=module_id,
                         part_name=pname
-                    ))
+                ))
             
             # Hent web_sources for modulet
             web_sources = self.get_web_sources_for_module(module_id)

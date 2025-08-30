@@ -167,7 +167,11 @@ async def get_anthropic_response(goal: str) -> dict:
     filter_data = await filter_catalog.load_all_filters()
     
     # Hent relevante (konkrete) filtre baseret på mål
-    relevant_filters = filter_catalog.get_relevant_filters(goal, [])
+    # Brug udvidet metode med værdier, men uden at binde til specifikke moduler her
+    try:
+        relevant_filters = await filter_catalog.get_relevant_filters_with_values(goal, [])  # type: ignore[attr-defined]
+    except Exception:
+        relevant_filters = filter_catalog.get_relevant_filters(goal, [])
 
     # Byg dynamisk, letlæselig streng med konkrete anbefalinger
     concrete_recommendations_text = ""

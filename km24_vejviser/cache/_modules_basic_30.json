@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T02:21:22.207707",
+  "data": {
+    "parts": [
+      {
+        "id": 51,
+        "part": "generic_value",
+        "name": "Ret",
+        "info": "",
+        "slug": "ret",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 284,
+        "part": "generic_value",
+        "name": "Gerningskode",
+        "info": "For straffesager tildeler politiet en gerningskode såsom \"Salg af narkotika\" eller \"Skydevåben, særligt skærpende, offentligt sted\". Vær dog opmærksom på, at det KUN er for straffesager disse gerningskoder tildeles. Hvis du stadig ønsker at få hit på civile sager, eller sager hvor gerningskoden af andre årsager ikke er kendt, skal du derfor også vælge \"*Ukendt/Ikke relevant\".\r\nØnsker du kun at få hit på civile sager, skal du altså vælge \"*Ukendt/Ikke relevant\".\r\nDer er ikke garanti for, at gerningskoder er med i alle straffesager, så kombiner også gerne med søgeord.",
+        "slug": "gerningskode",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 47,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 48,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 49,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 50,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 162,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "retslister",
+    "allowCatchAllSearchString": false,
+    "id": 30,
+    "title": "Retslister",
+    "titleWbr": "Rets/list/er",
+    "colorHex": "a83632",
+    "emoji": "🏛️",
+    "shortDescription": "Nye retslister fra Danmarks Domstole publiceres af de enkelte retter.",
+    "longDescription": "I retslisteovervågningen kan du holde øje med nye retslister ved alle retsinstanser. Listerne offentliggøres før selve mødet i retten. Visse sagstyper behandles altid for lukkede døre og medtages ikke på retslisten.\r\n\r\nData hentes flere gange dagligt fra <a href=\"https://domstol.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstole</a>.\r\n\r\nModulet Retslister adskiller sig fra modulet Domme (som kan overvåges under <a href=\"/domsdatabasen/timeinterval\" target=\"_blank\">Domsdatabase</a>) på den måde, at det er de enkelte retter, der er ansvarlige for at publicere deres retsliste, og de bliver publiceret før selve forhandlingen eller mødet i retten.\r\n\r\nI domsdatabasen fremgår kun domme, hvor der er faldet afgørelse."
+  }
+}
