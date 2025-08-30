@@ -84,6 +84,18 @@ class FilterCatalog:
             'politik': ['politik', 'politisk', 'valg', 'parti', 'regering', 'folketing']
         }
 
+        # Modul-specifik deep-intelligence handlers (inkrementel kvalitet)
+        self.deep_intelligence_handlers = {
+            "status": self._handle_status_filters,
+            "retslister": self._handle_retslister_filters,
+            "domme": self._handle_domme_filters,
+            "tinglysning": self._handle_tinglysning_filters,
+            "arbejdstilsyn": self._handle_arbejdstilsyn_filters,
+            "registrering": self._handle_registrering_filters,
+            "lokalpolitik": self._handle_lokalpolitik_filters,
+            "foedevaresmiley": self._handle_foedevaresmiley_filters,
+        }
+
         # Build internal knowledge base from cached modules/basic
         try:
             self._extract_knowledge_from_modules()
@@ -467,9 +479,27 @@ class FilterCatalog:
             logger.error(f"Fejl ved indlæsning af web_sources: {e}")
     
     def get_relevant_filters(self, goal: str, modules: List[str]) -> List[FilterRecommendation]:
-        """Returner relevante filtre baseret på mål og moduler."""
+        """Returner relevante filtre baseret på mål og moduler.
+
+        Først forsøges modul-specifik "deep intelligence" for anførte moduler.
+        Hvis ingen handler findes eller ingen resultater, bruges fallback-logikken.
+        """
         recommendations: List[FilterRecommendation] = []
         goal_lower = goal.lower()
+
+        # 0) Modul-specifik dyb intelligens for eksplicit angivne moduler
+        if modules:
+            for mod in modules:
+                key = (mod or "").strip().lower()
+                handler = self.deep_intelligence_handlers.get(key)
+                if handler:
+                    try:
+                        # Kør async handler i sync kontekst via event loop
+                        deep_recs = asyncio.get_event_loop().run_until_complete(handler(goal))  # type: ignore
+                        if deep_recs:
+                            recommendations.extend(deep_recs)
+                    except Exception as e:
+                        logger.warning(f"Deep intelligence handler fejlede for {mod}: {e}")
         
         # 1) Klassiske heuristikker (kommuner/brancher/regioner)
         recommendations.extend(self._get_relevant_municipalities(goal_lower))
@@ -828,6 +858,18 @@ class FilterCatalog:
         # Indlæs modulspecifikke filtre hvis nødvendigt
         module_id = self._get_module_id(module_name)
         if module_id:
+            # Deep intelligence first if we have a handler
+            key = (module_name or "").strip().lower()
+            handler = self.deep_intelligence_handlers.get(key)
+            if handler:
+                try:
+                    deep_recs = handler(goal)
+                    if asyncio.iscoroutine(deep_recs):
+                        deep_recs = await deep_recs  # type: ignore
+                    if deep_recs:
+                        recommendations.extend(deep_recs)
+                except Exception as e:
+                    logger.warning(f"Deep intelligence handler fejlede for {module_name}: {e}")
             await self.load_module_specific_filters(module_id)
             
             # Hent generic_values for modulet (med semantisk scoring)
@@ -954,6 +996,188 @@ class FilterCatalog:
             if len(token) > 4 and token in t:
                 score += 0.1
         return score
+
+    # ------------------ Deep Intelligence Handlers (8 core modules) ------------------
+
+    async def _handle_status_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Dyb intelligens for Status: identificér statustyper baseret på intention."""
+        g = (goal or "").lower()
+        intention_map = {
+            "lukker": ["Ophørt", "Tvangsopløst", "Opløst efter konkurs", "Under tvangsopløsning"],
+            "stopper": ["Ophørt", "Tvangsopløst"],
+            "starter": ["Aktiv", "Normal"],
+            "problemer": ["Under konkurs", "Under tvangsopløsning"],
+        }
+        relevant: List[str] = []
+        for intent, values in intention_map.items():
+            if intent in g:
+                relevant.extend(values)
+        if relevant:
+            return [
+                FilterRecommendation(
+                    filter_type="statustype",
+                    values=sorted(list(set(relevant))),
+                    relevance_score=0.95,
+                    reasoning="Intention detekteret for Status"
+                )
+            ]
+        return []
+
+    async def _handle_retslister_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Retslister: match 'vold', 'drab', 'narko' mod gerningskoder og retsinstanser."""
+        g = (goal or "").lower()
+        terms = {
+            "vold": ["Vold", "Grov vold"],
+            "drab": ["Drab", "Forsøg på drab"],
+            "nark": ["Narkotika", "Euforiserende stoffer"],
+        }
+        crime: List[str] = []
+        for k, vals in terms.items():
+            if k in g:
+                crime.extend(vals)
+        recs: List[FilterRecommendation] = []
+        if crime:
+            recs.append(FilterRecommendation(
+                filter_type="crime_codes",
+                values=sorted(list(set(crime))),
+                relevance_score=0.92,
+                reasoning="Retslister: match på gerningskoder"
+            ))
+        if any(x in g for x in ["byret", "landsret", "højesteret", "ret i"]):
+            instances = [v for v in ["Byret", "Landsret", "Højesteret"] if v.lower() in g]
+            if instances:
+                recs.append(FilterRecommendation(
+                    filter_type="retinstans",
+                    values=instances,
+                    relevance_score=0.8,
+                    reasoning="Retsinstans nævnt i mål"
+                ))
+        return recs
+
+    async def _handle_domme_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Domme: samme logik som retslister men reaktiv analyse."""
+        recs = await self._handle_retslister_filters(goal)
+        for r in recs:
+            r.relevance_score = max(r.relevance_score - 0.02, 0.0)
+            r.reasoning = "Domme: reaktiv analyse baseret på gerningskoder"
+        return recs
+
+    async def _handle_tinglysning_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Tinglysning: beløbsgrænser og ejendomstyper baseret på mål."""
+        g = (goal or "").lower()
+        recs: List[FilterRecommendation] = []
+        # Beløbsgrænse heuristik
+        if any(w in g for w in ["stor", "større", ">", "million", "mio", "10 mio", "100 mio"]):
+            recs.append(FilterRecommendation(
+                filter_type="beløbsgrænse",
+                values=["10000000"],
+                relevance_score=0.9,
+                reasoning="Store handler: beløbsgrænse sat til >= 10 mio"
+            ))
+        # Ejendomstype
+        types: List[str] = []
+        if "landbrug" in g:
+            types.append("landbrugsejendom")
+        if "erhverv" in g or "erhvervsejendom" in g:
+            types.append("erhvervsejendom")
+        if types:
+            recs.append(FilterRecommendation(
+                filter_type="property_types",
+                values=sorted(list(set(types))),
+                relevance_score=0.88,
+                reasoning="Ejendomstyper afledt af mål"
+            ))
+        return recs
+
+    async def _handle_arbejdstilsyn_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Arbejdstilsyn: problem- og reaktionsværdier."""
+        g = (goal or "").lower()
+        recs: List[FilterRecommendation] = []
+        if any(k in g for k in ["alvorlig", "overtrædelse", "kritik", "ulovlig"]):
+            recs.append(FilterRecommendation(
+                filter_type="reaction",
+                values=["Forbud", "Strakspåbud"],
+                relevance_score=0.95,
+                reasoning="Alvorlige overtrædelser → Reaktion: Forbud/Strakspåbud"
+            ))
+        if "asbest" in g:
+            recs.append(FilterRecommendation(
+                filter_type="problem",
+                values=["Asbest"],
+                relevance_score=0.93,
+                reasoning="Problem = Asbest"
+            ))
+        if any(k in g for k in ["stress", "psykisk"]):
+            recs.append(FilterRecommendation(
+                filter_type="problem",
+                values=["Psykisk arbejdsmiljø"],
+                relevance_score=0.85,
+                reasoning="Problem = Psykisk arbejdsmiljø"
+            ))
+        return recs
+
+    async def _handle_registrering_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Registrering: branchekode forslag baseret på brancher i mål."""
+        g = (goal or "").lower()
+        mapping = {
+            "restaurant": ["56.10", "56.30"],
+            "cafe": ["56.10"],
+            "bygge": ["41.20", "43.11", "43.21", "43.29"],
+            "detail": ["47.11", "47.19", "47.30"],
+            "ejendom": ["68.20", "68.30"],
+            "transport": ["49.41", "52.29"],
+        }
+        selected: List[str] = []
+        for k, codes in mapping.items():
+            if k in g:
+                selected.extend(codes)
+        if selected:
+            return [FilterRecommendation(
+                filter_type="branch_codes",
+                values=sorted(list(set(selected)))[:5],
+                relevance_score=0.9,
+                reasoning="Brancher afledt af mål"
+            )]
+        return []
+
+    async def _handle_lokalpolitik_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Lokalpolitik: dokumenttyper/søgeord for bygge/miljø/sociale forhold."""
+        g = (goal or "").lower()
+        recs: List[FilterRecommendation] = []
+        if any(k in g for k in ["bygge", "byggesag", "lokalplan"]):
+            recs.append(FilterRecommendation(
+                filter_type="dokumenttype",
+                values=["Lokalplan", "Byggesag"],
+                relevance_score=0.82,
+                reasoning="Bygge-relaterede beslutninger"
+            ))
+        if any(k in g for k in ["miljø", "forurening", "udledning"]):
+            recs.append(FilterRecommendation(
+                filter_type="dokumenttype",
+                values=["Miljøtilladelse", "Høring"],
+                relevance_score=0.8,
+                reasoning="Miljø-relaterede beslutninger"
+            ))
+        if any(k in g for k in ["social", "borgere", "skole", "daginstitution"]):
+            recs.append(FilterRecommendation(
+                filter_type="søgeord",
+                values=["indsats", "tilsyn", "budget"],
+                relevance_score=0.75,
+                reasoning="Sociale forhold nøgleord"
+            ))
+        return recs
+
+    async def _handle_foedevaresmiley_filters(self, goal: str) -> List[FilterRecommendation]:
+        """FødevareSmiley: niveau til de sureste smileys/opfølgning."""
+        g = (goal or "").lower()
+        if any(k in g for k in ["sur", "dårlig", "kritik", "hygiejne"]):
+            return [FilterRecommendation(
+                filter_type="niveau",
+                values=["Indskærpelse", "Påbud", "Sanktion"],
+                relevance_score=0.85,
+                reasoning="Sure smileys / dårlig hygiejne"
+            )]
+        return []
     
     def _get_module_id(self, module_name: str) -> Optional[int]:
         """Hent modul ID baseret på modulnavn."""
