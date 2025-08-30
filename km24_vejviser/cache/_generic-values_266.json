@@ -1,0 +1,25 @@
+{
+  "cached_at": "2025-08-30T02:48:27.577529",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 2,
+    "items": [
+      {
+        "id": 572,
+        "name": "Kritik med navn",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 571,
+        "name": "Tilsynslisten",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

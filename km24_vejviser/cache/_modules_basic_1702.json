@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T02:48:35.338141",
+  "data": {
+    "parts": [
+      {
+        "id": 231,
+        "part": "generic_value",
+        "name": "Sanktion",
+        "info": "Styrelsen arbejder med fire niveauer. Ingen sanktion, henstilling, påbud eller forbud.",
+        "slug": "sanktion",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 244,
+        "part": "generic_value",
+        "name": "Enhed",
+        "info": "Styrelsen arbejder med 36 forskellige behandlingssteder/plejeenheder, som du kan filtrere efter her.",
+        "slug": "enhed",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 228,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 229,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 227,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 230,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 232,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "sundhedstilsyn",
+    "allowCatchAllSearchString": false,
+    "id": 1702,
+    "title": "Sundhedstilsyn",
+    "titleWbr": "Sund/heds/til/syn",
+    "colorHex": "0041c2",
+    "emoji": "🤒",
+    "shortDescription": "Styrelsen for Patientsikkerheds tilsyn med behandlingssteder i sundhedsvæsenet.",
+    "longDescription": "Styrelsen for Patientsikkerhed offentliggør rapporter over dens stikprøvebaserede og reaktive <a href=\"https://stps.dk/sundhedsfaglig/tilsyn/tilsynsrapporter\" target=\"_blank\" rel=\"noopener noreferrer\">tilsyn</a> med behandlingssteder, hvor der er tilknyttet autoriserede sundhedspersoner. Tilsynet kan munde ud i sanktioner. Hos styrelsen vil man kun kunne se den seneste rapport fra et konkret behandlingssted."
+  }
+}

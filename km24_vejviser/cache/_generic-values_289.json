@@ -1,0 +1,127 @@
+{
+  "cached_at": "2025-08-30T02:48:30.008693",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 19,
+    "items": [
+      {
+        "id": 10760,
+        "name": "L 117",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10761,
+        "name": "L 121",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10762,
+        "name": "L 143",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10763,
+        "name": "L 16",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10764,
+        "name": "L 168",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10765,
+        "name": "L 178",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10766,
+        "name": "L 193",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10767,
+        "name": "L 194",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10768,
+        "name": "L 198",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10769,
+        "name": "L 199",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10770,
+        "name": "L 218",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10771,
+        "name": "L 219",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10772,
+        "name": "L 22",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10773,
+        "name": "L 220",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10774,
+        "name": "L 222",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10775,
+        "name": "L 24",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10776,
+        "name": "L 52",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10777,
+        "name": "L 56",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10778,
+        "name": "L 73",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "cached_at": "2025-08-30T02:48:30.317997",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 3,
+    "previous": null,
+    "next": "http://km24.dk/api/generic-values/288?page=2",
+    "count": 63,
+    "items": [
+      {
+        "id": 9969,
+        "name": "Ældreministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9909,
+        "name": "Beskæftigelsesministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9920,
+        "name": "Børne- og Socialministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9921,
+        "name": "Børne- og Undervisningsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9919,
+        "name": "By-, Land- og Kirkeministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9922,
+        "name": "Digitaliseringsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9923,
+        "name": "Energi-, Forsynings- og Klimaministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9924,
+        "name": "Erhvervs- og Vækstministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9910,
+        "name": "Erhvervsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9925,
+        "name": "Europaministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9911,
+        "name": "Finansministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9926,
+        "name": "Folketinget",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9912,
+        "name": "Forsvarsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9927,
+        "name": "Handels- og europaministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9928,
+        "name": "Indenrigs- og Boligministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9929,
+        "name": "Indenrigs- og Sundhedsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9913,
+        "name": "Justitsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9930,
+        "name": "Kirkeministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9931,
+        "name": "Klima- og Energiministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9932,
+        "name": "Klima-, Energi- og Bygningsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9933,
+        "name": "Klima-, Energi- og Forsyningsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9914,
+        "name": "Kulturministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9934,
+        "name": "Miljø- og Fødevareministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9935,
+        "name": "Miljø- og Ligestillingsministeriet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9915,
+        "name": "Miljøministeriet",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

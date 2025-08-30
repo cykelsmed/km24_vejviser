@@ -166,12 +166,15 @@ async def get_anthropic_response(goal: str) -> dict:
     filter_catalog = get_filter_catalog()
     filter_data = await filter_catalog.load_all_filters()
     
-    # Hent relevante (konkrete) filtre baseret på mål
-    # Brug udvidet metode med værdier, men uden at binde til specifikke moduler her
+    # Hent hyper-relevante, API-baserede specifikke værdier (hallucination guard)
     try:
-        relevant_filters = await filter_catalog.get_relevant_filters_with_values(goal, [])  # type: ignore[attr-defined]
+        relevant_filters = await filter_catalog.get_hyper_relevant_filters(goal)  # type: ignore[attr-defined]
     except Exception:
-        relevant_filters = filter_catalog.get_relevant_filters(goal, [])
+        # Fallback til udvidet værdibaseret eller baseline
+        try:
+            relevant_filters = await filter_catalog.get_relevant_filters_with_values(goal, [])  # type: ignore[attr-defined]
+        except Exception:
+            relevant_filters = filter_catalog.get_relevant_filters(goal, [])
 
     # Byg dynamisk, letlæselig streng med konkrete anbefalinger
     concrete_recommendations_text = ""
@@ -240,7 +243,7 @@ Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skj
     4.  **BRUG DYNAMISKE FILTRE:** Du **SKAL** bruge de dynamisk hentede filtre nedenfor til at give konkrete og relevante filter-anbefalinger i hvert trin.
 
 **3. DYNAMISKE OG KONKRETE FILTER-ANBEFALINGER (OBLIGATORISK AT BRUGE)**
-Baseret på dit mål er følgende **konkrete** filtre identificeret som høj-relevante. Du SKAL bruge disse værdier direkte i dine trin (i `filters` og/eller `source_selection`):
+Baseret på dit mål er følgende **API-validerede, konkrete** filtre identificeret som høj-relevante. Du SKAL udelukkende vælge fra disse lister, når du udfylder `filters` eller `source_selection` (ingen egne gæt, ingen andre værdier):
 
 {concrete_recommendations_text}
 

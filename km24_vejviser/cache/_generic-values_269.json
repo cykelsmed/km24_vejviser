@@ -1,0 +1,139 @@
+{
+  "cached_at": "2025-08-30T02:48:28.198154",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 21,
+    "items": [
+      {
+        "id": 573,
+        "name": "Ambulancebehandler",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 601,
+        "name": "Anden",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 574,
+        "name": "Bandagist",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 575,
+        "name": "Behandlerfarmaceut",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 576,
+        "name": "Bioanalytiker",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 577,
+        "name": "Ergoterapeut",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 578,
+        "name": "Fodterapeut",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 579,
+        "name": "Fysioterapeut",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 580,
+        "name": "Jordemoder",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 581,
+        "name": "Kiropraktor",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 582,
+        "name": "Klinisk diætist",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 583,
+        "name": "Klinisk tandtekniker",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 584,
+        "name": "Læge",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 585,
+        "name": "Optiker",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 586,
+        "name": "Optometrist",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 587,
+        "name": "Osteopat",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 588,
+        "name": "Radiograf",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 589,
+        "name": "Social- og sundhedsassistent",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 590,
+        "name": "Sygeplejerske",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 591,
+        "name": "Tandlæge",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 592,
+        "name": "Tandplejer",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

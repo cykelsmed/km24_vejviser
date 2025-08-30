@@ -1,0 +1,97 @@
+{
+  "cached_at": "2025-08-30T02:48:31.258728",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 14,
+    "items": [
+      {
+        "id": 9895,
+        "name": "1. beh./Henvist til udvalg",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9896,
+        "name": "2. beh./Direkte til 3. beh.",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9897,
+        "name": "2. beh./Henvist til udvalg",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9898,
+        "name": "3. beh./Forkastet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9899,
+        "name": "3.beh./Vedtaget",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9900,
+        "name": "Beretning afgivet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9901,
+        "name": "Betænkning afgivet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9902,
+        "name": "Bortfaldet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9903,
+        "name": "Delt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9904,
+        "name": "Forkastet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9905,
+        "name": "Fremsat",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9906,
+        "name": "Stadfæstet",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9907,
+        "name": "Tilbagetaget",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9908,
+        "name": "Vedtaget",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

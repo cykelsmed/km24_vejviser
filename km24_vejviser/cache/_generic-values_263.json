@@ -1,0 +1,91 @@
+{
+  "cached_at": "2025-08-30T02:48:21.608454",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 13,
+    "items": [
+      {
+        "id": 569,
+        "name": "Folketinget forkaster godkendt forslag",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 570,
+        "name": "Folketinget vedtager godkendt forslag",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 568,
+        "name": "Forslag med <25.000 underskrifter udløber",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 567,
+        "name": "Forslag med ≥25.000 underskrifter udløber",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 559,
+        "name": "Forslag når 1.000 underskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 561,
+        "name": "Forslag når 10.000 underskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 562,
+        "name": "Forslag når 20.000 underskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 563,
+        "name": "Forslag når 30.000 underskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 564,
+        "name": "Forslag når 40.000 underskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 560,
+        "name": "Forslag når 5.000 underskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 565,
+        "name": "Forslag når 50.000 underskrifter",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 566,
+        "name": "Forslag trender (1000+ underskrifter i løbet af de sidste 24 timer)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 558,
+        "name": "Nyt forslag",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "cached_at": "2025-08-30T02:48:19.067622",
+  "data": {
+    "parts": [
+      {
+        "id": 179,
+        "part": "generic_value",
+        "name": "Ejerforhold",
+        "info": "Begræns hvilke ejerforhold der skal udløse mail.",
+        "slug": "ejerforhold",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 180,
+        "part": "generic_value",
+        "name": "Enhedstype",
+        "info": "Begræns til enten kun personer eller kun virksomheder.",
+        "slug": "enhedstype",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 173,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 174,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 175,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 176,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 177,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 7
+      },
+      {
+        "id": 178,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 8
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "skibsregistret",
+    "allowCatchAllSearchString": false,
+    "id": 1300,
+    "title": "Skibsregistret",
+    "titleWbr": "Skibs/regist/ret",
+    "colorHex": "001489",
+    "emoji": "🚢",
+    "shortDescription": "Nye registreringer om danske skibe.",
+    "longDescription": "Skibsregisterovervågningen er en overvågning af <a href=\"https://shipregister.dma.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">Skibsregistrene</a>, hvor vi henter data flere gange dagligt."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "cached_at": "2025-08-30T02:48:26.327951",
+  "data": {
+    "parts": [
+      {
+        "id": 99,
+        "part": "web_source",
+        "name": "Kilde",
+        "info": "",
+        "slug": "kilde",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 98,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 100,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 161,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 4
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "kommuner",
+    "allowCatchAllSearchString": true,
+    "id": 1340,
+    "title": "Kommuner",
+    "titleWbr": "Kom/mun/er",
+    "colorHex": "303030",
+    "emoji": "🏛️",
+    "shortDescription": "Nyt indhold på websites fra de 98 kommuner, fem regioner, KL og Danske Regioner.",
+    "longDescription": "Nyt indhold på websites fra de 98 kommuner, fem regioner, KL og Danske Regioner. Vi registrerer ikke alt indhold, men primært det, der karakteriseres som ”Nyheder” på den enkelte hjemmeside. Ringsted Kommune er ikke med på nuværende tidspunkt. Nogle kommuner og en region lægger kun deres nyheder på generelle nyhedssites, så der vil også optræde nyheder fra andre kilder fra disse sites.\r\n\r\nHvis du vil overvåge dagsordener og referater fra politiske møder i kommunerne, skal du benytte modulet \"Lokalpolitik\"."
+  }
+}

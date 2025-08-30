@@ -1,0 +1,163 @@
+{
+  "cached_at": "2025-08-30T02:48:34.399453",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 3,
+    "previous": null,
+    "next": "http://km24.dk/api/generic-values/260?page=2",
+    "count": 71,
+    "items": [
+      {
+        "id": 473,
+        "name": "Amerikas Forenede Stater (USA)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 445,
+        "name": "Angola",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 446,
+        "name": "Australien",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 447,
+        "name": "Belgien",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 448,
+        "name": "Bosnien-Hercegovina",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 449,
+        "name": "Bulgarien",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 450,
+        "name": "Cameroon",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 451,
+        "name": "Canada",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 452,
+        "name": "Colombia",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 453,
+        "name": "Cypern",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 444,
+        "name": "Danmark",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 454,
+        "name": "Djibouti",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10730,
+        "name": "Dominica",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 455,
+        "name": "Ecuador",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 456,
+        "name": "Egypten",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 457,
+        "name": "England",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 458,
+        "name": "Estland",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 459,
+        "name": "Ethiopien",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 460,
+        "name": "Færøerne",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10729,
+        "name": "Finland",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 461,
+        "name": "Forenede Arabiske Emirater",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 462,
+        "name": "Frankrig",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 463,
+        "name": "Georgien",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 464,
+        "name": "Ghana",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 465,
+        "name": "Grækenland",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

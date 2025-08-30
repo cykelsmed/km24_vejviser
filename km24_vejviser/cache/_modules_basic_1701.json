@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T02:48:17.828989",
+  "data": {
+    "parts": [
+      {
+        "id": 225,
+        "part": "generic_value",
+        "name": "Kategori",
+        "info": "Begræns kategorier for Arbejdsretten.",
+        "slug": "kategori",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 222,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 221,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 220,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 223,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 224,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 226,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "arbejdsretten",
+    "allowCatchAllSearchString": false,
+    "id": 1701,
+    "title": "Arbejdsretten",
+    "titleWbr": "Ar/bejds/ret/ten",
+    "colorHex": "78858b",
+    "emoji": "👨",
+    "shortDescription": "Domme og kendelser fra Arbejdsretten, der behandler arbejdsretlige konflikter.",
+    "longDescription": "Arbejdsretlige konflikter fra <a href=\"https://www.arbejdsretten.dk/soeg/\" target=\"_blank\" rel=\"noopener noreferrer\">Arbejdsretten</a>. \r\nSagerne vedrører bl.a. brud på overenskomster, fortolkning af aftaler, kollektive konflikter og forligsmændenes kompetence. De kan ikke behandles ved almindelige domstole, men enkeltpersoner kan anlægge sag om tilgodehavender, hvis deres faglige organisation ikke tager sagen op."
+  }
+}

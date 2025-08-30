@@ -1,0 +1,61 @@
+{
+  "cached_at": "2025-08-30T02:48:27.898121",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 8,
+    "items": [
+      {
+        "id": 600,
+        "name": "Anden/Ukendt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 593,
+        "name": "Fagligt påbud",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 594,
+        "name": "Forbud mod at arbejde",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 595,
+        "name": "Indskrænkning i ordinationsretten",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 602,
+        "name": "Kritik med navn",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 596,
+        "name": "Skærpet tilsyn",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 597,
+        "name": "Suspenderet autorisation",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 599,
+        "name": "Virksomhedsindskrænkning",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

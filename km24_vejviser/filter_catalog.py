@@ -8,7 +8,7 @@ fra KM24 API'et, samt intelligent matching mellem emner og relevante filtre.
 import logging
 import json
 import re
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, Set
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import asyncio
@@ -613,6 +613,83 @@ class FilterCatalog:
                 )
 
         return sorted(augmented, key=lambda x: x.relevance_score, reverse=True)
+
+    async def get_hyper_relevant_filters(self, goal: str) -> List[FilterRecommendation]:
+        """Hent hyper-relevante, API-validerede værdier for semantisk relevante parts.
+
+        - Identificerer parts af typen generic_value på tværs af moduler
+        - Begrænser til kendte, nyttige kategorier (crime_codes/problem/reaction/branch/property)
+        - Henter konkrete værdier via API og scorer dem mod målet
+        - Returnerer top 3-5 faktisk gyldige værdier per part
+        """
+        goal_lower = (goal or "").lower()
+        results: List[FilterRecommendation] = []
+
+        # Scan et begrænset sæt moduler for performance
+        module_items = list(self._module_id_by_title.items())
+        # Prioritér moduler hvis titel matcher nogle domæneord
+        priority_terms = ['dom', 'ret', 'arbejdstilsyn', 'miljø', 'tinglys', 'udbud', 'status', 'registr']
+        prioritized = [
+            (title, mid) for title, mid in module_items
+            if any(t in title.lower() for t in priority_terms)
+        ] + module_items
+
+        seen_modules: Set[int] = set()
+        for title, module_id in prioritized:
+            if module_id in seen_modules:
+                continue
+            seen_modules.add(module_id)
+            try:
+                await self.load_module_specific_filters(module_id)
+            except Exception:
+                pass
+            parts = self._parts_by_module_id.get(module_id, [])
+            for part in parts:
+                if part.get('part') != 'generic_value':
+                    continue
+                pname = part.get('name') or ''
+                normalized = self._normalized_filter_type_from_part_name(pname)
+                if normalized not in {"crime_codes", "problem", "reaction", "branch_codes", "property_types"}:
+                    continue
+                pid = part.get('id')
+                values = self._generic_values.get(pid, [])
+                if not values:
+                    try:
+                        await self._load_generic_values(pid)
+                        values = self._generic_values.get(pid, [])
+                    except Exception:
+                        values = []
+                if not values:
+                    continue
+                # Score values mod mål
+                scored: List[Tuple[float, str]] = []
+                for it in values:
+                    name = str(it.get('name', '')).strip()
+                    desc = str(it.get('description', '') or '')
+                    score = self._semantic_match_score(goal_lower, f"{name} {desc}")
+                    if score > 0:
+                        scored.append((score, name))
+                if not scored:
+                    continue
+                scored.sort(key=lambda x: x[0], reverse=True)
+                top_values = [n for _, n in scored[:5]]
+                results.append(
+                    FilterRecommendation(
+                        filter_type=normalized or (pname or "module_specific").strip().lower(),
+                        values=top_values,
+                        relevance_score=0.97,
+                        reasoning=f"API-validerede {pname} for {title}",
+                        module_id=module_id,
+                        module_part_id=pid,
+                        part_name=pname,
+                    )
+                )
+
+            # Stop tidligt hvis vi allerede har samlet en del
+            if len(results) >= 10:
+                break
+
+        return sorted(results, key=lambda x: x.relevance_score, reverse=True)
 
     def _suggest_local_media(self, goal_lower: str) -> List[str]:
         """Returnér konkrete lokale medier for udvalgte områder (heuristik)."""

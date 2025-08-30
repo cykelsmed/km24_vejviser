@@ -1,0 +1,55 @@
+{
+  "cached_at": "2025-08-30T02:48:31.888972",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 7,
+    "items": [
+      {
+        "id": 651,
+        "name": "Beredskabsmeddelelser",
+        "isSubbed": true,
+        "extra": {}
+      },
+      {
+        "id": 652,
+        "name": "Døgnrapporter",
+        "isSubbed": true,
+        "extra": {}
+      },
+      {
+        "id": 653,
+        "name": "Efterlysninger",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 654,
+        "name": "Fremlysninger",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 655,
+        "name": "Nyheder",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 656,
+        "name": "Servicemeddelelser",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 657,
+        "name": "Ukendt",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

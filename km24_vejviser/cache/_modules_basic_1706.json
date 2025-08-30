@@ -1,0 +1,54 @@
+{
+  "cached_at": "2025-08-30T02:48:21.298647",
+  "data": {
+    "parts": [
+      {
+        "id": 263,
+        "part": "generic_value",
+        "name": "Begivenhed",
+        "info": "Her kan du abonnere på diverse begivenheder for borgerforslag. Såfremt du ikke vælger noget her (og har udvalgt andre overvågningskriterier for Borgerforslag) svarer det til kun at abonnere på \"Nyt forslag\"-begivenheden.\r\n\r\nVær opmærksom på, at hver begivenhed for et givent forslag vil figurere som et unikt hit i standard-hitlogikken. Du kan derfor fx godt opleve at modtage flere hits om det samme borgerforslag i den samme mail, såfremt et forslag opnår flere milepæle på kort tid. Du kan ændre hitlogik til maksimalt at modtage et hit pr. borgerforslag.",
+        "slug": "begivenhed",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 262,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 264,
+        "part": "person",
+        "name": "Person",
+        "info": "Du kan overvåge om navngivne personer er forslagsstillere eller medstillere til nye borgerforslag.",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 265,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 4
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "borgerforslag",
+    "allowCatchAllSearchString": false,
+    "id": 1706,
+    "title": "Borgerforslag",
+    "titleWbr": "Borger/for/slag",
+    "colorHex": "FF0000",
+    "emoji": "🚩",
+    "shortDescription": "Borgerforslag og antal stemmer på dem.",
+    "longDescription": "Folketinget har oprettet <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.borgerforslag.dk\">borgerforslag.dk</a>, hvor folk kan stille og støtte borgerforslag. Hvis 50.000 personer med stemmeret til folketingsvalg støtter forslaget, kan det blive fremsat som beslutningsforslag i Folketinget."
+  }
+}

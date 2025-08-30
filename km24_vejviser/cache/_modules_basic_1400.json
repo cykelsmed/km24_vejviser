@@ -1,0 +1,99 @@
+{
+  "cached_at": "2025-08-30T02:48:20.978558",
+  "data": {
+    "parts": [
+      {
+        "id": 31,
+        "part": "generic_value",
+        "name": "Adressetype",
+        "info": "Her kan du vælge mellem de 18 forskellige ejendomstyper, som boligsiden inddeler adresserne i. Vælger du ikke mindst én adressetype, vil overvågningen gælde for samtlige adressetyper.",
+        "slug": "adressetype",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 30,
+        "part": "amount_selection",
+        "name": "Beløb",
+        "info": "Du kan her begrænse boligopslag til kun dem, der overstiger et bestemt beløb.",
+        "slug": "beloeb",
+        "canSelectMultiple": false,
+        "order": 2
+      },
+      {
+        "id": 245,
+        "part": "custom_number",
+        "name": "BFE",
+        "info": "Ønsker du overvågning på bestemte BFE-numre, kan du sætte det op her. For hvert BFE-nummer du opretter, kan du også tilknytte en note, så det er nemmere at huske, hvad nummeret knytter sig til.",
+        "slug": "bfe",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 24,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 25,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 26,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 28,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 7
+      },
+      {
+        "id": 27,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 8
+      },
+      {
+        "id": 29,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 9
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "boligsiden",
+    "allowCatchAllSearchString": false,
+    "id": 1400,
+    "title": "Boligsiden",
+    "titleWbr": "Bolig/si/den",
+    "colorHex": "e40920",
+    "emoji": "🏠",
+    "shortDescription": "Alle nye boliger til salg i Danmark.",
+    "longDescription": "Vi henter data flere gange dagligt fra <a href=\"https://www.boligsiden.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">Boligsiden</a> om nye boliger sat til salg i Danmark."
+  }
+}

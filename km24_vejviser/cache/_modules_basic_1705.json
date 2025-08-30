@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T02:48:18.447770",
+  "data": {
+    "parts": [
+      {
+        "id": 261,
+        "part": "generic_value",
+        "name": "Kilde",
+        "info": "Kilden, hvor data er hentet fra.",
+        "slug": "kilde",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 257,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 255,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 254,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 256,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 258,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 259,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "miljoe-annonceringer",
+    "allowCatchAllSearchString": false,
+    "id": 1705,
+    "title": "Miljø-annonceringer",
+    "titleWbr": "Mil/jø-an/non/ce/ring/er",
+    "colorHex": "0E4743",
+    "emoji": "🌱",
+    "shortDescription": "Annonceringer fra Miljøstyrelsen.",
+    "longDescription": "Annonceringer (nyheder) fra <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://mst.dk/annonceringer\">Miljøstyrelsen</a> og fra <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://sgavmst.dk/annonceringer\">Styrelsen for Grøn Arealomlægning og Vandmiljø</a>."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "cached_at": "2025-08-30T02:48:24.707848",
+  "data": {
+    "parts": [
+      {
+        "id": 94,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 96,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 97,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 95,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 4
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "gaeldssanering",
+    "allowCatchAllSearchString": false,
+    "id": 1220,
+    "title": "Gældssanering",
+    "titleWbr": "Gælds/sa/ne/ring",
+    "colorHex": "303030",
+    "emoji": "💳",
+    "shortDescription": "Gældssanering fra Statstidende.",
+    "longDescription": "Gældssaneringsovervågningen er en overvågning af <a href=\"https://www.domstol.dk/alle-emner/gaeld/gaeldssanering/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstoles afdeling for Gældssanering</a>.\r\n\r\nFlere gange dagligt henter vi data fra Statstidende, hvor gældssaneringssager offentliggøres."
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "cached_at": "2025-08-30T02:48:37.479947",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 2,
+    "previous": null,
+    "next": "http://km24.dk/api/web-sources/categories/520?page=2",
+    "count": 49,
+    "items": [
+      {
+        "id": 322,
+        "name": "Argentina",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 323,
+        "name": "Australien",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 324,
+        "name": "Bangla Desh",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 325,
+        "name": "Bosnien-Hercegovina",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 326,
+        "name": "Brasilien",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 327,
+        "name": "Canada",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 328,
+        "name": "Chile",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 329,
+        "name": "Colombia",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 330,
+        "name": "Den Dominikanske Republik",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 331,
+        "name": "Ecuador",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 332,
+        "name": "Egypten",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 333,
+        "name": "Filippinerne",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 334,
+        "name": "Forenede Arabiske Emirater",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 335,
+        "name": "Frankrig",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 336,
+        "name": "Guatemala",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 337,
+        "name": "Hong Kong",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 338,
+        "name": "Indien",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 339,
+        "name": "Indonesien",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 437,
+        "name": "Internationale nyhedsbureauer",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 340,
+        "name": "Irland",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 341,
+        "name": "Israel",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 342,
+        "name": "Italien",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 343,
+        "name": "Japan",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 344,
+        "name": "Kenya",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 345,
+        "name": "Kina",
+        "creatorName": "KM24"
+      }
+    ]
+  }
+}

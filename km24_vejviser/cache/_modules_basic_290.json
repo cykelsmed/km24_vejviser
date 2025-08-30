@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T02:48:32.839277",
+  "data": {
+    "parts": [
+      {
+        "id": 77,
+        "part": "generic_value",
+        "name": "Aktørtype",
+        "info": "Begræns til bestemte aktørtyper. Er ingen valgt får du hits for både personer og virksomheder.",
+        "slug": "aktoertype",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 196,
+        "part": "generic_value",
+        "name": "Virksomhedstype",
+        "info": "Begræns til bestemte virksomhedstyper. Er ingen valgt får du hits for alle virksomhedstyper.",
+        "slug": "virksomhedstype",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 72,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 73,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 74,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 75,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 76,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": true,
+    "slug": "skatteskyldnere",
+    "allowCatchAllSearchString": false,
+    "id": 290,
+    "title": "Skatteskyldnere",
+    "titleWbr": "Skat/te/skyld/nere",
+    "colorHex": "8E44ad",
+    "emoji": "🏘",
+    "shortDescription": "SKATs udlæg i fast ejendom, biler og andelsboliger.",
+    "longDescription": "Fra Tinglysningen  trækker vi udlæg i Tingbogen, Andelsbogen og Bilbogen. Det er SKATs udlæg i fast ejendom, biler og andelsboliger. Indeholder både enkeltpersoner og selskaber."
+  }
+}
