@@ -69,6 +69,24 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Ryd cache ved opstart for at sikre friske data under udvikling
+@app.on_event("startup")
+async def startup_event():
+    """
+    Rydder cachen ved applikationens opstart for at sikre,
+    at de seneste logikændringer altid anvender friske data.
+    """
+    try:
+        logger.info("Application startup: Clearing KM24 API cache...")
+        client = get_km24_client()
+        result = await client.clear_cache()
+        if result.get("success"):
+            logger.info(f"Cache cleared successfully: {result.get('message')}")
+        else:
+            logger.error(f"Failed to clear cache on startup: {result.get('error')}")
+    except Exception as e:
+        logger.error(f"Exception while clearing cache on startup: {e}")
+
 # --- Data Models ---
 class RecipeRequest(BaseModel):
     """Data model for indkommende anmodninger fra brugerfladen.
