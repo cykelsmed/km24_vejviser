@@ -1,0 +1,63 @@
+{
+  "cached_at": "2025-08-30T03:36:33.075730",
+  "data": {
+    "parts": [
+      {
+        "id": 18,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 19,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 20,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 21,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 22,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 5
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "bilbogen",
+    "allowCatchAllSearchString": false,
+    "id": 1260,
+    "title": "Bilbogen",
+    "titleWbr": "Bil/bog/en",
+    "colorHex": "8e3200",
+    "emoji": "🚗",
+    "shortDescription": "Pant i køretøjer.",
+    "longDescription": "Nye registreringer af pant i køretøjer, både for enkeltpersoner og selskaber. Bilbogsovervågningen er en overvågning af <a href=\"https://domstol.dk/tinglysningsretten/tingboegerne/bilbogen/\" target=\"_blank\" rel=\"noopener noreferrer\">Danmarks Domstoles afdeling for Bilbogen</a>, hvor vi henter data flere gange dagligt."
+  }
+}

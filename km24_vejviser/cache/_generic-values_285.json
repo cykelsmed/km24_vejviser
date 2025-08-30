@@ -1,0 +1,163 @@
+{
+  "cached_at": "2025-08-30T03:36:46.797505",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 8,
+    "previous": null,
+    "next": "http://km24.dk/api/generic-values/285?page=2",
+    "count": 188,
+    "items": [
+      {
+        "id": 9146,
+        "name": "",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9254,
+        "name": "Aaja Chemnitz (IA)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9258,
+        "name": "Aki-Matilda Høegh-Dam (N)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9181,
+        "name": "Alex Ahrendtsen (DF)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9154,
+        "name": "Alex Vanopslagh (LA)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9209,
+        "name": "Alexander Ryle (LA)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9144,
+        "name": "Anders Kronborg (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9115,
+        "name": "Ane Halsboe-Jørgensen (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9126,
+        "name": "Anna Falkenberg (SP)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9210,
+        "name": "Anne Paulin (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9224,
+        "name": "Anne Valentina Berthelsen (SF)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9240,
+        "name": "Anni Matthiesen (V)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9242,
+        "name": "Astrid Carøe (SF)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9217,
+        "name": "Astrid Krag (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9203,
+        "name": "Benny Engelbrecht (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9131,
+        "name": "Betina Kastbjerg (DD)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10127,
+        "name": "Birgitte Bergman (KF)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9136,
+        "name": "Birgitte Vind (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9189,
+        "name": "Bjarne Laustsen (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9241,
+        "name": "Bjørn Brandenborg (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9237,
+        "name": "Brigitte Klintskov Jerkel (KF)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9247,
+        "name": "Camilla Fabricius (S)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9177,
+        "name": "Carl Andersen (LA)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 9194,
+        "name": "Carl Valentin (SF)",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 10149,
+        "name": "Caroline Stage Olsen (M)",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "cached_at": "2025-08-30T03:36:44.576352",
+  "data": {
+    "parts": [
+      {
+        "id": 10,
+        "part": "generic_value",
+        "name": "Kommune/Region",
+        "info": "Hvis du kun ønsker at overvåge udvalgte kommuner/regioner, kan du foretage dine valg herunder. Vælger du ikke mindst en lokalpolitisk instans, vil overvågningen gælde for samtlige.",
+        "slug": "kommune-region",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 201,
+        "part": "search_string",
+        "name": "Udvalg",
+        "info": "Du kan oprette søgeord som \"social\", \"sundhed\", \"teknisk\", \"økonomi\" og lignende for at søge udvalg af en bestemt type i kommunerne. Har du ikke oprettet noget søgeord, søger systemet på alle udvalg.",
+        "slug": "udvalg",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 157,
+        "part": "generic_value",
+        "name": "Dokumenttype",
+        "info": "Her kan du begrænse til kun at få mails for bestemte dokumenttyper.",
+        "slug": "dokumenttype",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 203,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 152,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 153,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 154,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "Søgeordene her benyttes til at søge i de individuelle punkter i dagsordenerne.\r\nVær opmærksom på, at vi ikke scraper bilag, så du kan ikke søge i bilagsteksterne.",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 7
+      },
+      {
+        "id": 156,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 8
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "lokalpolitik",
+    "allowCatchAllSearchString": false,
+    "id": 1500,
+    "title": "Lokalpolitik",
+    "titleWbr": "Lo/kal/po/li/tik",
+    "colorHex": "303030",
+    "emoji": "🏛️",
+    "shortDescription": "Dagsordener og referater fra kommuner og regioner.",
+    "longDescription": "Lokalpolitik-overvågningen er en overvågning af nye dagsordener og referater fra faste udvalgs-, byråds- og regionrådsmøder i kommuner og regioner. Alle regioner og kommuner er med."
+  }
+}

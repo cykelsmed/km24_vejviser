@@ -1,0 +1,54 @@
+{
+  "cached_at": "2025-08-30T03:36:36.575765",
+  "data": {
+    "parts": [
+      {
+        "id": 58,
+        "part": "amount_selection",
+        "name": "Alder",
+        "info": "Du kan her indstille din nedre og øvre aldersgrænse for dødsfald.\r\nHvis du fx. indstiller 30 år for nedre grænse og 105 år for øvre grænse, vil du kun få et hit, hvis en  person, der døde (evt. begrænset til kommuner du har udvalgt) var yngre end 30 år (0-29,99 år) eller ældre end 105 år (105,0+).",
+        "slug": "alder",
+        "canSelectMultiple": false,
+        "order": 1
+      },
+      {
+        "id": 56,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 55,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 57,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 4
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "doedsfald",
+    "allowCatchAllSearchString": false,
+    "id": 1100,
+    "title": "Dødsfald",
+    "titleWbr": "Døds/fald",
+    "colorHex": "000000",
+    "emoji": "💀",
+    "shortDescription": "Nye dødsfald fra Datafordeleren og Statstidende.",
+    "longDescription": "I dødsfaldsovervågningen kan du få besked, når personer dør. Vi henter data dagligt fra Datafordeleren og Statstidende. Datafordeleren oplyser om dødsfald for ejere af fast ejendom, mens Statstidende oplyser om behandling af dødsboer (arvesager). Døde uden for de to grupper har vi ikke oplysninger om."
+  }
+}

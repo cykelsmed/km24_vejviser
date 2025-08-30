@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T03:36:37.875656",
+  "data": {
+    "parts": [
+      {
+        "id": 93,
+        "part": "generic_value",
+        "name": "Niveau",
+        "info": "Her kan du vælge, hvilke typer smileys du vil se.",
+        "slug": "niveau",
+        "canSelectMultiple": false,
+        "order": 1
+      },
+      {
+        "id": 87,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 88,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 89,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 90,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 91,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 92,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "foedevaresmiley",
+    "allowCatchAllSearchString": false,
+    "id": 6,
+    "title": "Fødevaresmiley",
+    "titleWbr": "Fød/e/va/re/smi/ley",
+    "colorHex": "c46c00",
+    "emoji": "🙁",
+    "shortDescription": "Nye smileys (de to sureste typer) fra Fødevarestyrelsen til butikker, kantiner, institutionskøkkener mv.",
+    "longDescription": "Her kan du få besked, når Fødevarestyrelsen tildeler en af de to sureste smiley-typer til butikker, kantiner, institutionskøkkener mv.\r\nDer hentes data fra <a href=\"https://www.findsmiley.dk/Sider/Forside.aspx\" target=\"_blank\" rel=\"noopener noreferrer\">findsmiley.dk</a> flere gange dagligt."
+  }
+}

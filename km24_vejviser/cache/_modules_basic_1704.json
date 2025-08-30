@@ -1,0 +1,90 @@
+{
+  "cached_at": "2025-08-30T03:36:50.085348",
+  "data": {
+    "parts": [
+      {
+        "id": 246,
+        "part": "generic_value",
+        "name": "Retskreds",
+        "info": "",
+        "slug": "retskreds",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 260,
+        "part": "generic_value",
+        "name": "Land",
+        "info": "Landet for den senest kendte adresse. Du kan også vælge \"Ukendt\". Vælger du ingen, søger på du alle.",
+        "slug": "land",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 250,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 248,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 247,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 249,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 251,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 7
+      },
+      {
+        "id": 252,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 8
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "staevninger",
+    "allowCatchAllSearchString": false,
+    "id": 1704,
+    "title": "Stævninger",
+    "titleWbr": "Stæv/ning/er",
+    "colorHex": "c31230",
+    "emoji": "📨",
+    "shortDescription": "Stævninger fra Statstidende",
+    "longDescription": "De enkelte retskredse offentliggør stævninger i Statstidende, hvis politiet ikke kan finde den indstævnede. Kun stævninger fra Statstidende medtages i dette modul."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "cached_at": "2025-08-30T03:36:29.515635",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 2,
+    "items": [
+      {
+        "id": 191,
+        "name": "Ejerskaber",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 192,
+        "name": "Pantebreve",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "cached_at": "2025-08-30T03:36:44.895699",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 5,
+    "previous": null,
+    "next": "http://km24.dk/api/generic-values/10?page=2",
+    "count": 103,
+    "items": [
+      {
+        "id": 383,
+        "name": "Københavns Kommune",
+        "isSubbed": true,
+        "extra": {}
+      },
+      {
+        "id": 48,
+        "name": "Aabenraa Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 286,
+        "name": "Aalborg Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 62,
+        "name": "Aarhus Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 41,
+        "name": "Ærø Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 6,
+        "name": "Albertslund Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 12,
+        "name": "Allerød Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 35,
+        "name": "Assens Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 629,
+        "name": "Ballerup Kommune",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 43,
+        "name": "Billund Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 34,
+        "name": "Bornholms Regionskommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 2,
+        "name": "Brøndby Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 67,
+        "name": "Brønderslev Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 3,
+        "name": "Dragør Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 278,
+        "name": "Egedal Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 45,
+        "name": "Esbjerg Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 36,
+        "name": "Faaborg-Midtfyn Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 46,
+        "name": "Fanø Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 57,
+        "name": "Favrskov Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 280,
+        "name": "Faxe Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 13,
+        "name": "Fredensborg Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 49,
+        "name": "Fredericia Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 1,
+        "name": "Frederiksberg Kommune",
+        "isSubbed": false,
+        "extra": {
+          "agencyType": "Kommune"
+        }
+      },
+      {
+        "id": 630,
+        "name": "Frederikshavn Kommune",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 660,
+        "name": "Frederikssund Kommune",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

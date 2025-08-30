@@ -1,0 +1,163 @@
+{
+  "cached_at": "2025-08-30T03:36:43.316387",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 2,
+    "previous": null,
+    "next": "http://km24.dk/api/generic-values/272?page=2",
+    "count": 26,
+    "items": [
+      {
+        "id": 603,
+        "name": "Aalborg Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 604,
+        "name": "Aarhus Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 605,
+        "name": "Bornholm Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 606,
+        "name": "Domstol ukendt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 607,
+        "name": "Esbjerg Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 608,
+        "name": "Frederiksberg Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 609,
+        "name": "Glostrup Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 610,
+        "name": "Helsingør Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 611,
+        "name": "Herning Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 612,
+        "name": "Hillerød Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 613,
+        "name": "Hjørring Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 614,
+        "name": "Holbæk Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 615,
+        "name": "Holstebro Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 616,
+        "name": "Horsens Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 617,
+        "name": "Kbh. eller Frb. Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 619,
+        "name": "Københavns Byret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 618,
+        "name": "Kolding Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 620,
+        "name": "Lyngby Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 622,
+        "name": "Næstved Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 621,
+        "name": "Nykøbing Falster Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 623,
+        "name": "Odense Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 624,
+        "name": "Randers Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 625,
+        "name": "Roskilde Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 627,
+        "name": "Sønderborg Ret",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 626,
+        "name": "Svendborg Ret",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

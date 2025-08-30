@@ -1,0 +1,73 @@
+{
+  "cached_at": "2025-08-30T03:36:53.304619",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 10,
+    "items": [
+      {
+        "id": 294,
+        "name": "Godkendelse afventer",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 291,
+        "name": "Godkendt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 299,
+        "name": "Godkendt – afgørelse om ophør afventer udløb af klagefrist",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 296,
+        "name": "Godkendt – afgørelse om ophør påklaget",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 295,
+        "name": "Godkendt med påbud",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 293,
+        "name": "Godkendt med skærpet tilsyn",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 297,
+        "name": "Godkendt med skærpet tilsyn og påbud",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 292,
+        "name": "Godkendt med vilkår",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 298,
+        "name": "Ikke godkendt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 300,
+        "name": "Tilbud ophørt",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

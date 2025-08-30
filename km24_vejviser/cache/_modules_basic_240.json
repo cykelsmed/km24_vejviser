@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T03:36:39.783863",
+  "data": {
+    "parts": [
+      {
+        "id": 11,
+        "part": "generic_value",
+        "name": "Klageinstans",
+        "info": "Hvis du kun ønsker at overvåge kendelser fra særlige klage- og ankenævn, kan du foretage dine valg herunder.\nVælger du ikke mindst ét nævn, vil overvågningen gælde for samtlige instanser.",
+        "slug": "klageinstans",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 145,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 146,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 147,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 148,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 149,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 150,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 7
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "klagenaevn",
+    "allowCatchAllSearchString": false,
+    "id": 240,
+    "title": "Klagenævn",
+    "titleWbr": "Klag/e/nævn",
+    "colorHex": "324da8",
+    "emoji": "⚠️",
+    "shortDescription": "Nye kendelser fra 17 forskellige anke- og klagenævn.",
+    "longDescription": "I klagenævnsovervågningen kan du overvåge virksomheder og søgeord i kendelser fra forskellige klagenævn. Du kan se alle klagenævn, vi henter data fra, samt begrænse hvilke du ønsker at overvåge, under \"instanser\".\r\n<br/>\r\n<br/>\r\nVi henter data flere gange dagligt fra:\r\n<ul>\r\n  <li>\r\n    <a href=\"https://naevneneshus.dk/start-din-klage\" target=\"_blank\" rel=\"noopener noreferrer\">Nævnenes Hus</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://www.kfst.dk\" target=\"_blank\" rel=\"noopener noreferrer\">Konkurrence- og Forbrugerstyrelsen</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://ankeforsikring.dk/kendelser/Sider/kendelser.aspx\" target=\"_blank\" rel=\"noopener noreferrer\">Ankenævnet for Forsikring</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://fanke.dk/soeg-i-afgoerelser/\" target=\"_blank\" rel=\"noopener noreferrer\">Det Finansielle Ankenævn</a>\r\n  </li>\r\n  <li>\r\n    <a href=\"https://www.energianke.dk/afgoerelser/\" target=\"_blank\" rel=\"noopener noreferrer\">Ankenævnet på Energiområdet</a>\r\n  </li>\r\n</ul>"
+  }
+}

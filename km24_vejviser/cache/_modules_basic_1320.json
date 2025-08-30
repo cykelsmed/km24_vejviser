@@ -1,0 +1,54 @@
+{
+  "cached_at": "2025-08-30T03:36:40.415422",
+  "data": {
+    "parts": [
+      {
+        "id": 43,
+        "part": "web_source",
+        "name": "Kilde",
+        "info": "",
+        "slug": "kilde",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 44,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 42,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 199,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 4
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "klima",
+    "allowCatchAllSearchString": true,
+    "id": 1320,
+    "title": "Klima",
+    "titleWbr": "Kli/ma",
+    "colorHex": "023020",
+    "emoji": "🌱",
+    "shortDescription": "Nyt indhold på klima- og energikilder.",
+    "longDescription": "Her kan du overvåge nyt indhold i de største og vigtigste kilder inden for klima og energi. Der søges ikke efter indhold bag evt. betalingsmure."
+  }
+}

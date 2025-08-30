@@ -1,0 +1,25 @@
+{
+  "cached_at": "2025-08-30T03:36:38.175838",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 2,
+    "items": [
+      {
+        "id": 124,
+        "name": "Kun sur mund",
+        "isSubbed": true,
+        "extra": {}
+      },
+      {
+        "id": 123,
+        "name": "Både lige mund og sur mund",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

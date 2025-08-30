@@ -1,0 +1,72 @@
+{
+  "cached_at": "2025-08-30T03:36:39.475731",
+  "data": {
+    "parts": [
+      {
+        "id": 185,
+        "part": "amount_selection",
+        "name": "Beløb",
+        "info": "Du kan her indstille dine beløbsgrænser for kapitalændringer. Hvis du fx. indstiller en grænse på -10.000.000 kr. for negativ kapitalændringer, vil du modtage en notifikation, hvis en virksomhed sænker kapitalen med 10.000.000 kr. eller mere (og matcher på evt. andre kriterier, du har sat op). Tilsvarende for positiv kapitalændringer, således at hvis du sætter det til 30.000.000, så får du en notifikation, hvis kapitalen hæves med 30.000.000 eller mere.",
+        "slug": "beloeb",
+        "canSelectMultiple": false,
+        "order": 1
+      },
+      {
+        "id": 181,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 182,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 202,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 183,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 184,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 6
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "kapitalaendring",
+    "allowCatchAllSearchString": false,
+    "id": 630,
+    "title": "Kapitalændring",
+    "titleWbr": "Ka/pi/tal/æn/dring",
+    "colorHex": "ffc107",
+    "emoji": "📈",
+    "shortDescription": "Kapitalændringer i selskaber - hentet fra VIRK.",
+    "longDescription": "Dette er en overvågning af kapitalændringer, der baserer sig på data fra <a href=\"https://virk.dk/\" target=\"_blank\" rel=\"noopener noreferrer\">VIRK</a>."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "cached_at": "2025-08-30T03:36:41.375568",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 4,
+    "items": [
+      {
+        "id": 318,
+        "name": "Andre",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 319,
+        "name": "Kommune",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 320,
+        "name": "Pressemeddelelser",
+        "creatorName": "KM24"
+      },
+      {
+        "id": 321,
+        "name": "Region",
+        "creatorName": "KM24"
+      }
+    ]
+  }
+}

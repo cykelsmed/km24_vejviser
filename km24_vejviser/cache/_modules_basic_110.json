@@ -1,0 +1,81 @@
+{
+  "cached_at": "2025-08-30T03:36:23.896055",
+  "data": {
+    "parts": [
+      {
+        "id": 204,
+        "part": "generic_value",
+        "name": "Oprindelsesland",
+        "info": "Arbejdstilsynet offentliggør tilsyn for danske og udenlandske virksomheder, der er registreret i RUT-registret.\r\nFor de udenlandske er der ikke oplysning om adresse - og dermed heller ikke kommune, ligesom oplysning om branche mangler.",
+        "slug": "oprindelsesland",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 205,
+        "part": "generic_value",
+        "name": "Problem",
+        "info": "Arbejdstilsynet opdeler problemerne i forskellige typer som asbest, høreskadende støj, fugt, skimmelsvamp, vold og traumatiske hændelser etc.",
+        "slug": "problem",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 206,
+        "part": "generic_value",
+        "name": "Reaktion",
+        "info": "Arbejdstilsynet har forskellige reaktioner på et problem. Forbud, påtale, påbud og strakspåbud er de vigtigste.",
+        "slug": "reaktion",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 5,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 3,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 2,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 7
+      },
+      {
+        "id": 9,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 9
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "arbejdstilsyn",
+    "allowCatchAllSearchString": false,
+    "id": 110,
+    "title": "Arbejdstilsyn",
+    "titleWbr": "Ar/bejds/til/syn",
+    "colorHex": "b8aa40",
+    "emoji": "🙁",
+    "shortDescription": "Arbejdstilsynets kritik af virksomheder",
+    "longDescription": "Arbejdstilsynet offentliggør resultatet af kontrolbesøg på både danske og udenlandske virksomheder. Det gælder dog kun konklusionerne. Ønsker du indsigt i tilsynsrapporten, skal du bede om aktindsigt i rapporten med henvisning til offentlighedsloven og angivelse af virksomhed og tilsynsdato og evt. anden præcisering. Send pr. email til at@at.dk.\r\nFor kontrol af arbejdsmiljøet på udenlandske virksomheder gælder det, at tilsynet ikke viser branchekoder eller den geografiske placering af arbejdet."
+  }
+}

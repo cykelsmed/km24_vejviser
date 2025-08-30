@@ -1,0 +1,25 @@
+{
+  "cached_at": "2025-08-30T03:36:52.995597",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 2,
+    "items": [
+      {
+        "id": 289,
+        "name": "Børn og unge",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 290,
+        "name": "Voksne",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

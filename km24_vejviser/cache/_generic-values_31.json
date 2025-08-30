@@ -1,0 +1,121 @@
+{
+  "cached_at": "2025-08-30T03:36:33.734998",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 18,
+    "items": [
+      {
+        "id": 95,
+        "name": "Andelsbolig",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 108,
+        "name": "Byggegrund",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 94,
+        "name": "Ejerlejlighed",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 100,
+        "name": "Fritidshus",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 96,
+        "name": "Gård",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 98,
+        "name": "Helårshave",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 99,
+        "name": "Hobbyfarm",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 92,
+        "name": "Kolonihave",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 93,
+        "name": "Kvægejendom",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 103,
+        "name": "Landejendom",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 105,
+        "name": "Rækkehus",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 104,
+        "name": "Særlig",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 97,
+        "name": "Skovejendom",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 101,
+        "name": "Sommerhusgrund",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 102,
+        "name": "Svinefarm",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 109,
+        "name": "Ukendt",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 106,
+        "name": "Villa",
+        "isSubbed": false,
+        "extra": {}
+      },
+      {
+        "id": 107,
+        "name": "Villalejlighed",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

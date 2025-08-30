@@ -1,0 +1,19 @@
+{
+  "cached_at": "2025-08-30T03:36:30.465948",
+  "data": {
+    "page": 1,
+    "pageSize": 25,
+    "numPages": 1,
+    "previous": null,
+    "next": null,
+    "count": 1,
+    "items": [
+      {
+        "id": 443,
+        "name": "Abonnér",
+        "isSubbed": false,
+        "extra": {}
+      }
+    ]
+  }
+}

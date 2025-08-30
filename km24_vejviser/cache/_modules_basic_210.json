@@ -1,0 +1,72 @@
+{
+  "cached_at": "2025-08-30T03:36:37.545592",
+  "data": {
+    "parts": [
+      {
+        "id": 81,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 82,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 83,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 84,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 85,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 86,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": false,
+        "order": 6
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "finanstilsynet",
+    "allowCatchAllSearchString": false,
+    "id": 210,
+    "title": "Finanstilsynet",
+    "titleWbr": "Fi/nans/til/sy/net",
+    "colorHex": "e8aa42",
+    "emoji": "💰",
+    "shortDescription": "Tilsynsreaktioner fra Finanstilsynet.",
+    "longDescription": "Finanstilsynsovervågningen er en overvågning af nye tilsynreaktioner inden for fem typer (politianmeldelser, domme og bøder, påbud, påtaler samt andre afgørelser). Desuden overvåges advarsler mod ulovlig virksomhed. Der hentes data fra <a href=\"https://www.finanstilsynet.dk/Tilsyn/Tilsynsreaktioner\" target=\"_blank\" rel=\"noopener noreferrer\">Finanstilsynet</a>\r\nflere gange dagligt."
+  }
+}

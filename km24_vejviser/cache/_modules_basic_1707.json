@@ -1,0 +1,72 @@
+{
+  "cached_at": "2025-08-30T03:36:42.045999",
+  "data": {
+    "parts": [
+      {
+        "id": 266,
+        "part": "generic_value",
+        "name": "Register",
+        "info": "Kritik med navn eller tilsyn",
+        "slug": "register",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 267,
+        "part": "generic_value",
+        "name": "Sanktion",
+        "info": "",
+        "slug": "sanktion",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 269,
+        "part": "generic_value",
+        "name": "Erhverv",
+        "info": "",
+        "slug": "erhverv",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 272,
+        "part": "generic_value",
+        "name": "Retskreds",
+        "info": "Det er retskredsen, som den er oplyst i teksten. For eksempel kan det være Kbh. eller Frb. retskreds. Men det kan også være Københavns retskreds. Retskreds kan også være ukendt.",
+        "slug": "retskreds",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 271,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 270,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 6
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "kritik-af-sundhedspersoner",
+    "allowCatchAllSearchString": false,
+    "id": 1707,
+    "title": "Kritik af sundhedspersoner",
+    "titleWbr": "Kri/tik af sund/heds/per/son/er",
+    "colorHex": "001489",
+    "emoji": "👨",
+    "shortDescription": "Udvalgte afgørelser fra Sundhedsvæsenets Disciplinærnævn samt indhold fra Autorisationsregistret",
+    "longDescription": "Data stammer fra to kilder: Dels fra <a href=\"https://www.stpk.dk/afgorelser-og-domme/afgorelser-fra-sundhedsvaesenets-disciplinaernaevn/\" rel=\"noopener noreferrer\" target=\"_blank\">Afgørelser fra Sundhedsvæsenets Disciplinærnævn</a>. Det er kun udvalgte afgørelser, og de har alle resultatet i kritik. Dels fra opslag i <a href=\"https://autregweb.sst.dk/authorizationsearch.aspx\" rel=\"noopener noreferrer\" target=\"_blank\">Autorisationsregistret</a>."
+  }
+}

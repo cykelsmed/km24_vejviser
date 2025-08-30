@@ -1,0 +1,90 @@
+{
+  "cached_at": "2025-08-30T03:36:52.664881",
+  "data": {
+    "parts": [
+      {
+        "id": 207,
+        "part": "generic_value",
+        "name": "Tilbudstype",
+        "info": "Viser de forskellige typer af tilbud efter målgruppe.",
+        "slug": "tilbudstype",
+        "canSelectMultiple": true,
+        "order": 1
+      },
+      {
+        "id": 208,
+        "part": "generic_value",
+        "name": "Status",
+        "info": "Viser de forskellige reaktionstyper, som kommer i et tilsyn, for eksempel godkendt eller skærpet tilsyn.",
+        "slug": "status",
+        "canSelectMultiple": true,
+        "order": 2
+      },
+      {
+        "id": 209,
+        "part": "municipality",
+        "name": "Kommune",
+        "info": "",
+        "slug": "kommune",
+        "canSelectMultiple": true,
+        "order": 3
+      },
+      {
+        "id": 210,
+        "part": "search_string",
+        "name": "Søgeord",
+        "info": "",
+        "slug": "soegeord",
+        "canSelectMultiple": true,
+        "order": 4
+      },
+      {
+        "id": 211,
+        "part": "industry",
+        "name": "Branche",
+        "info": "",
+        "slug": "branche",
+        "canSelectMultiple": true,
+        "order": 5
+      },
+      {
+        "id": 214,
+        "part": "company",
+        "name": "Virksomhed",
+        "info": "",
+        "slug": "virksomhed",
+        "canSelectMultiple": true,
+        "order": 6
+      },
+      {
+        "id": 212,
+        "part": "person",
+        "name": "Person",
+        "info": "",
+        "slug": "person",
+        "canSelectMultiple": true,
+        "order": 7
+      },
+      {
+        "id": 213,
+        "part": "hit_logic",
+        "name": "Hitlogik",
+        "info": "",
+        "slug": "hitlogik",
+        "canSelectMultiple": true,
+        "order": 8
+      }
+    ],
+    "activated": true,
+    "isSubbed": false,
+    "slug": "tilbudsportalen",
+    "allowCatchAllSearchString": false,
+    "id": 1600,
+    "title": "Tilbudsportalen",
+    "titleWbr": "Til/buds/por/tal/en",
+    "colorHex": "fc64a9",
+    "emoji": "🛍",
+    "shortDescription": "Flere end 4.000 tilbud, som regioner har til udsatte grupper.",
+    "longDescription": "Tilbud scrapet fra Tilbudsportalen, som indsamler og udstiller oplysninger om plejefamilier og tilbud til mennesker med en funktionsnedsættelse eller et socialt problem."
+  }
+}
