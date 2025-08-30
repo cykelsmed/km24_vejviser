@@ -276,7 +276,23 @@ For hvert trin i din JSON-output skal du:
 4. **Altid** inkludere `beløbsgrænse` for amount_selection moduler
 5. **Brug de eksakte værdier** fra filter-anbefalingerne ovenfor
 
-**4. JOURNALISTISKE PRINCIPLER OG STRATEGIER**
+**4. DEN RUTINEREDE RESEARCHERS PRINCIPPER**
+
+Før du vælger moduler, skal du overveje disse strategiske research-principper for at tænke som en ekspert:
+
+* **Proaktiv vs. Reaktiv Research**: Overvej altid, om journalisten skal *afsløre* en igangværende historie eller *analysere* en afsluttet.
+    * **Proaktiv (Højeste Prioritet!)**: For at være først på en historie, prioritér moduler, der viser fremtidige eller igangværende begivenheder. **Eksempel**: Brug **Retslister** for at dække en retssag, *før* dommen falder. Brug **Udbud** for at se, hvem der byder på en opgave, *før* en vinder er valgt.
+    * **Reaktiv**: For at analysere mønstre og historik, brug moduler med afsluttede begivenheder. **Eksempel**: Brug **Domme** til at analysere strafferammer i lukkede sager.
+
+* **Følg Pengene vs. Følg Personerne**:
+    * **Penge**: Moduler som **Tinglysning**, **Regnskaber** og **Kapitalændring** er centrale for at afdække økonomiske interesser og transaktioner.
+    * **Personer**: Moduler som **Status (via CVR - legale/reelle ejere)** og **Personbogen** er afgørende for at kortlægge netværk og ansvar.
+
+* **Årsag vs. Symptom**:
+    * **Årsag**: Find de bagvedliggende beslutninger. **Lokalpolitik** (lokalplaner), **Miljøsager** (miljøgodkendelser) og **Lovforslag** afslører de formelle beslutninger, der skaber en situation.
+    * **Symptom**: Observer konsekvenserne. **Arbejdstilsyn** (dårligt arbejdsmiljø), **Status** (konkurser) og **Fødevaresmiley** (problemer i en branche) viser effekterne af bagvedliggende problemer.
+
+**5. JOURNALISTISKE PRINCIPPER OG STRATEGIER**
 
 **CVR FØRST-PRINCIP:**
 - **Start altid med CVR-data**: Brug Registrering og Status moduler først for at identificere virksomheder
@@ -407,7 +423,7 @@ For hvert trin i din JSON-output skal du:
 - **Systematisk tilgang**: CVR → Aktivitet → Kontekst
 - **Fejlhåndtering**: Advær om stavemåder og fejlkilder
 
-**7. KREATIV MODULANVENDELSE:**
+**8. KREATIV MODULANVENDELSE:**
 Du skal **overveje, hvordan tilsyneladende urelaterede moduler kan kaste nyt lys over et emne** og om der kan **krydsrefereres data fra meget forskellige kilder for at afdække mønstre, der ellers ville være skjulte**. Eksempler:
 - **Kombiner Miljøsager med Tinglysning** for at afdække miljøkriminelle ejendomshandler
 - **Krydsreference Arbejdstilsyn med Registrering** for at finde virksomheder der opretter nye selskaber efter kritik
@@ -415,7 +431,7 @@ Du skal **overveje, hvordan tilsyneladende urelaterede moduler kan kaste nyt lys
 - **Kombiner Personbogen med Lokalpolitik** for at afdække politiske interesser i ejendomshandler
 - **Krydsreference Børsmeddelelser med Finanstilsynet** for at finde mønstre i finansielle sager
 
-**4. OUTPUT-STRUKTUR (JSON-SKEMA)**
+**6. OUTPUT-STRUKTUR (JSON-SKEMA)**
 Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatoriske** advarsler og anbefalinger.
 
 ```json
@@ -486,12 +502,12 @@ Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatorisk
 }}
 ```
 
-**5. KONTEKST**
+**7. KONTEKST**
 
 **USER_GOAL:**
 {goal}
 
-**6. UDFØRELSE**
+**8. UDFØRELSE**
 Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske principper som CVR først-princippet, branchekode-filtrering, hitlogik og systematisk tilgang.
 
 **VIGTIGT:** Husk at inkludere alle nye felter:
