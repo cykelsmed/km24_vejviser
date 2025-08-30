@@ -1000,70 +1000,53 @@ class FilterCatalog:
     # ------------------ Deep Intelligence Handlers (8 core modules) ------------------
 
     async def _handle_status_filters(self, goal: str) -> List[FilterRecommendation]:
-        """Dyb intelligens for Status: identificér statustyper baseret på intention (robust)."""
-        g = (goal or "").lower()
+        """Håndterer dyb intelligens for Status-modulet med udvidet genkendelse."""
+        logger.info("Attempting to run _handle_status_filters...")
+        recommendations: List[FilterRecommendation] = []
+        goal_lower = (goal or "").lower()
+
+        # Udvidet intention_map for robust semantisk matchning
         intention_map: Dict[str, Dict[str, List[str]]] = {
             "lukning": {
                 "keywords": [
                     "lukker", "lukning", "lukket", "konkurs", "ophør", "ophørt",
                     "tvangsopløst", "likvidation", "likvideret", "svingdørsselskaber",
                     "opløst", "afvikling", "afvikles", "under afvikling",
-                    "konkurshistorik", "virksomhedslukninger"
+                    "konkurshistorik", "virksomhedslukninger", "butiksdød"
                 ],
-                "values": [
-                    "Ophørt", "Tvangsopløst", "Opløst efter konkurs",
-                    "Under konkurs", "Under tvangsopløsning"
-                ],
+                "values": ["Ophørt", "Tvangsopløst", "Opløst efter konkurs", "Under konkurs", "Under tvangsopløsning"],
             },
             "opstart": {
-                "keywords": ["starter", "opstart", "aktiv", "normal", "nyregistreret", "nyoprettet", "etableret"],
+                "keywords": ["starter", "aktiv", "normal", "nyregistreret", "etableret"],
                 "values": ["Aktiv", "Normal"],
             },
             "problemer": {
                 "keywords": [
                     "problemer", "risiko", "rekonstruktion", "under administration",
-                    "rekonstrueres", "social dumping", "økonomisk pres"
+                    "social dumping", "økonomisk pres"
                 ],
                 "values": ["Under konkurs", "Under tvangsopløsning", "Under rekonstruktion"],
             },
         }
 
-        matched_values: List[str] = []
-        matched_intents: List[str] = []
-        for intent_name, conf in intention_map.items():
-            if any(kw in g for kw in conf["keywords"]):
-                logger.info(f"Status handler triggered. Found intent: '{intent_name}' based on goal.")
-                matched_intents.append(intent_name)
-                matched_values.extend(conf["values"])
-
-        if matched_values:
-            # Deduplicate and prioritize closure/problem statuses before active ones
-            order_priority = {
-                "Under konkurs": 0,
-                "Under tvangsopløsning": 0,
-                "Under rekonstruktion": 0,
-                "Opløst efter konkurs": 1,
-                "Tvangsopløst": 1,
-                "Ophørt": 1,
-                "Aktiv": 2,
-                "Normal": 2,
-            }
-            uniq: List[str] = []
-            seen: Set[str] = set()
-            for v in matched_values:
-                if v not in seen:
-                    seen.add(v)
-                    uniq.append(v)
-            uniq.sort(key=lambda x: order_priority.get(x, 3))
-            return [
-                FilterRecommendation(
-                    filter_type="statustype",
-                    values=uniq,
-                    relevance_score=0.98,
-                    reasoning=f"Status-intention(er) detekteret: {', '.join(matched_intents)}"
+        for intent_name, data in intention_map.items():
+            if any(keyword in goal_lower for keyword in data["keywords"]):
+                logger.info(f"Status handler triggered. Found intent: '{intent_name}' in goal.")
+                recommendations.append(
+                    FilterRecommendation(
+                        filter_type="statustype",
+                        values=list(set(data["values"])),
+                        relevance_score=0.98,
+                        reasoning=f"Identificerede intention om '{intent_name}' i målet."
+                    )
                 )
-            ]
-        return []
+                # Stop efter første match for at undgå overlappende forslag
+                break
+
+        if not recommendations:
+            logger.warning("Status handler did NOT find a matching intent in the goal.")
+
+        return recommendations
 
     async def _handle_retslister_filters(self, goal: str) -> List[FilterRecommendation]:
         """Retslister: match 'vold', 'drab', 'narko' mod gerningskoder og retsinstanser."""

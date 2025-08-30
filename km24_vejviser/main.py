@@ -69,23 +69,19 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Ryd cache ved opstart for at sikre friske data under udvikling
+# --- Intelligent pre-caching ved opstart ---
+from .filter_catalog import get_filter_catalog  # tilføj import tæt på toppen
+
 @app.on_event("startup")
-async def startup_event():
-    """
-    Rydder cachen ved applikationens opstart for at sikre,
-    at de seneste logikændringer altid anvender friske data.
-    """
+async def startup_event() -> None:
+    """Indlæs og cachér alle filter-data én gang ved applikationens opstart."""
     try:
-        logger.info("Application startup: Clearing KM24 API cache...")
-        client = get_km24_client()
-        result = await client.clear_cache()
-        if result.get("success"):
-            logger.info(f"Cache cleared successfully: {result.get('message')}")
-        else:
-            logger.error(f"Failed to clear cache on startup: {result.get('error')}")
+        logger.info("Application startup: Pre-caching filterdata fra KM24 API …")
+        fc = get_filter_catalog()
+        status = await fc.load_all_filters(force_refresh=True)
+        logger.info(f"Pre-caching færdig: {status}")
     except Exception as e:
-        logger.error(f"Exception while clearing cache on startup: {e}")
+        logger.error(f"Fejl under pre-caching ved startup: {e}")
 
 # --- Data Models ---
 class RecipeRequest(BaseModel):
