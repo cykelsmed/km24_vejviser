@@ -1090,30 +1090,112 @@ class FilterCatalog:
         return recs
 
     async def _handle_arbejdstilsyn_filters(self, goal: str) -> List[FilterRecommendation]:
-        """Arbejdstilsyn: problem- og reaktionsværdier."""
+        """Arbejdstilsyn: problem- og reaktionsværdier (kontekst-specifikke)."""
         g = (goal or "").lower()
         recs: List[FilterRecommendation] = []
-        if any(k in g for k in ["alvorlig", "overtrædelse", "kritik", "ulovlig"]):
+
+        # Bevar reaktions-logik (alvorlige sager)
+        if any(k in g for k in ["alvorlig", "overtrædelse", "kritik", "ulovlig", "ulykke", "grove"]):
             recs.append(FilterRecommendation(
                 filter_type="reaction",
                 values=["Forbud", "Strakspåbud"],
                 relevance_score=0.95,
                 reasoning="Alvorlige overtrædelser → Reaktion: Forbud/Strakspåbud"
             ))
-        if "asbest" in g:
-            recs.append(FilterRecommendation(
-                filter_type="problem",
-                values=["Asbest"],
-                relevance_score=0.93,
-                reasoning="Problem = Asbest"
-            ))
-        if any(k in g for k in ["stress", "psykisk"]):
-            recs.append(FilterRecommendation(
-                filter_type="problem",
-                values=["Psykisk arbejdsmiljø"],
-                relevance_score=0.85,
-                reasoning="Problem = Psykisk arbejdsmiljø"
-            ))
+
+        # Kontekst-specifikke Problem-værdier baseret på branche og mål
+        industry_keywords: Dict[str, List[str]] = {
+            "fødevareproduktion": ["fødevare", "slagteri", "slagter", "kød", "mejeri", "forarbejd", "produktion", "pakkeri"],
+            "byggeri": ["bygge", "entrepren", "nedriv", "tag", "stillads", "beton", "anlæg"],
+            "kontor": ["kontor", "administration", "skrivebord", "callcenter"],
+            "transport": ["vognmand", "lastbil", "chauffør", "transport", "logistik"],
+            "lager": ["lager", "terminal", "pluk", "truck"],
+        }
+        problem_map: Dict[str, List[str]] = {
+            # Termene her er søgetermer der matcher API'ets problem-navne case-insensitive (delmatch)
+            "fødevareproduktion": ["maskin", "tunge løft", "hygiejne", "kemikal", "ergonomi", "kniv", "skære"],
+            "byggeri": ["asbest", "fald til lavere niveau", "støj", "støv", "nedstyrt", "kemi"],
+            "kontor": ["stress", "psykisk", "ergonomi", "alenearbejde"],
+            "transport": ["tunge løft", "ergonomi", "ulykke", "truck", "kemikal"],
+            "lager": ["tunge løft", "ergonomi", "truck", "palleløfter", "ulykke"],
+        }
+
+        # Find relevante brancher i målet
+        matched_industries: List[str] = []
+        for industry, keys in industry_keywords.items():
+            if any(k in g for k in keys):
+                matched_industries.append(industry)
+
+        selected_problem_terms: List[str] = []
+        for industry in matched_industries:
+            selected_problem_terms.extend(problem_map.get(industry, []))
+
+        # Særtilfælde fra mål
+        if "asbest" in g and "asbest" not in selected_problem_terms:
+            selected_problem_terms.append("asbest")
+        if any(k in g for k in ["stress", "psykisk"]) and "psykisk" not in selected_problem_terms:
+            selected_problem_terms.append("psykisk")
+
+        # Hent Problem-listen fra API for Arbejdstilsyn og match semantisk
+        try:
+            at_module_id = self._get_module_id("Arbejdstilsyn")
+            if at_module_id:
+                await self.load_module_specific_filters(at_module_id)
+                problem_part_ids: List[int] = []
+                for p in self._parts_by_module_id.get(at_module_id, []):
+                    if p.get("part") == "generic_value" and str(p.get("name", "")).lower().strip().startswith("problem"):
+                        pid = p.get("id")
+                        if pid is not None:
+                            problem_part_ids.append(pid)
+                matched_values: List[str] = []
+                for pid in problem_part_ids:
+                    items = self._generic_values.get(pid, [])
+                    for it in items:
+                        name = str(it.get("name", ""))
+                        nl = name.lower()
+                        if selected_problem_terms:
+                            if any(term in nl for term in selected_problem_terms):
+                                matched_values.append(name)
+                        else:
+                            # Ingen brancher fundet – match brede risici hvis mål har nøgleord
+                            if any(term in nl for term in ["asbest", "stress", "ulykke", "maskin", "ergonomi"]):
+                                matched_values.append(name)
+                if matched_values:
+                    # Deduplicate og begræns
+                    uniq = []
+                    seen = set()
+                    for v in matched_values:
+                        if v not in seen:
+                            seen.add(v)
+                            uniq.append(v)
+                    recs.append(FilterRecommendation(
+                        filter_type="problem",
+                        values=uniq[:5],
+                        relevance_score=0.94,
+                        reasoning="Kontekst-specifikke problemer matchet mod branche og mål",
+                        part_name="Problem",
+                        module_id=at_module_id
+                    ))
+        except Exception as e:
+            logger.warning(f"Kontekstspecifik problem-matchning fejlede: {e}")
+
+        # Bevar simple fallback hvis intet fundet og mål nævner nøgleord
+        if not any(r.filter_type == "problem" for r in recs):
+            if "asbest" in g:
+                recs.append(FilterRecommendation(
+                    filter_type="problem",
+                    values=["Asbest"],
+                    relevance_score=0.9,
+                    reasoning="Fallback: Problem = Asbest"
+                ))
+            elif any(k in g for k in ["stress", "psykisk"]):
+                recs.append(FilterRecommendation(
+                    filter_type="problem",
+                    values=["Psykisk arbejdsmiljø"],
+                    relevance_score=0.82,
+                    reasoning="Fallback: Problem = Psykisk arbejdsmiljø"
+                ))
+
         return recs
 
     async def _handle_registrering_filters(self, goal: str) -> List[FilterRecommendation]:
