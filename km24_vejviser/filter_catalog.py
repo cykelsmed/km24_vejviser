@@ -1000,25 +1000,67 @@ class FilterCatalog:
     # ------------------ Deep Intelligence Handlers (8 core modules) ------------------
 
     async def _handle_status_filters(self, goal: str) -> List[FilterRecommendation]:
-        """Dyb intelligens for Status: identificér statustyper baseret på intention."""
+        """Dyb intelligens for Status: identificér statustyper baseret på intention (robust)."""
         g = (goal or "").lower()
-        intention_map = {
-            "lukker": ["Ophørt", "Tvangsopløst", "Opløst efter konkurs", "Under tvangsopløsning"],
-            "stopper": ["Ophørt", "Tvangsopløst"],
-            "starter": ["Aktiv", "Normal"],
-            "problemer": ["Under konkurs", "Under tvangsopløsning"],
+        intention_map: Dict[str, Dict[str, List[str]]] = {
+            "lukning": {
+                "keywords": [
+                    "lukker", "lukning", "lukket", "konkurs", "ophør", "ophørt",
+                    "tvangsopløst", "likvidation", "likvideret", "svingdørsselskaber",
+                    "opløst", "afvikling", "afvikles", "under afvikling",
+                    "konkurshistorik", "virksomhedslukninger"
+                ],
+                "values": [
+                    "Ophørt", "Tvangsopløst", "Opløst efter konkurs",
+                    "Under konkurs", "Under tvangsopløsning"
+                ],
+            },
+            "opstart": {
+                "keywords": ["starter", "opstart", "aktiv", "normal", "nyregistreret", "nyoprettet", "etableret"],
+                "values": ["Aktiv", "Normal"],
+            },
+            "problemer": {
+                "keywords": [
+                    "problemer", "risiko", "rekonstruktion", "under administration",
+                    "rekonstrueres", "social dumping", "økonomisk pres"
+                ],
+                "values": ["Under konkurs", "Under tvangsopløsning", "Under rekonstruktion"],
+            },
         }
-        relevant: List[str] = []
-        for intent, values in intention_map.items():
-            if intent in g:
-                relevant.extend(values)
-        if relevant:
+
+        matched_values: List[str] = []
+        matched_intents: List[str] = []
+        for intent_name, conf in intention_map.items():
+            if any(kw in g for kw in conf["keywords"]):
+                logger.info(f"Status handler triggered. Found intent: '{intent_name}' based on goal.")
+                matched_intents.append(intent_name)
+                matched_values.extend(conf["values"])
+
+        if matched_values:
+            # Deduplicate and prioritize closure/problem statuses before active ones
+            order_priority = {
+                "Under konkurs": 0,
+                "Under tvangsopløsning": 0,
+                "Under rekonstruktion": 0,
+                "Opløst efter konkurs": 1,
+                "Tvangsopløst": 1,
+                "Ophørt": 1,
+                "Aktiv": 2,
+                "Normal": 2,
+            }
+            uniq: List[str] = []
+            seen: Set[str] = set()
+            for v in matched_values:
+                if v not in seen:
+                    seen.add(v)
+                    uniq.append(v)
+            uniq.sort(key=lambda x: order_priority.get(x, 3))
             return [
                 FilterRecommendation(
                     filter_type="statustype",
-                    values=sorted(list(set(relevant))),
-                    relevance_score=0.95,
-                    reasoning="Intention detekteret for Status"
+                    values=uniq,
+                    relevance_score=0.98,
+                    reasoning=f"Status-intention(er) detekteret: {', '.join(matched_intents)}"
                 )
             ]
         return []
