@@ -1629,36 +1629,24 @@ async def get_filter_recommendations(request: Request):
 # --- Inspiration Prompts ---
 inspiration_prompts = [
     {
-        "title": "🗺️ Lokaljournalist i Tølløse",
-        "prompt": "Få et overblik over nye sager, handler og aktører i Tølløse de sidste 12 måneder. Hvad rører sig lokalt, og hvem går igen?"
+        "title": "🛍️ Butiksdød i Esbjerg",
+        "prompt": "Undersøg butiksdød i hovedgaden i Esbjerg. Hvilke virksomheder er lukket inden for de sidste 24 måneder, er der et mønster af konkurser, og genopstår de samme ejere i nye selskaber på de samme adresser?"
     },
     {
-        "title": "🏗️ Developer med kig på kommunal grund",
-        "prompt": "Skaf et hurtigt billede af historik, beslutninger og centrale interessenter omkring en bestemt kommunal grund eller byggeprojekt i en valgt kommune."
+        "title": "🚚 Social dumping i transportbranchen",
+        "prompt": "Afdæk systematisk social dumping i transportbranchen i Trekantsområdet. Hvilke vognmænd har fået kritik fra Arbejdstilsynet, er involveret i retssager om lønforhold, og har de en historik med pludselige lukninger?"
     },
     {
-        "title": "🧭 Idéudvikling til ny dækning",
-        "prompt": "Find spirende mønstre i et tema (fx asbest i skoler eller store erhvervshandler) på tværs af landet de sidste 24 måneder for at spotte vinkler."
+        "title": "🏙️ Aarhus Havn – aktører og relationer",
+        "prompt": "Kortlæg de centrale aktører og potentielle interessekonflikter i udviklingen af den nye bydel ved Aarhus Havn. Hvilke firmaer har opkøbt grunde, før lokalplanen blev vedtaget, og hvilke politikere har relationer til disse firmaer?"
     },
     {
-        "title": "💳 Finansiel screening (kredit)",
-        "prompt": "Lav en risikoscreening af kunder/leverandører i en branche eller region: konkurser, offentlige kontrakter, ledelsesændringer og omtale det sidste år."
+        "title": "🥩 Fødevaresikkerhed vs. arbejdsmiljø",
+        "prompt": "Findes der en sammenhæng mellem dårlig fødevaresikkerhed og dårligt arbejdsmiljø? Undersøg slagterier og fødevareproducenter i Nordjylland, der har fået sure smileys, og se om de samme virksomheder også har sager hos Arbejdstilsynet."
     },
     {
-        "title": "👥 HR – før ansættelse",
-        "prompt": "Tjek offentlig omtale og myndighedsreaktioner relateret til en potentiel arbejdsgiver i et område, så du undgår ubehagelige overraskelser."
-    },
-    {
-        "title": "🏪 SMV-ejer – konkurrentoverblik",
-        "prompt": "Overvåg konkurrenternes nye selskaber, offentlige sager og lokale beslutninger i dit nærområde – samlet i en let plan."
-    },
-    {
-        "title": "🌿 NGO – miljøtilladelser",
-        "prompt": "Følg nye miljøtilladelser, klager og relaterede beslutninger for et emne i en valgt kommune eller region, og se hvem der påvirkes."
-    },
-    {
-        "title": "🧱 Lokale planer og udbud",
-        "prompt": "Hold øje med ændringer i lokalplaner og udbud inden for et tema (fx erhverv, bolig, infrastruktur) i en kommune – hvad ændres hvornår?"
+        "title": "💼 Kapitalfonde i dansk software",
+        "prompt": "Identificér kapitalfonde, der aggressivt opkøber og fusionerer selskaber inden for den danske softwarebranche. Hvilke kapitalændringer og børsmeddelelser afslører deres strategi, og hvordan reagerer Finanstilsynet?"
     }
 ]
 
