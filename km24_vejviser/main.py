@@ -235,7 +235,10 @@ async def get_anthropic_response(goal: str) -> dict:
 """
 
     full_system_prompt = f"""
-[SYSTEM PROMPT V3.4 - COMPREHENSIVE KM24 EXPERTISE WITH DYNAMIC FILTERS]
+[SYSTEM PROMPT V3.5 - FOKUS PÅ OVERVÅGNING OG STRATEGISK SPARRING]
+
+**0. GRUNDLÆGGENDE PRINCIP: KM24 ER EN OVERVÅGNINGSTJENESTE**
+Dette er den vigtigste regel af alle: **KM24 er IKKE en historisk database, men en OVERVÅGNINGSTJENESTE til at fange FREMTIDIGE hændelser.** Din primære opgave er at lære brugeren at opsætte effektive "fælder", der giver besked, NÅR noget sker. Undgå formuleringer som "find sager der er sket" og brug i stedet "opsæt en overvågning der fanger, HVIS/NÅR...". Dette mindset er afgørende for brugerens succes og skal gennemsyre hele din vejledning. Forklar, at man ikke kan se historiske hits, men at man bygger en "radar" for fremtiden.
 
 **1. ROLLE OG MÅL**
 Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
@@ -1660,24 +1663,24 @@ async def get_filter_recommendations(request: Request):
 # --- Inspiration Prompts ---
 inspiration_prompts = [
     {
-        "title": "🛍️ Butiksdød i Esbjerg",
-        "prompt": "Undersøg butiksdød i hovedgaden i Esbjerg. Hvilke virksomheder er lukket inden for de sidste 24 måneder, er der et mønster af konkurser, og genopstår de samme ejere i nye selskaber på de samme adresser?"
+        "title": "🛍️ Overvåg butiksdød i Esbjerg",
+        "prompt": "Jeg vil opsætte en overvågning, der fanger HVIS/NÅR detailbutikker i Esbjerg centrum lukker (konkurs/ophør/tvangsopløsning), og følger om samme ejere genopstår i nye selskaber på samme adresser."
     },
     {
-        "title": "🚚 Social dumping i transportbranchen",
-        "prompt": "Afdæk systematisk social dumping i transportbranchen i Trekantsområdet. Hvilke vognmænd har fået kritik fra Arbejdstilsynet, er involveret i retssager om lønforhold, og har de en historik med pludselige lukninger?"
+        "title": "🚚 Overvåg social dumping i transportbranchen",
+        "prompt": "Opsæt en overvågning, der fanger NÅR vognmænd i Trekantsområdet får nye Arbejdstilsynsreaktioner eller sager, og KOBL det til fremtidige statusændringer (lukninger/rekonstruktion)."
     },
     {
-        "title": "🏙️ Aarhus Havn – aktører og relationer",
-        "prompt": "Kortlæg de centrale aktører og potentielle interessekonflikter i udviklingen af den nye bydel ved Aarhus Havn. Hvilke firmaer har opkøbt grunde, før lokalplanen blev vedtaget, og hvilke politikere har relationer til disse firmaer?"
+        "title": "🏙️ Overvåg udvikling ved Aarhus Havn",
+        "prompt": "Jeg vil overvåge NÅR der kommer nye lokalplansager, ejendomshandler og selskabsændringer, der involverer aktører omkring Aarhus Havn – som en fremadrettet radar."
     },
     {
-        "title": "🥩 Fødevaresikkerhed vs. arbejdsmiljø",
-        "prompt": "Findes der en sammenhæng mellem dårlig fødevaresikkerhed og dårligt arbejdsmiljø? Undersøg slagterier og fødevareproducenter i Nordjylland, der har fået sure smileys, og se om de samme virksomheder også har sager hos Arbejdstilsynet."
+        "title": "🥩 Overvåg fødevaresikkerhed og arbejdsmiljø",
+        "prompt": "Opsæt overvågninger, der fanger HVIS/NÅR slagterier i Nordjylland får nye sure smileys, og kryds med fremtidige Arbejdstilsynsreaktioner."
     },
     {
-        "title": "💼 Kapitalfonde i dansk software",
-        "prompt": "Identificér kapitalfonde, der aggressivt opkøber og fusionerer selskaber inden for den danske softwarebranche. Hvilke kapitalændringer og børsmeddelelser afslører deres strategi, og hvordan reagerer Finanstilsynet?"
+        "title": "💼 Overvåg kapitalfonde i dansk software",
+        "prompt": "Jeg vil opsætte en overvågning, der fanger NÅR kapitalfonde gennemfører nye kapitalændringer, opkøb/fusioner og relevante børsmeddelelser i dansk software."
     }
 ]
 
