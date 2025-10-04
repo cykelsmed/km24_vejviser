@@ -36,6 +36,16 @@ class Guardrails(BaseModel):
     required_filters: List[str] = Field(default_factory=list, description="Required filters")
     warnings: List[str] = Field(default_factory=list, description="Safety warnings")
 
+class StepEducational(BaseModel):
+    """Educational content enrichment for a single step."""
+    principle: Optional[str] = Field(None, description="Relevant KM24 principle for this step")
+    filter_explanations: Dict[str, str] = Field(default_factory=dict, description="Inline explanations for each filter")
+    quality_checklist: List[str] = Field(default_factory=list, description="Pre-activation quality checklist items")
+    common_mistakes: List[str] = Field(default_factory=list, description="Common mistakes to avoid for this module")
+    red_flags: List[str] = Field(default_factory=list, description="What to watch for in hits")
+    action_plan: Optional[str] = Field(None, description="What to do when hits arrive")
+    example_hit: Optional[str] = Field(None, description="Example of what a hit might look like")
+
 class Step(BaseModel):
     """Individual investigation step with complete configuration."""
     step_number: int = Field(..., description="Sequential step number")
@@ -54,6 +64,7 @@ class Step(BaseModel):
     explanation: str = Field(default="", description="Detailed explanation")
     creative_insights: Optional[str] = Field(None, description="Creative observations")
     advanced_tactics: Optional[str] = Field(None, description="Advanced tactics")
+    educational: Optional[StepEducational] = Field(None, description="Educational content for this step")
 
     @field_validator("source_selection", mode="before")
     @classmethod
@@ -131,6 +142,13 @@ class ParallelProfile(BaseModel):
     dependencies: Dict[int, List[int]] = Field(default_factory=dict, description="Step dependencies")
     critical_path: List[int] = Field(default_factory=list, description="Critical path steps")
 
+class EducationalContent(BaseModel):
+    """Universal educational content for the entire recipe."""
+    syntax_guide: str = Field(default="", description="Search string syntax guide")
+    common_pitfalls: str = Field(default="", description="Common mistakes to avoid")
+    troubleshooting: str = Field(default="", description="Troubleshooting guide")
+    km24_principles: Dict[str, str] = Field(default_factory=dict, description="Core KM24 principles")
+
 class UseCaseResponse(BaseModel):
     """Complete deterministic response model for KM24 Vejviser."""
     overview: Overview = Field(..., description="Investigation overview")
@@ -147,6 +165,7 @@ class UseCaseResponse(BaseModel):
     next_level_questions: List[str] = Field(default_factory=list, description="Follow-up questions")
     potential_story_angles: List[str] = Field(default_factory=list, description="Potential story angles")
     creative_cross_references: List[str] = Field(default_factory=list, description="Creative cross-references")
+    educational_content: Optional[EducationalContent] = Field(None, description="Universal educational content")
 
     @model_validator(mode="after")
     def validate_structure(self):

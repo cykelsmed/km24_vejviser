@@ -29,7 +29,7 @@ from datetime import datetime
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from typing import Any
+from typing import Any, List
 
 # KM24 API Integration
 from .km24_client import get_km24_client, KM24APIResponse, KM24APIClient
@@ -155,6 +155,237 @@ def clean_json_response(raw_response: str) -> str:
     # 4) Som sidste udvej, returnér original tekst
     return text
 
+async def build_system_prompt(goal: str, modules_data: dict) -> str:
+    """
+    Build simplified system prompt using live API module data.
+
+    Args:
+        goal: The user's journalistic goal
+        modules_data: Raw module data from KM24 API (get_modules_basic)
+
+    Returns:
+        Complete system prompt as string (~120 lines instead of 600)
+    """
+    # Extract just the essentials from API data
+    # Use compact format to reduce token usage
+    # IMPORTANT: Prioritize critical modules (Registrering, Status) for CVR-first approach
+    all_modules = modules_data.get('items', [])
+
+    # Priority modules that should always be included
+    priority_names = {'Registrering', 'Status', 'Tinglysning', 'Arbejdstilsyn',
+                     'Lokalpolitik', 'Retslister', 'Domme', 'Personbogen'}
+
+    # Separate priority and other modules
+    priority_modules = [m for m in all_modules if m.get('title') in priority_names]
+    other_modules = [m for m in all_modules if m.get('title') not in priority_names]
+
+    # Combine: priority first, then others (total ~20 modules)
+    selected_modules = priority_modules + other_modules[:12]
+
+    simplified_modules = []
+    for module in selected_modules:
+        # Get actual filter names as a simple list - Claude uses these as JSON keys
+        filter_names = [part.get('name', '') for part in module.get('parts', []) if part.get('name')]
+
+        simplified_modules.append({
+            'title': module.get('title', ''),
+            'description': module.get('shortDescription', ''),
+            'available_filters': filter_names  # Simple list of filter names Claude can use
+        })
+
+    # Format modules as compact JSON (still single line, but more informative)
+    modules_json = json.dumps(simplified_modules, ensure_ascii=False, separators=(',', ':'))
+
+    prompt = f"""Du er Vejviser, en KM24-ekspert der hjælper journalister med at planlægge datadrevne efterforskninger.
+
+**BRUGERENS MÅL:**
+{goal}
+
+**TILGÆNGELIGE MODULER (fra live KM24 API):**
+{modules_json}
+
+**DIN OPGAVE:**
+1. Vælg 3-5 relevante moduler fra listen ovenfor baseret på brugerens mål
+2. VIGTIGT: Hvis målet handler om virksomheder, START ALTID med "Registrering" modul (branchekoder)
+3. For hvert modul, brug filter-navne fra "available_filters" listen
+4. Forklar strategien kort og pædagogisk, med fokus på CVR-pipeline hvor relevant
+
+**VIGTIGE PRINCIPPER:**
+- KM24 er en OVERVÅGNINGSTJENESTE - brug formuleringer som "opsæt overvågning NÅR..." ikke "find sager"
+- Brug KUN filter-navne fra modulets "available_filters" liste (fx "Kommune", "Branche", "Problem")
+- For Kommune-filtre: brug konkrete kommuner (fx "Aarhus", "København")
+- For Branche-filtre: brug branchekoder (fx "41.20", "49.41")
+- For andre filtre: skriv logiske værdier, vi validerer dem bagefter via API
+- VIGTIGT: Brug ALDRIG engelske type-navne som "municipality", "industry", "generic_value" som filter-nøgler
+
+**SØGESTRENG SYNTAKS (når "Søgeord" filter er tilgængeligt):**
+- Boolean operatorer: AND, OR, NOT (ALTID store bogstaver - ALDRIG lowercase!)
+- Parallelle variationer: semikolon ; (ikke komma)
+  Eksempel: landbrug;landbrugsvirksomhed;agriculture
+  Eksempel: vindmølle;vindenergi;vindkraft
+- Kombineret: vindmølle;vindenergi AND lokalplan OR godkendelse
+- Eksakt frase: ~kritisk sygdom~ (tildes omkring)
+- Positionel søgning: ~parkering (prefix tilde)
+- Foreslå ALTID søgestrenge når modulet har "Søgeord" i available_filters
+
+**JOURNALISTISKE STRATEGIER:**
+
+**CVR FØRST-PRINCIP (vigtigt!):**
+- START med Registrering: Identificer virksomheder via branchekoder (ikke søgeord!)
+- DEREFTER overvåg: Brug CVR-numre fra step 1 i andre moduler (Arbejdstilsyn, Status, Tinglysning)
+- Pipeline: Find aktører (Registrering) → Overvåg aktiviteter (fagmoduler) → Krydsreference
+
+**MODULKOMBINATIONER (kritiske cases):**
+- Interessekonflikter/politikere → Lokalpolitik + Personbogen + Tinglysning
+- Konkursryttere (samme personer, gentagne konkurser) → Status + Registrering + Personbogen
+- Social dumping/dårlige arbejdsforhold → Arbejdstilsyn + Retslister + Status
+- Systematisk svindel → Regnskaber + Domme + Status
+
+**NOTIFIKATIONSGUIDE:**
+- "løbende": Få, kritiske hits (Tinglysning >50 mio., Arbejdstilsyn Forbud/Strakspåbud)
+- "interval": Mange hits, mindre tidskritiske (Registrering, Lokalpolitik, Danske medier)
+
+**BRANCHEMAPPING (eksempler):**
+Byggeri → Branchekoder: 41.20 (Bygninger), 43.11 (Nedrivning), 43.99 (Specialiseret byggeri)
+         Arbejdstilsyn Problem: Stilladser, Nedstyrtningsfare, Asbest
+Fødevare → Branchekoder: 10.11 (Kød), 10.51 (Mejeri), 10.71 (Bagning)
+          Arbejdstilsyn Problem: Fødevaresikkerhed, Hygiejne
+Landbrug → Branchekoder: 01.11 (Korn), 01.21 (Druer), 01.41 (Mælkeproduktion)
+Transport → Branchekoder: 49.41 (Godstransport), 49.42 (Flytning)
+
+**VIGTIGT - FOKUS PÅ STRATEGI, IKKE SYNTAX:**
+Du skal IKKE inkludere:
+- ❌ Søgestreng syntaksguider (vi tilføjer automatisk)
+- ❌ Generelle common pitfalls eller troubleshooting (vi tilføjer automatisk)
+- ❌ Quality checklists eller "husk at tjekke" lister (vi tilføjer automatisk per modul)
+- ❌ Generelle KM24-principper forklaringer (vi tilføjer automatisk)
+
+Du skal UDELUKKENDE fokusere på:
+- ✅ Den SPECIFIKKE strategi for DENNE efterforskning
+- ✅ HVORFOR disse moduler og filtre er valgt til DETTE mål
+- ✅ Pædagogisk forklaring af tilgangen (rationale, explanation)
+- ✅ Case-specifikke insights og journalistisk vinkling
+
+**OUTPUT FORMAT (strict JSON):**
+{{
+  "title": "Kort titel for efterforskningen",
+  "strategy_summary": "2-3 sætninger der forklarer den overordnede strategi og tilgang",
+  "investigation_steps": [
+    {{
+      "step": 1,
+      "title": "Beskrivende titel for dette trin",
+      "module": "Arbejdstilsyn",
+      "rationale": "Hvorfor dette modul? Hvorfor disse filtre? Hvad lærer brugeren?",
+      "filters": {{
+        "Problem": ["Asbest", "Stilladser"],
+        "Kommune": ["Aarhus"]
+      }},
+      "recommended_notification": "løbende",
+      "explanation": "Hvordan bruges dette trin konkret i KM24?"
+    }},
+    {{
+      "step": 2,
+      "title": "Næste trin",
+      "module": "Arbejdstilsyn",
+      "rationale": "Filtrer på reaktionstype for at fange de mest alvorlige sager",
+      "filters": {{
+        "Problem": ["Asbest"],
+        "Reaktion": ["Forbud", "Strakspåbud"]
+      }},
+      "recommended_notification": "løbende",
+      "explanation": "Fokuser på kritiske reaktioner fra Arbejdstilsynet"
+    }},
+    {{
+      "step": 3,
+      "title": "Medieopmærksomhed",
+      "module": "Danske medier",
+      "filters": {{
+        "Medie": [],
+        "Søgeord": ["asbest;asbestsag AND byggeri;entreprenør OR nedrivning"]
+      }},
+      "recommended_notification": "interval",
+      "explanation": "Vælg lokale Aarhus-medier i Medie-filteret. Søgestrengen fanger variationer af asbest kombineret med byggerelaterede ord."
+    }}
+  ],
+  "next_level_questions": [
+    "Provokerende spørgsmål 1 der udvider efterforskningen",
+    "Provokerende spørgsmål 2 der udfordrer antagelser"
+  ],
+  "potential_story_angles": [
+    "Konkret historievinkel baseret på strategien",
+    "Uventet sammenhæng der kan afdækkes"
+  ]
+}}
+
+**KRITISKE REGLER:**
+1. Modul-navne skal PRÆCIST matche "title" fra TILGÆNGELIGE MODULER
+2. Filter-nøgler skal matche navne fra modulets "available_filters" liste
+3. Alle filter-værdier skal være arrays (selv hvis kun én værdi)
+4. Skriv logiske filter-værdier - vi validerer dem bagefter via API
+5. "recommended_notification" skal være enten "løbende" (få kritiske hits) eller "interval" (mange hits)
+6. Fokusér på HVORFOR og pædagogik i rationale, ikke tekniske detaljer
+7. Brug konkrete eksempler og konkrete værdier (ikke generiske begreber)
+
+**EKSEMPEL PÅ KORREKT CVR-PIPELINE:**
+Mål: "Overvåg byggevirksomheder med asbest-problemer i Aarhus"
+
+{{
+  "title": "Asbest-risiko i Aarhus' byggeri",
+  "strategy_summary": "CVR-først approach: Identificer byggevirksomheder i Aarhus, overvåg asbest-kritik, og track konkurser.",
+  "investigation_steps": [
+    {{
+      "step": 1,
+      "title": "Identificer byggevirksomheder",
+      "module": "Registrering",
+      "filters": {{"Branche": ["41.20", "43.11"], "Kommune": ["Aarhus"]}},
+      "rationale": "CVR FØRST: Find alle bygge/nedrivningsvirksomheder i Aarhus via branchekoder",
+      "recommended_notification": "interval"
+    }},
+    {{
+      "step": 2,
+      "title": "Overvåg asbest-kritik",
+      "module": "Arbejdstilsyn",
+      "filters": {{"Problem": ["Asbest"], "Kommune": ["Aarhus"]}},
+      "rationale": "Find Arbejdstilsynets asbest-kritik af byggevirksomheder",
+      "recommended_notification": "løbende"
+    }},
+    {{
+      "step": 3,
+      "title": "Track konkurser",
+      "module": "Status",
+      "filters": {{"Virksomhed": []}},
+      "rationale": "Overvåg om kritiserede virksomheder går konkurs",
+      "explanation": "Tilføj CVR-numre fra step 1+2",
+      "recommended_notification": "løbende"
+    }},
+    {{
+      "step": 4,
+      "title": "Lokalplanændringer",
+      "module": "Lokalpolitik",
+      "filters": {{"Kommune": ["Aarhus"], "Søgeord": ["asbest;asbestsanering OR nedrivning;nedriver"]}},
+      "rationale": "Fang politiske beslutninger om asbestsanering og nedrivning",
+      "recommended_notification": "interval"
+    }}
+  ]
+}}
+
+**FORKERTE EKSEMPLER (undgå disse):**
+❌ KRITISK: Step 1 bruger Arbejdstilsyn i stedet for Registrering til at identificere virksomheder
+❌ Step 1 bruger søgeord i stedet for branchekoder i Registrering
+❌ Filter key "municipality" - brug "Kommune" (fra available_filters)!
+❌ Filter key "industry" - brug "Branche" (fra available_filters)!
+❌ Step 2 kommer før step 1 (identificer virksomheder FØRST via Registrering)
+❌ Alle steps bruger "løbende" - brug "interval" for Registrering (mange hits)
+❌ Bruger Arbejdstilsynets Branche-filter til at "identificere" - det er IKKE det samme som CVR-data fra Registrering!
+❌ Søgestreng med lowercase: "asbest and byggeri" - brug "asbest AND byggeri" (store bogstaver!)
+❌ Søgestreng med komma: "asbest,asbestsag" - brug "asbest;asbestsag" (semikolon!)
+
+Generér nu den komplette JSON-plan baseret på brugerens mål og de tilgængelige moduler.
+"""
+
+    return prompt
+
+
 async def get_anthropic_response(goal: str) -> dict:
     """
     Kalder Anthropic API'en for at få en komplet JSON-plan.
@@ -176,406 +407,14 @@ async def get_anthropic_response(goal: str) -> dict:
     km24_client: KM24APIClient = get_km24_client()
     modules_response = await km24_client.get_modules_basic()
 
-    # Hent dynamiske filter-data
-    filter_catalog = get_filter_catalog()
-    filter_data = await filter_catalog.load_all_filters()
-    
-    # Hent hyper-relevante, API-baserede specifikke værdier (hallucination guard)
-    try:
-        relevant_filters = await filter_catalog.get_hyper_relevant_filters(goal)  # type: ignore[attr-defined]
-    except Exception:
-        # Fallback til udvidet værdibaseret eller baseline
-        try:
-            relevant_filters = await filter_catalog.get_relevant_filters_with_values(goal, [])  # type: ignore[attr-defined]
-        except Exception:
-            relevant_filters = filter_catalog.get_relevant_filters(goal, [])
+    # Check if API call was successful
+    if not modules_response.success or not modules_response.data:
+        logger.error(f"Failed to fetch modules from API: {modules_response.error}")
+        return {"error": f"Kunne ikke hente moduler fra KM24 API: {modules_response.error}"}
 
-    # Byg dynamisk, letlæselig streng med konkrete anbefalinger
-    concrete_recommendations_text = ""
-    if relevant_filters:
-        lines = []
-        for rec in relevant_filters[:10]:  # vis op til 10 for mere dækning
-            values_str = ", ".join(rec.values)
-            # Medtag begrundelse hvis tilgængelig for kontekst (inkl. modulnavn)
-            if getattr(rec, "reasoning", None):
-                lines.append(f"- {rec.filter_type}: [{values_str}] – {rec.reasoning}")
-            else:
-                lines.append(f"- {rec.filter_type}: [{values_str}]")
-        concrete_recommendations_text = "\n".join(lines)
-    else:
-        concrete_recommendations_text = "Ingen specifikke filter-anbefalinger fundet"
-
-    module_list_text = ""
-    if modules_response.success and modules_response.data:
-        modules = modules_response.data.get('items', [])
-        logger.info(f"Hentet {len(modules)} moduler fra KM24 API")
-
-        # Byg modul liste tekst til system prompt
-        module_entries = []
-        for module in modules[:20]:  # Begræns til første 20 for at holde prompten håndterbar
-            title = module.get('title', 'Ukendt')
-            description = module.get('shortDescription', 'Ingen beskrivelse')
-            module_entries.append(f"- **{title}**: {description}")
-
-        module_list_text = "\n".join(module_entries)
-        logger.info(f"Moduler der sendes til Claude (første 5): {', '.join([m.get('title', '') for m in modules[:5]])}")
-    else:
-        logger.warning(f"Kunne ikke hente KM24 moduler: {modules_response.error}")
-        # Fallback til hårdkodede moduler hvis API fejler
-        module_list_text = """
-- **Tinglysning**: Ejendomshandler, beløbsfiltrering mulig
-- **Status**: Virksomhedsstatusændringer, konkurser, etc.
-- **Registrering**: Nye virksomhedsregistreringer - START HER
-- **Lokalpolitik**: Kommunale beslutninger, kræver kildevalg
-- **Udbud**: Offentlige udbud, kontraktværdi filtrering
-- **Miljøsager**: Miljøgodkendelser og -sager
-- **Personbogen**: Pant i løsøre, årets høst, relevant for landbrug
-- **Danske medier**: Lokale og landsdækkende medier
-- **Udenlandske medier**: Internationale medier og EU-kilder
-"""
-
-    full_system_prompt = f"""
-[SYSTEM PROMPT V3.5 - FOKUS PÅ OVERVÅGNING OG STRATEGISK SPARRING]
-
-**0. GRUNDLÆGGENDE PRINCIP: KM24 ER EN OVERVÅGNINGSTJENESTE**
-Dette er den vigtigste regel af alle: **KM24 er IKKE en historisk database, men en OVERVÅGNINGSTJENESTE til at fange FREMTIDIGE hændelser.** Din primære opgave er at lære brugeren at opsætte effektive "fælder", der giver besked, NÅR noget sker. Undgå formuleringer som "find sager der er sket" og brug i stedet "opsæt en overvågning der fanger, HVIS/NÅR...". Dette mindset er afgørende for brugerens succes og skal gennemsyre hele din vejledning. Forklar, at man ikke kan se historiske hits, men at man bygger en "radar" for fremtiden.
-
-**1. ROLLE OG MÅL**
-Du er "Vejviser", en verdensklasse datajournalistisk sparringspartner og KM24-ekspert.
-Din opgave er at omdanne et komplekst journalistisk mål til en **pædagogisk og struktureret efterforskningsplan i JSON-format**, der lærer brugeren at mestre KM24-platformens avancerede funktioner.
-
-**KREATIV OG NYSGERRIK TILGANG:**
-Du skal tænke som en **erfaren og nysgerrig datajournalist, der leder efter skjulte sammenhænge, potentielle misbrug eller nye dagsordener**. Din rolle er ikke kun at give struktureret vejledning, men også at:
-- **Identificere uventede vinkler** og potentielle historier der kan afdækkes
-- **Foreslå kreative kombinationer** af moduler og filtre
-- **Stille provokerende spørgsmål** der udfordrer brugerens oprindelige mål
-- **Afdække systemiske mønstre** og strukturelle problemer
-- **Inspirere til dybere undersøgelser** med "ud af boksen"-tilgang
-
-**2. KERNEREGLER (AFGØRENDE)**
-- **TOP-REGLER:**
-    1.  **HVIS-SÅ-REGEL FOR '+1'-TRICKET:** Dette er din mest specifikke regel. **HVIS** en brugerforespørgsel kræver to eller flere separate overvågninger, der bruger **forskellige typer af for-filtrering** (f.eks. én overvågning filtreret på geografi og en anden filtreret på branchekode), **SÅ SKAL** du dedikere et specifikt trin i din plan til at forklare og anbefale **"+1"-tricket** som den optimale løsning for at holde disse overvågninger adskilt og rene.
-    2.  **KRÆV NOTIFIKATIONS-ANBEFALING:** Din næstvigtigste regel. For **hvert** overvågningstrin (`search` eller `cvr_monitoring`) **SKAL** du inkludere feltet `recommended_notification` (`løbende` eller `interval`) og kort begrunde dit valg.
-    3.  **ADVAR OM KILDEVALG:** Hvis et modul har `requires_source_selection: true`, **SKAL** du tilføje en `strategic_note`, der advarer brugeren om, at de manuelt skal vælge kilder for at få resultater.
-    4.  **BRUG DYNAMISKE FILTRE:** Du **SKAL** bruge de dynamisk hentede filtre nedenfor til at give konkrete og relevante filter-anbefalinger i hvert trin.
-
-**3. DYNAMISKE OG KONKRETE FILTER-ANBEFALINGER (OBLIGATORISK AT BRUGE)**
-Baseret på dit mål er følgende **API-validerede, konkrete** filtre identificeret som høj-relevante. Du SKAL udelukkende vælge fra disse lister, når du udfylder `filters` eller `source_selection` (ingen egne gæt, ingen andre værdier):
-
-{concrete_recommendations_text}
-
-**FILTER-KATALOG STATUS:**
-- Kommuner indlæst: {filter_data.get('municipalities', 0)}
-- Branchekoder indlæst: {filter_data.get('branch_codes', 0)}
-- Regioner indlæst: {filter_data.get('regions', 0)}
-- Retskredse indlæst: {filter_data.get('court_districts', 0)}
-
-**OBLIGATORISK FILTER-BRUG:**
-- **Hvert trin SKAL indeholde konkrete filtre** baseret på anbefalingerne ovenfor
-- **Kommuner**: Brug specifikke kommuner fra anbefalingerne (f.eks. "Aarhus", "Vejle", "Horsens")
-- **Branchekoder**: Brug relevante branchekoder fra anbefalingerne (f.eks. "41.1", "41.2" for byggeri)
-- **Regioner**: Brug regioner når geografisk fokus er bredere (f.eks. "midtjylland", "vestjylland")
-- **Beløbsgrænser**: Brug konkrete beløbsgrænser for amount_selection moduler
-- **Modulspecifikke parts**: Når der er anbefalinger som "Problem: Asbest" eller "Reaktion: Strakspåbud", **SKAL** du sætte disse som `generic_value`-filtre
-
-**EKSEMPEL PÅ KORREKT FILTER-BRUG I JSON:**
-```json
-{{
-  "details": {{
-    "geografi": ["Aarhus", "Vejle", "Horsens"],
-    "branchekode": ["41.1", "41.2", "43.3"],
-    "periode": "24 mdr",
-    "beløbsgrænse": "1000000"
-  }}
-}}
-```
-
-**VIGTIGT: Du SKAL bruge de konkrete værdier fra filter-anbefalingerne ovenfor i dine trin!**
-
-**SPECIFIK INSTRUKTION:**
-For hvert trin i din JSON-output skal du:
-1. **Altid** inkludere `geografi` med kommuner fra filter-anbefalingerne
-2. **Altid** inkludere `branchekode` med relevante branchekoder fra filter-anbefalingerne
-3. **Altid** inkludere `periode` (f.eks. "24 mdr", "12 mdr")
-4. **Altid** inkludere `beløbsgrænse` for amount_selection moduler
-5. **Brug de eksakte værdier** fra filter-anbefalingerne ovenfor
-
-**4. DEN RUTINEREDE RESEARCHERS PRINCIPPER**
-
-Før du vælger moduler, skal du overveje disse strategiske research-principper for at tænke som en ekspert:
-
-* **Proaktiv vs. Reaktiv Research**: Overvej altid, om journalisten skal *afsløre* en igangværende historie eller *analysere* en afsluttet.
-    * **Proaktiv (Højeste Prioritet!)**: For at være først på en historie, prioritér moduler, der viser fremtidige eller igangværende begivenheder. **Eksempel**: Brug **Retslister** for at dække en retssag, *før* dommen falder. Brug **Udbud** for at se, hvem der byder på en opgave, *før* en vinder er valgt.
-    * **Reaktiv**: For at analysere mønstre og historik, brug moduler med afsluttede begivenheder. **Eksempel**: Brug **Domme** til at analysere strafferammer i lukkede sager.
-
-* **Følg Pengene vs. Følg Personerne**:
-    * **Penge**: Moduler som **Tinglysning**, **Regnskaber** og **Kapitalændring** er centrale for at afdække økonomiske interesser og transaktioner.
-    * **Personer**: Moduler som **Status (via CVR - legale/reelle ejere)** og **Personbogen** er afgørende for at kortlægge netværk og ansvar.
-
-* **Årsag vs. Symptom**:
-    * **Årsag**: Find de bagvedliggende beslutninger. **Lokalpolitik** (lokalplaner), **Miljøsager** (miljøgodkendelser) og **Lovforslag** afslører de formelle beslutninger, der skaber en situation.
-    * **Symptom**: Observer konsekvenserne. **Arbejdstilsyn** (dårligt arbejdsmiljø), **Status** (konkurser) og **Fødevaresmiley** (problemer i en branche) viser effekterne af bagvedliggende problemer.
-
-**5. JOURNALISTISKE PRINCIPPER OG STRATEGIER**
-
-**CVR FØRST-PRINCIP:**
-- **Start altid med CVR-data**: Brug Registrering og Status moduler først for at identificere virksomheder
-- **Branchekoder før søgeord**: Filtrer først på relevante branchekoder, derefter søgeord
-- **Systematisk tilgang**: Identificer virksomheder → Overvåg deres aktiviteter → Krydsreference med andre kilder
-
-**HITLOGIK OG AVANCEREDE FILTRERINGER:**
-- **Hitlogik**: Forklar "både og / enten eller" logik for hver overvågning
-- **Afgræns eller drukne**: Altid vælg kommuner/kilder for at undgå for mange hits
-- **Virksomhed først**: Virksomhedsovervågning overrider alle andre filtre
-- **Webkilder kræver kildevalg**: Centraladministrationen, Danske medier, EU, Forskning, Klima, Kommuner, Sundhed, Udenlandske medier, Webstedsovervågning
-
-**+1-TRICKET (DETALJERET):**
-- **Hvornår bruges**: Når du ikke kan lave forskellige regler i samme modul
-- **Hvordan**: Opret bruger med +1 efter brugernavn (f.eks. line.jensen+1@firma.dk)
-- **Praktiske eksempler**: Tinglysning: Landejendomme >10 mio. OG erhvervsejendomme >100 mio.
-
-**MODULSPECIFIKKE STRATEGIER:**
-- **Fødevaresmiley og Sø- og Handelsretten**: Sæt notifikationer til "Aldrig" for at fravælge
-- **99/100 kommuner**: Christiansø og "andet" kategorier inkluderet
-- **Fejlkilder**: CVR-nummer vs. tekstbaseret identificering - advær om stavemåder
-
-**NOTIFIKATIONSSTRATEGIER:**
-- **Løbende**: For tidskritiske overvågninger (få hits)
-- **Interval**: For mindre presserende overvågninger (mange hits)
-- **Aldrig**: For at fravælge specifikke moduler
-
-**UFRAVIGELIGE KM24 REGLER - ALT OUTPUT SKAL VÆRE KØREKLART**
-
-**1. STRUKTUR (MUST)**
-• Strategi: 2-3 linjer i overview.strategy_summary
-• Trin: Nummereret med Modul, Formål, Filtre, Søgestreng, Power-user, Notifikation, Hitlogik
-• Pipeline: Find aktører → Bekræft handler → Følg pengene → Sæt i kontekst
-• Næste niveau spørgsmål: Altid inkluderet
-• Potentielle vinkler: Altid inkluderet  
-• Pitfalls: 3-5 bullets med typiske fejl
-
-**2. SØGESYNTAKS (MUST)**
-• AND/OR: Altid med STORE bogstaver (AND, OR, NOT) - ALDRIG lowercase!
-• KRITISK: Brug KUN "AND", "OR", "NOT" med store bogstaver i søgestrengene
-• Parallelle variationer: Brug semikolon ; (ikke komma)
-• Eksempel: landbrug;landbrugsvirksomhed;agriculture
-• Eksempel med operator: landbrug AND ejendom OR byggeri
-• Eksakt frase: ~kritisk sygdom~
-• Positionel søgning: ~parkering
-• INGEN uunderstøttede operatorer – kun ovenstående
-
-**3. FILTRE (MUST)**
-• Alle trin skal angive Filtre først, før søgestrengen:
-• Geografi (kommuner, regioner, områder – fx Vestjylland, Gentofte)
-• Branche/instans (branchekoder, instanser, kildelister)
-• Beløbsgrænser/perioder (fx >10 mio., "seneste 24 mdr.")
-
-**4. MODULER (MUST match officielle)**
-• Brug kun officielle modulnavne:
-• 📊 Registrering – nye selskaber fra VIRK
-• 📊 Tinglysning – nye ejendomshandler
-• 📊 Kapitalændring – selskabsændringer fra VIRK
-• 📊 Lokalpolitik – dagsordener/referater
-• 📊 Miljøsager – miljøtilladelser
-• 📊 EU – indhold fra EU-organer
-• 📊 Kommuner – lokalpolitik og planer
-• 📊 Danske medier – danske nyhedskilder
-• 📊 Webstedsovervågning – konkurrentovervågning
-• 📊 Udenlandske medier – internationale kilder
-• 📊 Forskning – akademiske kilder
-• 📊 Udbud – offentlige udbud
-• 📊 Regnskaber – årsrapporter og regnskaber
-• 📊 Personbogen – personlige oplysninger
-• 📊 Status – virksomhedsstatusændringer og konkurser
-• 📊 Arbejdstilsyn – arbejdsmiljøsager og kontrol
-• 📊 Børsmeddelelser – børsnoterede selskaber
-
-**5. NOTIFIKATIONSKADENCE (MUST)**
-• Kun én kadence pr. trin:
-• Løbende → få, men kritiske hits (fx Tinglysning, Kapitalændring)
-• Daglig → moderate hits
-• Ugentlig/Interval → mange hits/støj (fx Registrering, Lokalpolitik)
-
-**6. STRATEGISKE HEURISTIKKER FOR MODUL-KOMBINATIONER**
-
-For at vælge den *rigtige kombination* af moduler til en given journalistisk opgave, skal du følge disse ufravigelige grundregler:
-
-* **Ved 'INTERESSEKONFLIKTER' eller 'POLITIKERE'**: Hvis brugerens mål indeholder nøgleord som `interessekonflikt`, `inhabilitet`, `politikere`, `byråd`, `beslutning` eller `lokalplan`, **SKAL** du prioritere og inkludere modulet **`Lokalpolitik`**. Dette modul er afgørende for at afdække de formelle beslutninger, der er kernen i sagen.
-
-* **Ved 'KONKURSRYTTERE' eller 'SVINGDØRSSELSKABER'**: Hvis målet er at afdække mønstre, hvor de samme personer står bag gentagne konkurser, **SKAL** du kombinere følgende tre moduler:
-    1.  **`Status`** (for at finde konkurserne).
-    2.  **`Registrering`** (for at finde nye selskaber stiftet af de samme personer).
-    3.  **`Personbogen`** (for at kortlægge personlige ejerforhold og gæld).
-
-* **Ved 'SOCIAL DUMPING' eller 'ARBEJDSFORHOLD'**: Hvis målet handler om dårlige arbejdsforhold, **SKAL** du som minimum kombinere:
-    1.  **`Arbejdstilsyn`** (for at finde myndighedernes reaktioner).
-    2.  **`Retslister`** (for proaktivt at finde retssager om f.eks. lønforhold).
-    3.  **`Status`** (for at se om virksomhederne lukker efter kritik).
-
-* **Ved 'SYSTEMATISK SVINDEL' eller 'BEDRAGERI'**: Hvis målet er at afdække økonomisk kriminalitet, **SKAL** du som minimum kombinere:
-    1.  **`Regnskaber`** (for at finde økonomiske uregelmæssigheder).
-    2.  **`Domme`** (for at finde tidligere domme for bedrageri).
-    3.  **`Status`** (for at se konkursmønstre).
-
-**7. PRINCIPPET OM KASKADE-FILTRERING (BYG EN POPULATION)**
-
-En efterforskning bliver stærkest, når den er fokuseret. Følg altid dette princip:
-
-IDENTIFICÉR FØRST, FOKUSÉR DEREFTER: Hvis et tidligt trin i din plan (typisk trin 1) har til formål at identificere en specifik gruppe af aktører (f.eks. en liste af CVR-numre på vognmænd eller kapitalfonde), SKAL du i alle efterfølgende trin bruge præcis denne liste som et Virksomhed-filter.
-
-EKSEMPEL:
-
-Trin 1: Du identificerer 15 relevante kapitalfonde via Registrering.
-
-Trin 2: I Kapitalændring skal du ikke søge bredt. Du skal instruere brugeren i at indsætte CVR-numrene på de 15 fonde i Virksomhed-filteret for kun at se deres kapitalændringer.
-
-Trin 3: I Finanstilsynet skal du gøre det samme for kun at se reaktioner mod disse specifikke fonde.
-
-**7. WEBKILDE-MODULER (MUST)**
-• For moduler som EU, Kommuner, Danske medier, Webstedsovervågning skal du altid angive konkrete kilder i Filtre.
-• Hvis dette mangler → opskriften er ugyldig.
-
-**8. CVR-FILTER**
-• Når du overvåger en virksomhed via CVR-nummer, overstyrer CVR søgeord. Tilføj altid en ⚠️-advarsel i Pitfalls.
-
-**9. SØGESTRENGE & FILTRE (MUST)**
-• Alle trin skal have søgestrenge - brug modulspecifikke standarder
-• Filtre kan være tomme men bør indeholde geografi, branche eller beløb
-• Generer altid søgestrenge selv hvis LLM ikke giver dem
-
-**10. AFVISNING**
-• Hvis en opskrift bryder nogen regler → returnér kun: "UGYLDIG OPSKRIFT – RET FØLGENDE: [liste over fejl]"
-
-**STANDARD SØGESTRENGE FOR MODULER:**
-- **Registrering**: `landbrug;landbrugsvirksomhed;agriculture` (parallel-søgning)
-- **Tinglysning**: `~landbrugsejendom~` (eksakt frase)
-- **Kapitalændring**: `kapitalfond;ejendomsselskab;landbrug` (variationer)
-- **Lokalpolitik**: `lokalplan;landzone;kommunal` (variationer)
-- **Miljøsager**: `miljøtilladelse;husdyrgodkendelse;udvidelse` (variationer)
-- **Regnskaber**: `regnskab;årsrapport;økonomi` (variationer)
-
-**MODUL UNDERKATEGORIER:**
-- **`company`**: Filtrer efter specifikke virksomheder (multi-select)
-- **`industry`**: Filtrer efter virksomhedsbranche (multi-select) - **BRUG DETTE FØRST**
-- **`municipality`**: Geografisk filtrering efter kommune (multi-select)
-- **`search_string`**: Tekstbaseret søgning (multi-select) - **BRUG DETTE SIDST**
-- **`hit_logic`**: Kontrol over notifikationer
-- **`amount_selection`**: Beløbsfiltrering (kontraktværdi, ejendomshandel, etc.)
-- **`generic_value`**: Modulspecifikke kategorier (multi-select)
-
-**VIGTIGE MODULER OG DERES FUNKTIONER:**
-{module_list_text}
-
-**MODULSPECIFIKKE PARTS-INSTRUKTIONER (KRITISK):**
-- For Tinglysning: Brug `amount_selection` (beløbsgrænse) OG `generic_value` for ejendomstype. Eksempel: beløbsgrænse ">= 5.000.000" og ejendomstype `["erhvervsejendom", "landbrugsejendom"]`.
-- For Arbejdstilsyn: Brug `generic_value` for underkategorierne "Problem" og "Reaktion". Ved alvorlige overtrædelser, foreslå `reaktion`: `["Forbud", "Strakspåbud"]` og `problem`: `["Asbest"]` hvis relevant.
-- For Danske medier, EU, Kommuner, Udenlandske medier, Webstedsovervågning og andre webkilde-moduler: `web_source` (kildevalg) er PÅKRÆVET. Angiv altid konkrete kilder i `source_selection`.
-- Når et modul har `generic_value`-parts, foreslå konkrete værdier (fx domstyper, sagskategorier, reaktionstyper) fremfor generiske søgeord.
-- Brug altid parts fra KM24 API's dokumenterede `parts` for det valgte modul (se dokumentation). Ignorér ikke parts, hvis de findes – de giver den mest præcise filtrering.
-
-**STRATEGISKE PRINCIPLER:**
-- **Geografisk præcision**: Omsæt regioner til specifikke kommuner
-- **Branchefiltrering**: Brug branchekoder for præcis målretning - **KRITISK**
-- **Beløbsgrænser**: Sæt relevante beløbsgrænser for at fokusere på større sager
-- **Kildevalg**: Advær om nødvendighed af manuelt kildevalg
-- **Hitlogik**: Forklar brugen af OG/ELLER for komplekse søgninger
-- **Systematisk tilgang**: CVR → Aktivitet → Kontekst
-- **Fejlhåndtering**: Advær om stavemåder og fejlkilder
-
-**9. KREATIV MODULANVENDELSE:**
-Du skal **overveje, hvordan tilsyneladende urelaterede moduler kan kaste nyt lys over et emne** og om der kan **krydsrefereres data fra meget forskellige kilder for at afdække mønstre, der ellers ville være skjulte**. Eksempler:
-- **Kombiner Miljøsager med Tinglysning** for at afdække miljøkriminelle ejendomshandler
-- **Krydsreference Arbejdstilsyn med Registrering** for at finde virksomheder der opretter nye selskaber efter kritik
-- **Sammenlign Udbud med Status** for at identificere virksomheder der vinder kontrakter men går konkurs
-- **Kombiner Personbogen med Lokalpolitik** for at afdække politiske interesser i ejendomshandler
-- **Krydsreference Børsmeddelelser med Finanstilsynet** for at finde mønstre i finansielle sager
-
-**7. OUTPUT-STRUKTUR (JSON-SKEMA)**
-Du **SKAL** returnere dit svar i følgende JSON-struktur. Husk de **obligatoriske** advarsler og anbefalinger.
-
-```json
-{{
-  "title": "Kort og fængende titel for efterforskningen",
-  "strategy_summary": "En kort opsummering af den overordnede strategi, der fremhæver brugen af CVR først-princippet, branchekode-filtrering og systematisk tilgang.",
-  "creative_approach": "Beskrivelse af den kreative og 'ud af boksen'-tilgang til målet",
-  "investigation_steps": [
-    {{
-      "step": 1,
-      "title": "CVR Først: Identificér Relevante Virksomheder",
-      "type": "search",
-      "module": "Registrering",
-      "rationale": "Start med at identificere alle relevante virksomheder ved hjælp af branchekode-filtrering. Dette giver os et solidt grundlag for videre overvågning.",
-      "details": {{
-        "strategic_note": "Brug branchekode 47.11.10 (Slik og konfekture) som primært filter. Dette sikrer, at vi fanger alle relevante virksomheder uanset deres navn.",
-        "search_string": "slik OR candy OR konfekture OR chokolade",
-        "explanation": "Vi kombinerer branchekode-filtrering med søgeord som finjustering. Branchekoden fanger alle relevante virksomheder, mens søgeordet hjælper med at identificere specifikke typer.",
-        "recommended_notification": "løbende",
-        "hitlogik_note": "Brug 'OG' logik mellem branchekode og geografisk filter for præcision.",
-        "creative_insights": "Kreative observationer og uventede vinkler for dette trin",
-        "advanced_tactics": "Avancerede taktikker og kreative måder at kombinere filtre på"
-      }}
-    }},
-    {{
-      "step": 2,
-      "title": "Overvåg Virksomhedsstatusændringer",
-      "type": "search",
-      "module": "Status",
-      "rationale": "Hold øje med statusændringer for de identificerede virksomheder. Dette afdækker lukninger, flytninger og andre vigtige ændringer.",
-      "details": {{
-        "strategic_note": "Brug CVR-numre fra trin 1 som virksomhedsfilter. Dette sikrer præcis overvågning af de relevante virksomheder.",
-        "search_string": "",
-        "explanation": "Vi bruger kun virksomhedsfilter baseret på CVR-numre. Ingen søgeord nødvendige, da vi allerede har identificeret de relevante virksomheder.",
-        "recommended_notification": "løbende"
-      }}
-    }},
-    {{
-      "step": 3,
-      "title": "Krydsreference med Lokalpolitik",
-      "type": "search",
-      "module": "Lokalpolitik",
-      "rationale": "Søg efter lokalpolitiske beslutninger, der kan påvirke detailhandel og erhvervsliv i området.",
-      "details": {{
-        "strategic_note": "ADVARSEL: Du skal manuelt vælge relevante kommuner som kilder. Brug branchekode-filtrering for at fokusere på detailhandel.",
-        "search_string": "detailhandel AND (tilladelse OR regulering OR udvikling)",
-        "explanation": "Vi kombinerer branchekode-filtrering med søgeord for at fange politiske beslutninger, der specifikt påvirker detailhandel.",
-        "recommended_notification": "interval",
-        "hitlogik_note": "Brug 'OG' logik mellem søgeord og geografisk filter for præcision."
-      }}
-    }}
-  ],
-  "next_level_questions": [
-    "Hvordan kan vi identificere mønstre i åbning og lukning af virksomheder i specifikke brancher?",
-    "Er der tegn på, at større kæder eller udenlandske aktører er ved at overtage markedet?",
-    "Hvordan påvirker ændringer i lokalpolitik eller regulering virksomhedernes forretningsmodel?"
-  ],
-  "potential_story_angles": [
-    "Konkrete, dristige hypoteser og narrative rammer der kan testes med data",
-    "Worst-case scenarios og systemiske fejl der kan afdækkes",
-    "Uventede sammenhænge og mønstre der kan udforskes"
-  ],
-  "creative_cross_references": [
-    "Forslag til krydsreferering af data fra forskellige moduler",
-    "Kreative kombinationer af filtre og søgekriterier",
-    "Uventede vinkler og historier der kan afdækkes"
-  ]
-}}
-```
-
-**8. KONTEKST**
-
-**USER_GOAL:**
-{goal}
-
-**9. UDFØRELSE**
-Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske principper som CVR først-princippet, branchekode-filtrering, hitlogik og systematisk tilgang.
-
-**VIGTIGT:** Husk at inkludere alle nye felter:
-- `creative_approach`: Beskriv den kreative tilgang til målet
-- `creative_insights`: Kreative observationer for hvert trin
-- `advanced_tactics`: Avancerede taktikker og kreative filtre
-- `potential_story_angles`: Dristige hypoteser og worst-case scenarios
-- `creative_cross_references`: Kreative krydsrefereringer mellem moduler
-"""
+    # Build simplified system prompt using new API-first approach
+    logger.info("Building simplified system prompt with API data...")
+    full_system_prompt = await build_system_prompt(goal, modules_response.data)
     retries = 3
     delay = 2
 
@@ -619,6 +458,138 @@ Generér nu den komplette JSON-plan baseret på `USER_GOAL` og journalistiske pr
             else:
                 return {"error": f"Uventet fejl efter {retries} forsøg: {e}"}
     return {"error": "Ukendt fejl i get_anthropic_response."}
+
+
+async def enrich_recipe_with_api(raw_recipe: dict) -> dict:
+    """
+    Validate and enrich Claude's recipe using live KM24 API data.
+
+    This function:
+    1. Validates module names exist in API
+    2. Validates filter keys match module parts
+    3. For generic_value filters, fetches valid values from API and validates
+    4. Returns enriched recipe with validated filters
+
+    Args:
+        raw_recipe: Raw JSON from Claude's response
+
+    Returns:
+        Enriched recipe with API-validated filters
+    """
+    km24_client: KM24APIClient = get_km24_client()
+    enriched_steps = []
+
+    # Get all modules for lookup
+    modules_response = await km24_client.get_modules_basic()
+    if not modules_response.success:
+        logger.warning("Could not fetch modules for enrichment, returning raw recipe")
+        return raw_recipe
+
+    # Build module name to ID lookup
+    module_lookup = {
+        item.get('title', ''): int(item.get('id'))
+        for item in modules_response.data.get('items', [])
+        if item.get('id') is not None
+    }
+
+    for step in raw_recipe.get('investigation_steps', []):
+        module_name = step.get('module', '')
+
+        # Validate module exists
+        module_id = module_lookup.get(module_name)
+        if not module_id:
+            logger.warning(f"Module '{module_name}' not found in API, skipping step {step.get('step')}")
+            continue
+
+        # Get module details to see available parts
+        module_details_response = await km24_client.get_module_details(module_id)
+        if not module_details_response.success:
+            logger.warning(f"Could not fetch details for module {module_name}, using step as-is")
+            enriched_steps.append({**step, 'module_id': module_id})
+            continue
+
+        module_parts = module_details_response.data.get('parts', [])
+
+        # Build part name lookup (case-insensitive)
+        parts_by_name = {
+            part.get('name', '').lower(): part
+            for part in module_parts
+            if part.get('name')
+        }
+
+        # Validate and enrich filters
+        validated_filters = {}
+        raw_filters = step.get('filters', {})
+
+        for filter_key, filter_values in raw_filters.items():
+            # Find matching part (case-insensitive)
+            matching_part = parts_by_name.get(filter_key.lower())
+
+            if not matching_part:
+                logger.warning(f"Filter '{filter_key}' not found in {module_name} parts, skipping")
+                continue
+
+            part_type = matching_part.get('part')
+            part_id = matching_part.get('id')
+
+            # Handle generic_value parts - fetch and validate against API
+            if part_type == 'generic_value' and part_id:
+                try:
+                    values_response = await km24_client.get_generic_values(part_id)
+                    if values_response.success:
+                        # Extract valid value names from API
+                        api_items = values_response.data.get('items', [])
+                        valid_value_names = {
+                            item.get('name', '').strip()
+                            for item in api_items
+                            if item.get('name')
+                        }
+
+                        # Validate Claude's suggestions against API values
+                        validated = [
+                            v for v in filter_values
+                            if v in valid_value_names
+                        ]
+
+                        if validated:
+                            validated_filters[filter_key] = validated
+                            logger.info(f"Validated {len(validated)}/{len(filter_values)} values for {filter_key} in {module_name}")
+                        else:
+                            logger.warning(f"No valid values found for {filter_key} in {module_name}, skipping filter")
+                    else:
+                        # API call failed, accept Claude's values as-is
+                        validated_filters[filter_key] = filter_values
+                except Exception as e:
+                    logger.error(f"Error fetching generic values for {filter_key}: {e}")
+                    # On error, accept Claude's values
+                    validated_filters[filter_key] = filter_values
+
+            # Handle web_source parts - mark for manual selection
+            elif part_type == 'web_source':
+                validated_filters[filter_key] = filter_values
+                # Add note that user must select sources manually
+                if 'details' not in step:
+                    step['details'] = {}
+                if 'strategic_note' not in step['details']:
+                    step['details']['strategic_note'] = f"PÅKRÆVET: Vælg konkrete kilder manuelt for {module_name}"
+
+            # Other filter types (municipality, industry, company, etc.) - accept as-is
+            else:
+                validated_filters[filter_key] = filter_values
+
+        # Add enriched step with validated filters and module_id
+        enriched_steps.append({
+            **step,
+            'filters': validated_filters,
+            'module_id': module_id
+        })
+
+    # Return enriched recipe
+    return {
+        **raw_recipe,
+        'investigation_steps': enriched_steps
+    }
+
 
 async def generate_search_optimization(module_card, goal: str, step: dict) -> dict:
     """Generer optimal søgekonfiguration baseret på modul og mål."""
@@ -714,34 +685,42 @@ def _get_default_sources_for_module(module_name: str) -> list[str]:
     else:
         return []  # No default sources for unknown modules
 
+# DEACTIVATED: This function causes incorrect search strings
+# def _get_default_search_string_for_module(module_name: str) -> str:
+#     """Get default search string for module."""
+#     module_name_lower = module_name.lower()
+#     
+#     # Modules where empty search string is BETTER (when using CVR/company filter)
+#     if module_name_lower in ["fødevaresmiley", "arbejdstilsyn", "status", "kapitalændring"]:
+#         return ""  # Empty is better when using virksomhedsfilter
+#     
+#     if "registrering" in module_name_lower:
+#         return "landbrug;landbrugsvirksomhed;agriculture"
+#     elif "tinglysning" in module_name_lower:
+#         return "~landbrugsejendom~"
+#     elif "lokalpolitik" in module_name_lower:
+#         return "lokalplan;landzone;kommunal"
+#     elif "miljøsager" in module_name_lower:
+#         return "miljøtilladelse;husdyrgodkendelse;udvidelse"
+#     elif "regnskaber" in module_name_lower:
+#         return "regnskab;årsrapport;økonomi"
+#     elif "børsmeddelelser" in module_name_lower:
+#         return "børsmeddelelse;årsrapport;økonomi"
+#     elif "udbud" in module_name_lower:
+#         return "offentligt udbud;kontrakt;vinder"
+#     elif "personbogen" in module_name_lower:
+#         return "person;ejer;bestyrelse"
+#     else:
+#         # Default for unknown modules: empty string
+#         return ""
+
+# NEW: Always return empty string - let LLM handle search strings
 def _get_default_search_string_for_module(module_name: str) -> str:
-    """Get default search string for module."""
-    module_name_lower = module_name.lower()
-    
-    if "registrering" in module_name_lower:
-        return "landbrug;landbrugsvirksomhed;agriculture"
-    elif "tinglysning" in module_name_lower:
-        return "~landbrugsejendom~"
-    elif "kapitalændring" in module_name_lower:
-        return "kapitalfond;ejendomsselskab;landbrug"
-    elif "lokalpolitik" in module_name_lower:
-        return "lokalplan;landzone;kommunal"
-    elif "miljøsager" in module_name_lower:
-        return "miljøtilladelse;husdyrgodkendelse;udvidelse"
-    elif "regnskaber" in module_name_lower:
-        return "regnskab;årsrapport;økonomi"
-    elif "status" in module_name_lower:
-        return "konkurs;ophør;statusændring"
-    elif "arbejdstilsyn" in module_name_lower:
-        return "arbejdsmiljø;kontrol;forseelse"
-    elif "børsmeddelelser" in module_name_lower:
-        return "børsmeddelelse;årsrapport;økonomi"
-    elif "udbud" in module_name_lower:
-        return "offentligt udbud;kontrakt;vinder"
-    elif "personbogen" in module_name_lower:
-        return "person;ejer;bestyrelse"
-    else:
-        return "søgning"
+    """
+    Return empty search string by default.
+    LLM should provide context-appropriate search strings.
+    """
+    return ""  # Always empty - no hardcoded defaults
 
 def _normalize_notification(notification: str) -> str:
     """
@@ -910,40 +889,9 @@ def _ensure_filters_before_search_string(step: dict, goal: str = "") -> dict:
     if "filters" not in step:
         step["filters"] = {}
     
-    # Hvis filtre mangler, tilføj dynamiske filtre baseret på mål
-    if not step["filters"] and goal:
-        logger.info("Adding dynamic filters based on goal")
-        filter_catalog = get_filter_catalog()
-        relevant_filters = filter_catalog.get_relevant_filters(goal, [])
-        logger.info(f"Found {len(relevant_filters)} relevant filters")
-        
-        # Tilføj relevante filtre til step
-        added_any_filter = False
-        for rec in relevant_filters:
-            if rec.filter_type == "municipality":
-                step["filters"]["geografi"] = rec.values
-                added_any_filter = True
-                logger.info(f"Added geography filter: {rec.values}")
-            elif rec.filter_type == "industry":
-                step["filters"]["branchekode"] = rec.values
-                added_any_filter = True
-                logger.info(f"Added industry filter: {rec.values}")
-            elif rec.filter_type == "region":
-                step["filters"]["region"] = rec.values
-                added_any_filter = True
-                logger.info(f"Added region filter: {rec.values}")
-        
-        # Tilføj standard periode og beløbsgrænse kun hvis vi faktisk har tilføjet filtre
-        if added_any_filter:
-            if "periode" not in step["filters"]:
-                step["filters"]["periode"] = "24 mdr"
-                logger.info("Added default period: 24 mdr")
-            if "beløbsgrænse" not in step["filters"]:
-                step["filters"]["beløbsgrænse"] = "1000000"
-                logger.info("Added default amount limit: 1000000")
-    else:
-        logger.info("Filters already present or no goal provided")
-    
+    # NOTE: Dynamic filter addition is now handled by enrich_recipe_with_api()
+    # Legacy logic removed
+
     logger.info(f"Final filters: {step['filters']}")
     return step
 
@@ -975,46 +923,12 @@ async def _enrich_with_module_specific_filters(step: dict, goal: str) -> dict:
             default_amount = "1000000" if not any(w in goal_l for w in ["stor", "større", "million", "mio", ">"] ) else "10000000"
             step["filters"]["beløbsgrænse"] = default_amount
 
-        # Hent modulspecifikke anbefalinger (generic_value + web_source)
-        filter_catalog = get_filter_catalog()
-        recs = await filter_catalog.get_module_specific_recommendations(goal, module_name)
-        # Anvend web source anbefalinger
+        # NOTE: Module-specific enrichment now handled by enrich_recipe_with_api()
+        # Legacy logic disabled - keeping web source selection logic only
         if module_card.requires_source_selection and (not step.get("source_selection")):
-            ws = next((r for r in recs if r.filter_type == "web_sources" and r.values), None)
-            if ws:
-                step["source_selection"] = ws.values
-                if not step.get("strategic_note"):
-                    step["strategic_note"] = "PÅKRÆVET: Dette modul kræver manuelt kildevalg (source_selection)."
-            else:
-                # Fallback: brug globale hyper-relevante anbefalinger (fx lokale medier for Esbjerg)
-                global_recs = filter_catalog.get_relevant_filters(goal, [module_name])
-                ws_global = next(
-                    (r for r in global_recs if r.filter_type in ("web_source", "web_sources") and r.values),
-                    None,
-                )
-                if ws_global:
-                    step["source_selection"] = ws_global.values
-                    if not step.get("strategic_note"):
-                        step["strategic_note"] = "PÅKRÆVET: Dette modul kræver manuelt kildevalg (source_selection)."
-
-        # Anvend generic_value anbefalinger med part labels
-        for r in recs:
-            # Map normalized granular types to filters
-            if r.filter_type in ("crime_codes", "branch_codes", "property_types", "reaction", "problem") and r.values:
-                key_map = {
-                    "crime_codes": "crime_codes",
-                    "branch_codes": "branchekode",
-                    "property_types": "ejendomstype",
-                    "reaction": "reaktion",
-                    "problem": "problem",
-                }
-                filters_key = key_map.get(r.filter_type, (r.part_name or "modulspecifik").strip().lower())
-                if filters_key not in step["filters"]:
-                    step["filters"][filters_key] = r.values
-            elif r.filter_type == "module_specific" and r.values:
-                key = (r.part_name or "modulspecifik").strip().lower()
-                if key not in step["filters"]:
-                    step["filters"][key] = r.values
+            logger.info(f"Web source module {module_name} - manual selection required")
+            if not step.get("strategic_note"):
+                step["strategic_note"] = "PÅKRÆVET: Dette modul kræver manuelt kildevalg (source_selection)."
 
         # Valider filtre mod parts og tilføj advarsler
         warnings = await module_validator.validate_filters_against_parts(module_card.title, step["filters"])  # type: ignore[arg-type]
@@ -1083,18 +997,31 @@ def coerce_raw_to_target_shape(raw: dict, goal: str) -> dict:
                     step.get("details", {}).get("search_string", ""),
                     step.get("module", "Unknown")
                 ),
-                "filters": step.get("details", {}).get("filters", {}),
-                "notification": _normalize_notification(step.get("details", {}).get("recommended_notification", "daily")),
+                # Filters can be at step level (Claude's new format) or under details (legacy)
+                "filters": step.get("filters", step.get("details", {}).get("filters", {})),
+                "notification": _normalize_notification(
+                    step.get("recommended_notification") or step.get("details", {}).get("recommended_notification", "daily")
+                ),
                 "delivery": "email",
-                "source_selection": step.get("details", {}).get("source_selection", []),
-                "strategic_note": step.get("details", {}).get("strategic_note"),
-                "explanation": step.get("details", {}).get("explanation", ""),
+                "source_selection": step.get("source_selection", step.get("details", {}).get("source_selection", [])),
+                "strategic_note": step.get("strategic_note") or step.get("details", {}).get("strategic_note"),
+                "explanation": step.get("explanation", step.get("details", {}).get("explanation", "")),
                 "creative_insights": step.get("details", {}).get("creative_insights"),
                 "advanced_tactics": step.get("details", {}).get("advanced_tactics")
             }
             
             # Ensure filters are properly structured before search string
             normalized_step = _ensure_filters_before_search_string(normalized_step, goal)
+            
+            # VALIDATE: Remove meaningless search strings
+            if normalized_step["search_string"] in ["søgning", "search", "søg", ""]:
+                # Check if module has company/CVR filter
+                if normalized_step.get("filters", {}).get("virksomhed") or \
+                   normalized_step.get("filters", {}).get("cvr"):
+                    # Empty is fine when using company filter
+                    normalized_step["search_string"] = ""
+                    module_name = normalized_step.get("module", {}).get("name", "Unknown")
+                    logger.info(f"Cleared meaningless search string for {module_name} (using company filter)")
             
             target["steps"].append(normalized_step)
     
@@ -1144,7 +1071,7 @@ def apply_min_defaults(recipe: dict) -> None:
     if "beløbsgrænser sat hvor muligt" not in checks:
         checks.append("beløbsgrænser sat hvor muligt")
     
-    # Step defaults
+    # Step defaults - modul-aware
     for step in recipe.get("steps", []):
         if not step.get("notification"):
             step["notification"] = "daily"
@@ -1156,11 +1083,49 @@ def apply_min_defaults(recipe: dict) -> None:
         if not step.get("filters"):
             step["filters"] = {}
         
-        # Generate default search string if empty
+        # Get module info
+        module_name = step.get("module", {}).get("name", "") if isinstance(step.get("module"), dict) else step.get("module", "")
+        
+        # REMOVE INVALID DEFAULTS - kun tilføj filtre som modulet faktisk understøtter
+        filters = step["filters"]
+        
+        # Check if module has amount_selection (from module card)
+        # For now, be conservative - only add defaults we KNOW work
+        
+        # Periode er kun relevant for nogle moduler
+        if "periode" not in filters:
+            # Kun tilføj hvis det er et tidssensitivt modul
+            if module_name in ["Registrering", "Status", "Kapitalændring"]:
+                filters["periode"] = "24 mdr"
+        
+        # Beløbsgrænse KUN for amount_selection moduler
+        if "beløbsgrænse" in filters:
+            # Verificer at modulet faktisk har amount_selection
+            # Hvis ikke, FJERN det
+            has_amount_selection = module_name in [
+                "Tinglysning", "Udbud", "Boligsiden", "Regnskaber"
+            ]
+            if not has_amount_selection:
+                del filters["beløbsgrænse"]
+                logger.info(f"Removed beløbsgrænse from {module_name} (not supported)")
+        
+        # Generate search_string from filters or default
         if not step.get("search_string"):
-            module_name = step.get("module", {}).get("name", "Unknown") if isinstance(step.get("module"), dict) else step.get("module", "Unknown")
-            step["search_string"] = _get_default_search_string_for_module(module_name)
-            logger.info(f"Genereret default søgestreng for {module_name}: {step['search_string']}")
+            # FIRST: Check if there's a search string in filters (from Claude output)
+            search_in_filters = filters.get("Søgeord") or filters.get("søgeord")
+            if search_in_filters:
+                # Convert array to string (join multiple search strings with space)
+                if isinstance(search_in_filters, list):
+                    # Join multiple search strings with space separator
+                    step["search_string"] = " ".join(search_in_filters) if len(search_in_filters) > 1 else (search_in_filters[0] if search_in_filters else "")
+                else:
+                    step["search_string"] = str(search_in_filters)
+                logger.info(f"Bruger søgestreng fra filters: {step['search_string']}")
+            else:
+                # Fallback to default search string
+                module_name = step.get("module", {}).get("name", "Unknown") if isinstance(step.get("module"), dict) else step.get("module", "Unknown")
+                step["search_string"] = _get_default_search_string_for_module(module_name)
+                logger.info(f"Genereret default søgestreng for {module_name}: {step['search_string']}")
         else:
             # Standardize existing search strings
             module_name = step.get("module", {}).get("name", "Unknown") if isinstance(step.get("module"), dict) else step.get("module", "Unknown")
@@ -1180,6 +1145,360 @@ def apply_min_defaults(recipe: dict) -> None:
     
     logger.info("Defaults anvendt")
 
+def validate_content_relevance(recipe: dict, goal: str) -> list[str]:
+    """
+    Validate that output sections are relevant to the user's goal.
+    
+    Checks for keyword overlap between goal and generated content sections
+    to catch generic/irrelevant content.
+    """
+    warnings = []
+    goal_lower = goal.lower()
+    
+    # Extract meaningful keywords (4+ characters) from goal
+    goal_keywords = set(re.findall(r'\b\w{4,}\b', goal_lower))
+    
+    # Validate story angles
+    for angle in recipe.get("potential_story_angles", []):
+        angle_lower = angle.lower()
+        angle_keywords = set(re.findall(r'\b\w{4,}\b', angle_lower))
+        overlap = len(goal_keywords & angle_keywords)
+        
+        if overlap < 2:  # Less than 2 keywords in common
+            warnings.append(
+                f"Potentielt irrelevant story angle: '{angle[:60]}...'"
+            )
+    
+    # Validate cross references mention actually used modules
+    used_modules = {
+        step.get("module", {}).get("name", "") 
+        for step in recipe.get("steps", [])
+    }
+    used_modules = {m.lower() for m in used_modules if m}
+    
+    for xref in recipe.get("creative_cross_references", []):
+        xref_lower = xref.lower()
+        # Check if cross-reference mentions any used module
+        has_relevant_module = any(
+            module in xref_lower for module in used_modules
+        )
+        if not has_relevant_module and used_modules:
+            warnings.append(
+                f"Cross-reference nævner moduler der ikke bruges: '{xref[:60]}...'"
+            )
+    
+    return warnings
+
+def validate_module_logic(recipe: dict) -> List[str]:
+    """
+    Validate that modules are used correctly based on their purpose.
+    
+    Common mistakes:
+    - Using Status module to identify active companies
+    - Using monitoring modules for identification
+    """
+    warnings = []
+    
+    # Check first step specifically
+    if recipe.get("steps") and len(recipe["steps"]) > 0:
+        first_step = recipe["steps"][0]
+        title_lower = first_step.get("title", "").lower()
+        module_name = first_step.get("module", {}).get("name", "")
+        search_string = first_step.get("search_string", "")
+        
+        # Pattern: Identification step
+        is_identification = any(word in title_lower for word in [
+            "identificer", "find", "kortlæg", "opbyg", "start med"
+        ])
+        
+        if is_identification:
+            # Check for wrong modules
+            if module_name == "Status" and any(word in search_string.lower() for word in ["konkurs", "ophør", "likvidation"]):
+                warnings.append(
+                    f"KRITISK: Trin 1 bruger Status-modulet med konkurs-søgning til identifikation. "
+                    f"Dette finder KUN lukkede virksomheder. Brug i stedet Registrering med branchekoder."
+                )
+            
+            if module_name in ["Arbejdstilsyn", "Fødevaresmiley", "Kapitalændring"]:
+                warnings.append(
+                    f"ADVARSEL: Trin 1 bruger {module_name} til identifikation. "
+                    f"Overvej om Registrering ville være bedre til at finde virksomheder."
+                )
+            
+            # Recommend Registrering
+            if module_name != "Registrering":
+                warnings.append(
+                    f"ANBEFALING: Trin 1 (identifikation) bør typisk bruge Registrering-modulet "
+                    f"med branchekoder for at finde ALLE relevante virksomheder."
+                )
+    
+    return warnings
+
+async def validate_and_clean_filters(step: dict) -> dict:
+    """
+    Validate filters against module capabilities and remove unsupported ones.
+    """
+    module_name = step.get("module", {}).get("name", "")
+    if not module_name:
+        return step
+    
+    filters = step.get("filters", {})
+    if not filters:
+        return step
+    
+    # Get module capabilities
+    from .module_validator import get_module_validator
+    module_validator = get_module_validator()
+    module_card = await module_validator.get_enhanced_module_card(module_name)
+    
+    if not module_card:
+        return step
+    
+    # Check which filter types the module supports
+    supported_types = {f["type"] for f in module_card.available_filters}
+    
+    # Remove unsupported filters
+    to_remove = []
+    for filter_key in filters.keys():
+        # Map filter key to part type
+        if filter_key in ["beløbsgrænse", "amount", "kontraktværdi"]:
+            if "amount_selection" not in supported_types:
+                to_remove.append(filter_key)
+                logger.warning(f"Module {module_name} does not support {filter_key}")
+        
+        # Add more mappings as needed
+    
+    for key in to_remove:
+        del filters[key]
+    
+    return step
+
+def infer_likely_modules(goal: str) -> List[str]:
+    """
+    Heuristisk afledning af sandsynlige moduler baseret på mål.
+    Bruges til at hente filter-metadata for relevante moduler.
+    """
+    goal_lower = goal.lower()
+    likely = []
+    
+    # Mapping af nøgleord til moduler
+    module_keywords = {
+        "Tinglysning": ["tinglys", "ejendom", "ejendomshandel", "pant", "sælg"],
+        "Status": ["konkurs", "likvidat", "ophør", "opløs", "svingdør", "lukk"],
+        "Registrering": ["nyregistre", "nystarte", "etabler", "opstart"],
+        "Arbejdstilsyn": ["arbejdstilsyn", "arbejdsmiljø", "asbest", "ulykke", "forbud", "påbud"],
+        "Udbud": ["udbud", "kontrakt", "offentlig", "tildel"],
+        "Domme": ["dom", "dømme", "retssag", "domsafsigelse"],
+        "Retslister": ["retsliste", "tiltale", "sigte", "gerningskode"],
+        "Lokalpolitik": ["lokalpoliti", "kommune", "beslutning", "dagsorden", "byråd"],
+        "FødevareSmiley": ["fødevare", "smiley", "sur", "hygiejne", "restaurant", "cafe"],
+        "Miljøsager": ["miljø", "forurening", "udledning", "tilladelse"],
+        "Personbogen": ["pant", "løsøre", "pantebreve"],
+    }
+    
+    for module, keywords in module_keywords.items():
+        if any(kw in goal_lower for kw in keywords):
+            likely.append(module)
+    
+    # Begræns til top 5
+    return likely[:5]
+
+
+async def validate_filters_against_api(recipe: dict) -> dict:
+    """
+    DEPRECATED: Filter validation now handled by enrich_recipe_with_api()
+    This function is kept as a no-op for backward compatibility.
+    """
+    logger.info("validate_filters_against_api called (now handled by enrich_recipe_with_api, skipping)")
+    return recipe
+
+async def validate_filters_against_api_LEGACY(recipe: dict) -> dict:
+    """
+    OLD IMPLEMENTATION - DISABLED
+    AGGRESSIVE whitelist-baseret validering.
+    Fjerner ALT der ikke er eksplicit godkendt af API.
+    """
+
+    # KNOWN INVALID FILTERS (from test results)
+    BLACKLIST = {
+        "oprindelsesland",  # Doesn't exist in any module
+        "virksomhedstype",  # Should be generic_value with correct name
+        "statustype",       # Should be generic_value with correct name
+        "dokumenttype",     # Invented
+        "property_types",   # Invented
+        "adressetype",      # Should be generic_value if it exists
+        "ejendomstype",     # Should be checked against API
+    }
+
+    filter_catalog = get_filter_catalog()
+
+    for step_idx, step in enumerate(recipe.get("steps", [])):
+        module_name = step.get("module", {}).get("name", "")
+        if not module_name:
+            continue
+        
+        filters = step.get("filters", {})
+        
+        # FIRST PASS: Remove blacklisted
+        for key in list(filters.keys()):
+            if key.lower() in BLACKLIST:
+                del filters[key]
+                logger.warning(f"Step {step_idx+1}: BLACKLISTED filter removed: {key}")
+        
+        # Hent API metadata
+        metadata = await filter_catalog.get_module_filter_metadata(module_name)
+        if not metadata:
+            logger.warning(f"No metadata for {module_name}, skipping validation")
+            continue
+        
+        available = metadata.get("available_filters", {})
+        
+        # BUILD WHITELIST from API
+        whitelist = set()
+        
+        # DEBUG: Log what API returned
+        logger.info(f"=== Building whitelist for {module_name} (Step {step_idx+1}) ===")
+        logger.info(f"Available filter types from API: {list(available.keys())}")
+        
+        # Standard filters
+        if "municipality" in available:
+            whitelist.add("geografi")
+            whitelist.add("kommune")  # Alias
+            logger.info("✅ Added 'geografi' to whitelist (municipality exists in API)")
+        
+        if "industry" in available:
+            whitelist.add("branchekode")
+            whitelist.add("branche")  # Alias
+            logger.info("✅ Added 'branchekode' to whitelist (industry exists in API)")
+        
+        if "company" in available:
+            whitelist.add("virksomhed")
+            whitelist.add("cvr")  # Alias
+            logger.info("✅ Added 'virksomhed' to whitelist (company exists in API)")
+        
+        if "amount_selection" in available:
+            whitelist.add("beløbsgrænse")
+            whitelist.add("kontraktværdi")  # Alias for Udbud
+        
+        if "search_string" in available:
+            whitelist.add("søgeord")
+        
+        # Generic values - add exact part names
+        if "generic_value" in available:
+            for part in available["generic_value"]["parts"]:
+                part_name = part["part_name"].lower()
+                whitelist.add(part_name)
+        
+        # Web source
+        if "web_source" in available:
+            whitelist.add("source_selection")
+            whitelist.add("kilde")  # Alias
+        
+        # Special cases (these are sometimes valid)
+        # Only add if module actually supports them
+        if module_name in ["Registrering", "Status", "Kapitalændring"]:
+            whitelist.add("periode")
+            logger.info("✅ Added 'periode' to whitelist (special case for date-based modules)")
+        
+        # Log final whitelist
+        logger.info(f"Final whitelist for {module_name}: {sorted(whitelist)}")
+        
+        # Log what we're checking
+        logger.info(f"Filters to validate: {list(filters.keys())}")
+        
+        # AGGRESSIVE FILTERING
+        to_remove = []
+        to_rename = {}
+        
+        for filter_key in list(filters.keys()):
+            key_lower = filter_key.lower()
+            
+            # Check if in whitelist
+            if key_lower not in whitelist:
+                # Check for known aliases we should map
+                alias_map = {
+                    "kommune/region": "geografi",
+                    "region": "geografi",
+                    "cvr": "virksomhed",
+                }
+                
+                if key_lower in alias_map:
+                    # Rename instead of remove
+                    target = alias_map[key_lower]
+                    if target in whitelist:
+                        to_rename[filter_key] = target
+                        logger.info(f"Step {step_idx+1}: Renaming {filter_key} → {target}")
+                    else:
+                        to_remove.append(filter_key)
+                        logger.warning(f"Step {step_idx+1}: REJECTED {filter_key} (module doesn't support target)")
+                else:
+                    # HARD REJECT
+                    to_remove.append(filter_key)
+                    logger.warning(f"Step {step_idx+1}: 🚫 REJECTED unknown filter '{filter_key}' for {module_name} (not in whitelist: {sorted(whitelist)})")
+        
+        # Apply renames
+        for old_key, new_key in to_rename.items():
+            if new_key in filters:
+                # Merge if target already exists
+                logger.warning(f"Step {step_idx+1}: Merging duplicate {old_key} into {new_key}")
+            else:
+                filters[new_key] = filters[old_key]
+            del filters[old_key]
+        
+        # Apply removals
+        for key in to_remove:
+            del filters[key]
+        
+        # Log final state
+        if to_remove or to_rename:
+            logger.info(f"Step {step_idx+1} ({module_name}): Cleaned filters → {list(filters.keys())}")
+    
+    return recipe
+
+
+def final_cleanup_pass(recipe: dict) -> dict:
+    """
+    Sidste cleanup - fanger alt der slap gennem.
+    Denne kører EFTER API-validering som safety net.
+    """
+    
+    # Common mistakes to fix
+    CLEANUP_RULES = {
+        # Delete these entirely
+        "DELETE": {
+            "oprindelsesland", "virksomhedstype", "statustype",
+            "dokumenttype", "property_types", "adressetype", "ejendomstype"
+        },
+        # Rename these
+        "RENAME": {
+            "kommune/region": "geografi",
+            "region": "geografi",
+            "cvr": "virksomhed",
+        }
+    }
+    
+    for step in recipe.get("steps", []):
+        filters = step.get("filters", {})
+        
+        # Delete invalid
+        for key in list(filters.keys()):
+            if key in CLEANUP_RULES["DELETE"]:
+                del filters[key]
+                logger.info(f"Final cleanup: Deleted {key}")
+        
+        # Rename
+        for old, new in CLEANUP_RULES["RENAME"].items():
+            if old in filters:
+                if new in filters:
+                    # Merge
+                    logger.info(f"Final cleanup: Merging {old} into {new}")
+                else:
+                    filters[new] = filters[old]
+                del filters[old]
+    
+    return recipe
+
+
 async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
     """
     Complete recipe with deterministic output structure.
@@ -1192,6 +1511,15 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
     # Step 1: Normalize LLM JSON to target structure
     logger.info("Trin 1: Normaliserer rå LLM-output")
     recipe = coerce_raw_to_target_shape(raw_recipe, goal)
+    
+    # NEW: Validate content relevance
+    relevance_warnings = validate_content_relevance(recipe, goal)
+    if relevance_warnings:
+        logger.warning(f"Content relevance issues detected: {relevance_warnings}")
+        # Add to quality warnings
+        quality = recipe.setdefault("quality", {})
+        warnings_list = quality.setdefault("warnings", [])
+        warnings_list.extend(relevance_warnings)
     
     # Step 2: Validate and enrich modules via KM24ModuleValidator
     logger.info("Trin 2: Validerer og beriger moduler")
@@ -1221,10 +1549,39 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
             except Exception as e:
                 logger.warning(f"Kunne ikke validere modul {module_name}: {e}")
     
+    # NEW: Validate module logic
+    logger.info("Trin 2.5: Validerer modul-logik")
+    module_logic_warnings = validate_module_logic(recipe)
+    if module_logic_warnings:
+        logger.warning(f"Module logic issues: {module_logic_warnings}")
+        quality = recipe.setdefault("quality", {})
+        warnings_list = quality.setdefault("warnings", [])
+        warnings_list.extend(module_logic_warnings)
+    
+    # NEW: Clean up invalid filters
+    logger.info("Trin 2.6: Validerer og renser filtre")
+    for i, step in enumerate(recipe.get("steps", [])):
+        cleaned_step = await validate_and_clean_filters(step)
+        recipe["steps"][i] = cleaned_step
+    
+    # NEW: Validate filters against API
+    logger.info("Trin 2.8: Validerer filtre mod API")
+    recipe = await validate_filters_against_api(recipe)
+    
+    # NEW: Final cleanup pass
+    logger.info("Trin 2.9: Final filter cleanup")
+    recipe = final_cleanup_pass(recipe)
+    
     # Step 3: Apply sensible defaults (after module validation)
     logger.info("Trin 3: Anvender defaults")
     apply_min_defaults(recipe)
-    
+
+    # Step 3.5: Enrich with educational content
+    logger.info("Trin 3.5: Beriger med pædagogisk indhold")
+    from km24_vejviser.enrichment import RecipeEnricher
+    enricher = RecipeEnricher()
+    recipe = await enricher.enrich(recipe, goal)
+
     # Step 4: Parse to UseCaseResponse and return dict
     logger.info("Trin 4: Parser til UseCaseResponse")
     
@@ -1524,7 +1881,11 @@ async def generate_recipe_api(request: Request, body: RecipeRequest):
                 "creative_cross_references": []
             }
 
-        completed_recipe = await complete_recipe(raw_recipe, goal)
+        # Enrich recipe with API validation (new API-first approach)
+        logger.info("Enriching recipe with API validation...")
+        enriched_recipe = await enrich_recipe_with_api(raw_recipe)
+
+        completed_recipe = await complete_recipe(enriched_recipe, goal)
         logger.info("Returnerer completed_recipe til frontend")
         return JSONResponse(content=completed_recipe)
         
@@ -1631,21 +1992,9 @@ async def get_filter_recommendations(request: Request):
                 content={"error": "goal er påkrævet"}
             )
         
-        filter_catalog = get_filter_catalog()
-        await filter_catalog.load_all_filters()
-        recommendations = filter_catalog.get_relevant_filters(goal, modules)
-        
-        # Konverter til JSON-serializable format
+        # NOTE: Deprecated endpoint - recommendations now handled by enrich_recipe_with_api()
+        # Return empty recommendations
         rec_data = []
-        for rec in recommendations:
-            rec_data.append({
-                "filter_type": rec.filter_type,
-                "values": rec.values,
-                "relevance_score": rec.relevance_score,
-                "reasoning": rec.reasoning,
-                "module_id": rec.module_id,
-                "module_part_id": rec.module_part_id
-            })
         
         return JSONResponse(content={
             "goal": goal,
@@ -1712,20 +2061,23 @@ async def generate_recipe_stream(goal: str):
             filter_catalog = get_filter_catalog()
             await filter_catalog.load_all_filters()
 
-            # Step 3: Find relevant strategies
-            yield f"data: {json.dumps({'progress': 35, 'message': 'Finder relevante overvågningsstrategier...', 'details': 'Analyserer moduler og parts for match'})}\n\n"
-            _ = filter_catalog.get_relevant_filters(goal, [])
+            # Step 3: Prepare for recipe generation
+            yield f"data: {json.dumps({'progress': 35, 'message': 'Forbereder opskrift...', 'details': 'Analyserer moduler'})}\n\n"
             await asyncio.sleep(0.3)
 
             # Step 4: Generate recipe with AI
             yield f"data: {json.dumps({'progress': 75, 'message': 'Genererer opskrift med AI...', 'details': 'Kalder Claude for fuld strategi'})}\n\n"
             raw = await get_anthropic_response(goal)
 
-            # Step 5: Validate and optimize
-            yield f"data: {json.dumps({'progress': 90, 'message': 'Validerer og optimerer strategien...', 'details': 'Normalisering og validering'})}\n\n"
-            completed = await complete_recipe(raw, goal) if isinstance(raw, dict) else {"error": "Ugyldigt AI-svar"}
+            # Step 5: Enrich with API validation
+            yield f"data: {json.dumps({'progress': 85, 'message': 'Validerer filtre mod KM24 API...', 'details': 'API-baseret validering'})}\n\n"
+            enriched = await enrich_recipe_with_api(raw) if isinstance(raw, dict) else raw
 
-            # Step 6: Done
+            # Step 6: Final validation and optimization
+            yield f"data: {json.dumps({'progress': 90, 'message': 'Optimerer strategien...', 'details': 'Normalisering og validering'})}\n\n"
+            completed = await complete_recipe(enriched, goal) if isinstance(enriched, dict) else {"error": "Ugyldigt AI-svar"}
+
+            # Step 7: Done
             yield f"data: {json.dumps({'progress': 100, 'message': 'Klar til brug!', 'details': 'Opskrift genereret'})}\n\n"
             yield f"data: {json.dumps({'result': completed})}\n\n"
         except Exception as e:
