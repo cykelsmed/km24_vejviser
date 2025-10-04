@@ -587,6 +587,364 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
         }
+
+        /* ============================================
+           EDUCATIONAL CONTENT STYLING
+           ============================================ */
+
+        /* Per-step educational section */
+        .educational-section {
+            margin-top: 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            overflow: hidden;
+        }
+
+        .edu-summary {
+            padding: 1.2rem;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .edu-summary:hover {
+            background: #f7fafc;
+        }
+
+        .edu-icon {
+            font-size: 1.5rem;
+        }
+
+        .edu-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+
+        .edu-subtitle {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        .educational-section[open] .edu-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .educational-section[open] .edu-title,
+        .educational-section[open] .edu-subtitle {
+            color: white;
+        }
+
+        .edu-content {
+            padding: 1.5rem;
+        }
+
+        /* Tabs */
+        .edu-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .edu-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: #718096;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .edu-tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .edu-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .edu-tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .edu-tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Educational subsections */
+        .edu-principle,
+        .edu-checklist,
+        .edu-filters,
+        .edu-mistakes,
+        .edu-red-flags,
+        .edu-action-plan,
+        .edu-example {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .edu-principle {
+            background: linear-gradient(135deg, #ebf4ff 0%, #e0e7ff 100%);
+            border-left: 4px solid #667eea;
+        }
+
+        .edu-checklist {
+            background: linear-gradient(135deg, #f0fff4 0%, #dcfce7 100%);
+            border-left: 4px solid #10b981;
+        }
+
+        .edu-filters {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+        }
+
+        .edu-mistakes {
+            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+            border-left: 4px solid #ef4444;
+        }
+
+        .edu-red-flags {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 4px solid #dc2626;
+        }
+
+        .edu-action-plan {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .edu-example {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+
+        .edu-principle h5,
+        .edu-checklist h5,
+        .edu-filters h5,
+        .edu-mistakes h5,
+        .edu-red-flags h5,
+        .edu-action-plan h5,
+        .edu-example h5 {
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            color: #1f2937;
+        }
+
+        .checklist,
+        .mistakes-list,
+        .red-flags-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li::before {
+            content: "✅ ";
+            margin-right: 0.5rem;
+        }
+
+        .mistakes-list li::before {
+            content: "❌ ";
+            margin-right: 0.5rem;
+        }
+
+        .red-flags-list li::before {
+            content: "🚨 ";
+            margin-right: 0.5rem;
+        }
+
+        .filter-explanations {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .filter-explanations dt {
+            font-weight: 600;
+            color: #f59e0b;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-explanations dd {
+            margin-left: 1rem;
+            color: #4b5563;
+        }
+
+        .example-hit {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .action-plan-text {
+            line-height: 1.8;
+            color: #1f2937;
+        }
+
+        .edu-empty {
+            color: #9ca3af;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Universal Education Section */
+        .universal-education {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .universal-edu-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .universal-edu-header h4 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .universal-edu-header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .edu-accordion {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .edu-accordion-item {
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .edu-accordion-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .edu-accordion-header {
+            padding: 1.25rem;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            font-weight: 600;
+            color: #1f2937;
+            transition: all 0.3s ease;
+        }
+
+        .edu-accordion-header:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .edu-accordion-item[open] .edu-accordion-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .edu-accordion-content {
+            padding: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .syntax-guide,
+        .pitfalls-content,
+        .troubleshooting-content {
+            color: #374151;
+        }
+
+        /* Principles Grid */
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .principle-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .principle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .principle-card-header {
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .principle-card-body {
+            padding: 1.5rem;
+            color: #374151;
+            line-height: 1.8;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .edu-tabs {
+                flex-direction: column;
+            }
+
+            .edu-tab {
+                width: 100%;
+                text-align: left;
+            }
+
+            .principles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -931,6 +1289,7 @@
 
                 resultDiv.innerHTML = html;
                 setupCopyButtons();
+                setupEducationalTabs();
             }
 
             function renderStep(step, stepNumber) {
@@ -1031,15 +1390,143 @@
                     if (step.details.explanation) {
                         html += `<div class="step-rationale"><strong>Forklaring:</strong> ${step.details.explanation}</div>`;
                     }
-                    
+
                     if (step.details.strategic_note) {
                         html += `<div class="notification-info"><strong>Strategisk note:</strong> ${step.details.strategic_note}</div>`;
                     }
                 }
 
+                // Educational content (new!)
+                if (step.educational) {
+                    html += renderEducationalContent(step.educational, step.module?.name || '');
+                }
+
                 html += '</div>'; // step-details
                 html += '</div>'; // step
-                
+
+                return html;
+            }
+
+            function renderEducationalContent(edu, moduleName) {
+                let html = `
+                    <details class="educational-section">
+                        <summary class="edu-summary">
+                            <span class="edu-icon">📚</span>
+                            <span class="edu-title">Pædagogisk Guide</span>
+                            <span class="edu-subtitle">Lær hvordan du bruger dette trin effektivt</span>
+                        </summary>
+                        <div class="edu-content">
+                `;
+
+                // Tab navigation
+                html += `
+                    <div class="edu-tabs">
+                        <button class="edu-tab active" data-tab="guide">📖 Guide</button>
+                        <button class="edu-tab" data-tab="red-flags">🚨 Red Flags</button>
+                        <button class="edu-tab" data-tab="action">✅ Action Plan</button>
+                        <button class="edu-tab" data-tab="example">💡 Eksempel</button>
+                    </div>
+                `;
+
+                // Tab 1: Guide (principle + quality checklist + filter explanations)
+                html += `<div class="edu-tab-content active" data-tab="guide">`;
+
+                if (edu.principle) {
+                    html += `
+                        <div class="edu-principle">
+                            <h5>🎯 Relevant KM24 Princip</h5>
+                            <div class="principle-text">${edu.principle}</div>
+                        </div>
+                    `;
+                }
+
+                if (edu.quality_checklist && edu.quality_checklist.length > 0) {
+                    html += `
+                        <div class="edu-checklist">
+                            <h5>✅ Quality Checklist for ${moduleName}</h5>
+                            <ul class="checklist">
+                                ${edu.quality_checklist.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                if (edu.filter_explanations && Object.keys(edu.filter_explanations).length > 0) {
+                    html += `
+                        <div class="edu-filters">
+                            <h5>🔍 Filter Forklaringer</h5>
+                            <dl class="filter-explanations">
+                                ${Object.entries(edu.filter_explanations).map(([filter, explanation]) => `
+                                    <dt>${filter}</dt>
+                                    <dd>${explanation}</dd>
+                                `).join('')}
+                            </dl>
+                        </div>
+                    `;
+                }
+
+                if (edu.common_mistakes && edu.common_mistakes.length > 0) {
+                    html += `
+                        <div class="edu-mistakes">
+                            <h5>⚠️ Typiske Fejl</h5>
+                            <ul class="mistakes-list">
+                                ${edu.common_mistakes.map(mistake => `<li>${mistake}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                html += `</div>`; // guide tab
+
+                // Tab 2: Red Flags
+                html += `<div class="edu-tab-content" data-tab="red-flags">`;
+                if (edu.red_flags && edu.red_flags.length > 0) {
+                    html += `
+                        <div class="edu-red-flags">
+                            <h5>🚨 Hvad skal du se efter i hits?</h5>
+                            <ul class="red-flags-list">
+                                ${edu.red_flags.map(flag => `<li>${flag}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    html += `<p class="edu-empty">Ingen specifikke red flags for dette modul.</p>`;
+                }
+                html += `</div>`; // red-flags tab
+
+                // Tab 3: Action Plan
+                html += `<div class="edu-tab-content" data-tab="action">`;
+                if (edu.action_plan) {
+                    html += `
+                        <div class="edu-action-plan">
+                            <h5>✅ Hvad skal du gøre når hits ankommer?</h5>
+                            <div class="action-plan-text">${edu.action_plan.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
+                } else {
+                    html += `<p class="edu-empty">Ingen specifik action plan tilgængelig.</p>`;
+                }
+                html += `</div>`; // action tab
+
+                // Tab 4: Example Hit
+                html += `<div class="edu-tab-content" data-tab="example">`;
+                if (edu.example_hit) {
+                    html += `
+                        <div class="edu-example">
+                            <h5>💡 Eksempel på et hit fra ${moduleName}</h5>
+                            <pre class="example-hit">${edu.example_hit}</pre>
+                        </div>
+                    `;
+                } else {
+                    html += `<p class="edu-empty">Intet eksempel tilgængeligt.</p>`;
+                }
+                html += `</div>`; // example tab
+
+                html += `
+                        </div>
+                    </details>
+                `;
+
                 return html;
             }
 
@@ -1084,57 +1571,37 @@
                             <ul>
                                 ${data.next_level_questions.map(q => `<li>${q}</li>`).join('')}
                             </ul>
+                            ${data.next_level_modules && data.next_level_modules.length > 0 ? `
                             <div class="next-level-modules">
-                                <div class="next-level-module">
-                                    <div class="module-name">🏛️ Kommuner/Lokalpolitik</div>
-                                    <div class="module-desc">Lokalplaner, landzonegodkendelser, kommunale sager</div>
-                                </div>
-                                <div class="next-level-module">
-                                    <div class="module-name">🌱 Miljøsager</div>
-                                    <div class="module-desc">Udvidelser, husdyrgodkendelser, miljøtilladelser</div>
-                                </div>
-                                <div class="next-level-module">
-                                    <div class="module-name">📈 Regnskaber</div>
-                                    <div class="module-desc">Økonomisk sundhed hos selskaberne</div>
-                                </div>
+                                ${data.next_level_modules.map(module => `
+                                    <div class="next-level-module">
+                                        <div class="module-name">${module.name || '📊 Modul'}</div>
+                                        <div class="module-desc">${module.description || 'Beskrivelse ikke tilgængelig'}</div>
+                                    </div>
+                                `).join('')}
                             </div>
+                            ` : ''}
                         </div>
                     `;
                 }
 
-                // Potential story angles (always generated)
-                html += `
-                    <div class="section">
-                        <h4>📰 Potentielle Historievinkler</h4>
-                        <ul>
-                            <li>Systematisk opkøb af strategiske ejendomme</li>
-                            <li>Kapitalfonders rolle i lokal udvikling</li>
-                            <li>Regulatoriske udfordringer i landbrugssektoren</li>
-                            <li>Lokalsamfundets reaktion på store investeringer</li>
-                            <li>Økonomiske konsekvenser for eksisterende virksomheder</li>
-                        </ul>
-                    </div>
-                `;
+                // Potential story angles (use data from API)
+                if (data.potential_story_angles && Array.isArray(data.potential_story_angles) && data.potential_story_angles.length > 0) {
+                    html += `
+                        <div class="section">
+                            <h4>📰 Potentielle Historievinkler</h4>
+                            <ul>
+                                ${data.potential_story_angles.map(angle => `<li>${angle}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
 
-                // Creative cross references (always generated)
-                html += `
-                    <div class="section">
-                        <h4>🔗 Kreative Krydsrefereringer</h4>
-                        <ul>
-                            <li>Kombiner ejendomshandler med kapitalændringer for at spore investeringsmønstre</li>
-                            <li>Krydsreferer med miljøtilladelser for at identificere udvidelsesplaner</li>
-                            <li>Sammenlign med andre regioner for at afdække nationale mønstre</li>
-                            <li>Kombiner med kommunale planer for at forstå lokal kontekst</li>
-                            <li>Krydsreferer med regnskaber for at vurdere økonomisk sundhed</li>
-                        </ul>
-                    </div>
-                `;
-
-                // Creative cross references from data if available
+                // Creative cross references (use data from API)
                 if (data.creative_cross_references && Array.isArray(data.creative_cross_references) && data.creative_cross_references.length > 0) {
                     html += `
                         <div class="section">
-                            <h4>🎯 Specifikke Krydsrefereringer</h4>
+                            <h4>🔗 Kreative Krydsrefereringer</h4>
                             <ul>
                                 ${data.creative_cross_references.map(ref => `<li>${ref}</li>`).join('')}
                             </ul>
@@ -1142,7 +1609,100 @@
                     `;
                 }
 
+                // Universal Educational Content (new!)
+                if (data.educational_content) {
+                    html += renderUniversalEducation(data.educational_content);
+                }
+
                 html += '</div>';
+                return html;
+            }
+
+            function renderUniversalEducation(eduContent) {
+                let html = `
+                    <div class="universal-education">
+                        <div class="universal-edu-header">
+                            <h4>📚 KM24 Læringscenter</h4>
+                            <p>Få det fulde udbytte af KM24 med disse guides og principper</p>
+                        </div>
+                `;
+
+                // Accordion for each section
+                html += `<div class="edu-accordion">`;
+
+                // 1. Syntax Guide
+                if (eduContent.syntax_guide) {
+                    html += `
+                        <details class="edu-accordion-item">
+                            <summary class="edu-accordion-header">
+                                <span class="edu-icon">📝</span>
+                                <span>Søgestreng Syntaks Guide</span>
+                            </summary>
+                            <div class="edu-accordion-content">
+                                <div class="syntax-guide">${eduContent.syntax_guide.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        </details>
+                    `;
+                }
+
+                // 2. Common Pitfalls
+                if (eduContent.common_pitfalls) {
+                    html += `
+                        <details class="edu-accordion-item">
+                            <summary class="edu-accordion-header">
+                                <span class="edu-icon">⚠️</span>
+                                <span>Typiske Fejl & Faldgruber</span>
+                            </summary>
+                            <div class="edu-accordion-content">
+                                <div class="pitfalls-content">${eduContent.common_pitfalls.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        </details>
+                    `;
+                }
+
+                // 3. Troubleshooting
+                if (eduContent.troubleshooting) {
+                    html += `
+                        <details class="edu-accordion-item">
+                            <summary class="edu-accordion-header">
+                                <span class="edu-icon">🔧</span>
+                                <span>Fejlfinding & Troubleshooting</span>
+                            </summary>
+                            <div class="edu-accordion-content">
+                                <div class="troubleshooting-content">${eduContent.troubleshooting.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        </details>
+                    `;
+                }
+
+                // 4. KM24 Principles (always expanded, 3 cards)
+                if (eduContent.km24_principles && Object.keys(eduContent.km24_principles).length > 0) {
+                    html += `
+                        <details class="edu-accordion-item" open>
+                            <summary class="edu-accordion-header">
+                                <span class="edu-icon">🎯</span>
+                                <span>KM24 Kerneprincipper</span>
+                            </summary>
+                            <div class="edu-accordion-content">
+                                <div class="principles-grid">
+                                    ${Object.entries(eduContent.km24_principles).map(([key, principle]) => `
+                                        <div class="principle-card">
+                                            <div class="principle-card-header">
+                                                ${key === 'cvr_first' ? '🏢' : key === 'hitlogik' ? '🔗' : '🔔'}
+                                                ${key.replace('_', ' ').toUpperCase()}
+                                            </div>
+                                            <div class="principle-card-body">${principle.replace(/\n/g, '<br>')}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </details>
+                    `;
+                }
+
+                html += `</div>`; // edu-accordion
+                html += `</div>`; // universal-education
+
                 return html;
             }
 
@@ -1172,6 +1732,39 @@
                         });
                     });
                 });
+            }
+
+            function setupEducationalTabs() {
+                // Setup tab switching for educational content
+                const tabButtons = document.querySelectorAll('.edu-tab');
+
+                tabButtons.forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        const targetTab = this.getAttribute('data-tab');
+                        const parentSection = this.closest('.educational-section');
+
+                        if (!parentSection) return;
+
+                        // Remove active class from all tabs and content in this section
+                        parentSection.querySelectorAll('.edu-tab').forEach(function(tab) {
+                            tab.classList.remove('active');
+                        });
+                        parentSection.querySelectorAll('.edu-tab-content').forEach(function(content) {
+                            content.classList.remove('active');
+                        });
+
+                        // Add active class to clicked tab
+                        this.classList.add('active');
+
+                        // Show corresponding content
+                        const targetContent = parentSection.querySelector(`.edu-tab-content[data-tab="${targetTab}"]`);
+                        if (targetContent) {
+                            targetContent.classList.add('active');
+                        }
+                    });
+                });
+
+                console.log('Educational tabs setup:', tabButtons.length, 'tab buttons found');
             }
 
             console.log('Enhanced frontend initialization complete');
