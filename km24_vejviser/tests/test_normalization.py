@@ -2,7 +2,7 @@
 Test normalization functions for deterministic output.
 """
 import pytest
-from km24_vejviser.main import _normalize_notification, _get_default_sources_for_module, coerce_raw_to_target_shape, apply_min_defaults
+from km24_vejviser.recipe_processor import _normalize_notification, _get_default_sources_for_module, coerce_raw_to_target_shape, apply_min_defaults
 
 
 class TestNotificationNormalization:

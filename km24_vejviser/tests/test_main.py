@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from km24_vejviser.main import app
-from km24_vejviser.main import complete_recipe
+from km24_vejviser.recipe_processor import complete_recipe
 import os
 
 client = TestClient(app)
@@ -66,7 +66,7 @@ def test_internal_server_error(monkeypatch):
 @pytest.mark.asyncio
 async def test_coerce_raw_to_target_shape():
     """Test that coerce_raw_to_target_shape properly structures the output."""
-    from km24_vejviser.main import coerce_raw_to_target_shape
+    from km24_vejviser.recipe_processor import coerce_raw_to_target_shape
     
     # Test input
     input_recipe = {

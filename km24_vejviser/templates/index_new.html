@@ -306,14 +306,15 @@
         }
 
         .search-string {
-            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-            color: #e2e8f0;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #f1f5f9;
             padding: 1.5rem;
             border-radius: 12px;
             margin: 1.5rem 0;
             font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
             position: relative;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+            border: 1px solid rgba(100, 116, 139, 0.3);
         }
 
         .search-syntax {
@@ -325,6 +326,28 @@
             font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
             font-size: 0.9rem;
             border-left: 3px solid #667eea;
+        }
+
+        .search-string code,
+        .search-syntax code {
+            display: block;
+            margin-top: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            color: #fbbf24;
+            font-size: 0.95rem;
+            font-weight: 500;
+            overflow-x: auto;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .search-string strong,
+        .search-syntax strong {
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .copy-btn {
@@ -988,24 +1011,6 @@
             line-height: 1.7;
         }
 
-        .search-string {
-            background: #f1f5f9;
-            padding: 1.25rem;
-            border-radius: 8px;
-            margin: 1.25rem 0;
-            position: relative;
-            border-left: 3px solid #64748b;
-        }
-
-        .search-string code {
-            display: block;
-            margin-top: 0.5rem;
-            padding: 0.75rem;
-            background: white;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            overflow-x: auto;
-        }
 
         /* ==== EDUCATIONAL CONTENT TYPOGRAPHY ==== */
         .edu-content {

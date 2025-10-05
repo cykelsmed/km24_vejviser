@@ -2,7 +2,7 @@
 Test KM24 validation rules.
 """
 import pytest
-from km24_vejviser.main import (
+from km24_vejviser.recipe_processor import (
     validate_km24_recipe, 
     validate_step, 
     validate_module, 

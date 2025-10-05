@@ -2,7 +2,7 @@
 Test KM24 syntax standardization functions.
 """
 import pytest
-from km24_vejviser.main import _standardize_search_string, _apply_km24_syntax_improvements
+from km24_vejviser.recipe_processor import _standardize_search_string, _apply_km24_syntax_improvements
 
 class TestKM24SyntaxStandardization:
     """Test KM24 syntax standardization functions."""

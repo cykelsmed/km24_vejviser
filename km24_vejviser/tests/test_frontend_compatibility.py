@@ -2,7 +2,7 @@
 Test frontend compatibility with deterministic output.
 """
 import pytest
-from km24_vejviser.main import complete_recipe
+from km24_vejviser.recipe_processor import complete_recipe
 
 
 class TestFrontendCompatibility:

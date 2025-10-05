@@ -2,7 +2,7 @@
 Test realistic LLM output that was causing validation errors.
 """
 import pytest
-from km24_vejviser.main import complete_recipe
+from km24_vejviser.recipe_processor import complete_recipe
 from km24_vejviser.models.usecase_response import UseCaseResponse
 
 

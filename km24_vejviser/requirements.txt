@@ -3,9 +3,11 @@ uvicorn[standard]
 python-dotenv
 PyYAML
 anthropic
+google-generativeai
 Jinja2
 pydantic 
 pytest 
 pytest-asyncio
 slowapi
+httpx
 requests

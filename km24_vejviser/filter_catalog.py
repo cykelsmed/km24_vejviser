@@ -85,10 +85,11 @@ class FilterCatalog:
         }
 
         # Build internal knowledge base from cached modules/basic
-        try:
-            self._extract_knowledge_from_modules()
-        except Exception as e:
-            logger.warning(f"Kunne ikke opbygge intern videnbase fra modules/basic: {e}")
+        # NOTE: Disabled since we now use the dedicated KnowledgeBase component
+        # try:
+        #     self._extract_knowledge_from_modules()
+        # except Exception as e:
+        #     logger.warning(f"Kunne ikke opbygge intern videnbase fra modules/basic: {e}")
     
     async def load_all_filters(self, force_refresh: bool = False) -> Dict[str, Any]:
         """Hent alle filter-data fra KM24 API."""

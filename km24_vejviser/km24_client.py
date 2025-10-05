@@ -14,7 +14,7 @@ import logging
 from typing import Optional, Dict, Any, List, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import requests
+import httpx
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -130,7 +130,8 @@ class KM24APIClient:
             url = f"{self.base_url}{endpoint}"
             logger.info(f"API request: {endpoint}")
             
-            response = requests.get(url, headers=headers, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers, timeout=30.0)
             
             if response.status_code == 200:
                 try:
@@ -155,11 +156,11 @@ class KM24APIClient:
             logger.error(error_msg)
             return KM24APIResponse(success=False, error=error_msg)
                 
-        except requests.exceptions.Timeout:
+        except httpx.TimeoutException:
             error_msg = "API timeout - serveren svarede ikke inden for 30 sekunder"
             logger.error(error_msg)
             return KM24APIResponse(success=False, error=error_msg)
-        except requests.exceptions.ConnectionError:
+        except (httpx.ConnectError, httpx.NetworkError):
             error_msg = "API forbindelsesfejl - kunne ikke nå KM24 serveren"
             logger.error(error_msg)
             return KM24APIResponse(success=False, error=error_msg)
