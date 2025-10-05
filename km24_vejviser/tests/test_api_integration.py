@@ -1,6 +1,4 @@
 import os
-import asyncio
-import types
 import pytest
 
 from km24_vejviser.km24_client import KM24APIClient
@@ -57,12 +55,13 @@ async def test_fallback_on_connection_error(monkeypatch):
 
     async def fake_make_request(*args, **kwargs):
         from km24_vejviser.km24_client import KM24APIResponse
-        return KM24APIResponse(success=False, error="API forbindelsesfejl - kunne ikke nå KM24 serveren")
+
+        return KM24APIResponse(
+            success=False, error="API forbindelsesfejl - kunne ikke nå KM24 serveren"
+        )
 
     # Monkeypatch the _make_request method to simulate down API
     monkeypatch.setattr(client, "_make_request", fake_make_request)
 
     res = await client.get_modules_basic(force_refresh=True)
     assert not res.success and "forbindelsesfejl" in (res.error or "")
-
-

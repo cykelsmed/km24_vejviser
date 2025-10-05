@@ -1,4 +1,3 @@
-import asyncio
 
 import pytest
 
@@ -13,7 +12,9 @@ async def test_hyper_relevance_concrete_values_asbest_esbjerg():
     # Ensure base data is loaded (no-op if cached)
     await catalog.load_all_filters()
 
-    recommendations = catalog.get_relevant_filters(goal, modules=["Arbejdstilsyn", "Danske medier"])
+    recommendations = catalog.get_relevant_filters(
+        goal, modules=["Arbejdstilsyn", "Danske medier"]
+    )
 
     # Flatten for easy assertions
     rec_map = {}
@@ -33,5 +34,3 @@ async def test_hyper_relevance_concrete_values_asbest_esbjerg():
         problem_values |= rec_map["module_specific"]
 
     assert any(v.lower() == "asbest" for v in problem_values)
-
-

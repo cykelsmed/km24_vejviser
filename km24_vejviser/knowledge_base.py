@@ -183,19 +183,16 @@ class KnowledgeBase:
         return list(self._profiles_by_id.values())
 
     def select_candidate_modules(
-        self, 
-        goal: str, 
-        all_modules: List[Dict[str, Any]], 
-        count: int = 7
+        self, goal: str, all_modules: List[Dict[str, Any]], count: int = 7
     ) -> List[Dict[str, Any]]:
         """
         Select the most relevant modules for a given goal using intelligent scoring.
-        
+
         Combines:
         - Extracted terms matching (high weight: 10 points per match)
-        - Text overlap scoring (medium weight: 50 points max)  
+        - Text overlap scoring (medium weight: 50 points max)
         - Priority module boost (bonus: 5 points)
-        
+
         Parameters
         ----------
         goal : str
@@ -204,64 +201,68 @@ class KnowledgeBase:
             Full list of modules from get_modules_basic()
         count : int
             Number of modules to return (default 7)
-        
+
         Returns
         -------
         List[Dict[str, Any]]
             List of top-scored modules with longDescription included
         """
         priority_names = {
-            'Registrering', 'Status', 'Tinglysning', 'Arbejdstilsyn',
-            'Lokalpolitik', 'Retslister', 'Domme', 'Personbogen'
+            "Registrering",
+            "Status",
+            "Tinglysning",
+            "Arbejdstilsyn",
+            "Lokalpolitik",
+            "Retslister",
+            "Domme",
+            "Personbogen",
         }
-        
+
         scored_modules = []
-        
+
         for module in all_modules:
-            module_title = module.get('title', '')
-            module_id = module.get('id')
-            long_desc = module.get('longDescription', '')
-            
+            module_title = module.get("title", "")
+            module_id = module.get("id")
+            long_desc = module.get("longDescription", "")
+
             # Skip modules without essential data
             if not module_title or not long_desc:
                 continue
-            
+
             # Get module profile if available
             profile = self.get_profile_by_id(module_id) if module_id else None
-            
+
             score = 0.0
-            
+
             # 1. Extracted terms matching (weight: 10 points per match)
             if profile and profile.extracted_terms:
                 goal_lower = goal.lower()
                 for term in profile.extracted_terms:
                     if term.lower() in goal_lower:
                         score += 10.0
-            
+
             # 2. Text overlap scoring (weight: 50 points max)
             overlap_score = compute_text_overlap_score(goal, long_desc)
             score += overlap_score * 50.0
-            
+
             # 3. Priority module boost (weight: 5 bonus points)
             if module_title in priority_names:
                 score += 5.0
-            
-            scored_modules.append({
-                'module': module,
-                'score': score,
-                'title': module_title
-            })
-        
+
+            scored_modules.append(
+                {"module": module, "score": score, "title": module_title}
+            )
+
         # Sort by score descending
-        scored_modules.sort(key=lambda x: x['score'], reverse=True)
-        
+        scored_modules.sort(key=lambda x: x["score"], reverse=True)
+
         # Log selection for debugging
         logger.info(f"Module selection for goal: {goal[:60]}...")
         for i, item in enumerate(scored_modules[:count], 1):
             logger.info(f"  {i}. {item['title']}: {item['score']:.2f} points")
-        
+
         # Return top N modules
-        return [item['module'] for item in scored_modules[:count]]
+        return [item["module"] for item in scored_modules[:count]]
 
 
 def extract_terms_from_text(text: str) -> Set[str]:
@@ -297,7 +298,6 @@ def extract_terms_from_text(text: str) -> Set[str]:
         "påbud": [r"\bpåbud\b"],
         "vejledning": [r"\bvejledning\b"],
         "asbest": [r"\basbest\b"],
-
         # Tinglysning / ejendom
         # Samlehandel (singular/plural/stem)
         "samlehandel": [
@@ -307,7 +307,6 @@ def extract_terms_from_text(text: str) -> Set[str]:
         "beløbsgrænse": [r"\bbeløb(s)?græn(se|ser)\b", r"\bbeløbsgrænse\w*"],
         "erhvervsejendom": [r"\berhvervsejendom\w*"],
         "landbrugsejendom": [r"\blandbrugsejendom\w*"],
-
         # Medier / kilder
         "lokale medier": [r"\blokale medier\b", r"\blokale\b.*\bmedier\b"],
         "landsdækkende medier": [r"\blandsdækkende medier\b"],
@@ -330,16 +329,16 @@ def extract_terms_from_text(text: str) -> Set[str]:
 def compute_text_overlap_score(goal: str, long_description: str) -> float:
     """
     Compute keyword overlap score between goal and module description.
-    
+
     Uses Jaccard similarity with Danish stopword filtering.
-    
+
     Parameters
     ----------
     goal : str
         User's journalistic goal
     long_description : str
         Module's longDescription text
-    
+
     Returns
     -------
     float
@@ -347,24 +346,55 @@ def compute_text_overlap_score(goal: str, long_description: str) -> float:
     """
     # Danish stopwords to exclude
     stopwords = {
-        'og', 'i', 'en', 'et', 'af', 'til', 'for', 'på', 'med', 'er', 
-        'som', 'det', 'der', 'den', 'kan', 'har', 'ved', 'fra', 'om',
-        'at', 'de', 'du', 'vi', 'så', 'også', 'men', 'skal', 'være'
+        "og",
+        "i",
+        "en",
+        "et",
+        "af",
+        "til",
+        "for",
+        "på",
+        "med",
+        "er",
+        "som",
+        "det",
+        "der",
+        "den",
+        "kan",
+        "har",
+        "ved",
+        "fra",
+        "om",
+        "at",
+        "de",
+        "du",
+        "vi",
+        "så",
+        "også",
+        "men",
+        "skal",
+        "være",
     }
-    
+
     # Tokenize and normalize both texts
-    goal_words = set(w.lower() for w in re.findall(r'\w+', goal) 
-                     if len(w) > 2 and w.lower() not in stopwords)
-    desc_words = set(w.lower() for w in re.findall(r'\w+', long_description) 
-                     if len(w) > 2 and w.lower() not in stopwords)
-    
+    goal_words = set(
+        w.lower()
+        for w in re.findall(r"\w+", goal)
+        if len(w) > 2 and w.lower() not in stopwords
+    )
+    desc_words = set(
+        w.lower()
+        for w in re.findall(r"\w+", long_description)
+        if len(w) > 2 and w.lower() not in stopwords
+    )
+
     if not goal_words or not desc_words:
         return 0.0
-    
+
     # Calculate Jaccard similarity
     overlap = len(goal_words & desc_words)
     union = len(goal_words | desc_words)
-    
+
     return overlap / union if union > 0 else 0.0
 
 
@@ -411,7 +441,9 @@ def map_terms_to_parts(
         part_type = str(part.get("part", ""))
         normalized_parts.append((part_id, name.casefold(), part_type))
 
-    def find_part_by_name_keywords(keywords: Iterable[str]) -> Optional[Tuple[int, str, str]]:
+    def find_part_by_name_keywords(
+        keywords: Iterable[str],
+    ) -> Optional[Tuple[int, str, str]]:
         for part_id, name_lower, part_type in normalized_parts:
             if any(kw in name_lower for kw in keywords):
                 return part_id, name_lower, part_type
@@ -456,7 +488,9 @@ def map_terms_to_parts(
                 continue
 
         if term_lower in {"samlehandel", "beløbsgrænse"}:
-            candidate = find_part_by_name_keywords(["samlehandel", "beløb", "amount"])  # dækker DK/EN
+            candidate = find_part_by_name_keywords(
+                ["samlehandel", "beløb", "amount"]
+            )  # dækker DK/EN
             if candidate:
                 part_id, name_lower, part_type = candidate
                 mappings.append(
@@ -474,7 +508,9 @@ def map_terms_to_parts(
                 continue
 
         if term_lower in {"erhvervsejendom", "landbrugsejendom"}:
-            candidate = find_part_by_name_keywords(["ejendom", "property"])  # dækker DK/EN
+            candidate = find_part_by_name_keywords(
+                ["ejendom", "property"]
+            )  # dækker DK/EN
             if candidate:
                 part_id, name_lower, part_type = candidate
                 mappings.append(
@@ -493,7 +529,9 @@ def map_terms_to_parts(
 
         # Medie-relaterede termer kan pege på web_source parts
         if term_lower in {"lokale medier", "landsdækkende medier"}:
-            candidate = find_part_by_name_keywords(["kilde", "medie", "web", "source"])  # dækker DK/EN
+            candidate = find_part_by_name_keywords(
+                ["kilde", "medie", "web", "source"]
+            )  # dækker DK/EN
             if candidate:
                 part_id, name_lower, part_type = candidate
                 mappings.append(
@@ -524,5 +562,3 @@ def get_knowledge_base() -> KnowledgeBase:
     if _knowledge_base is None:
         _knowledge_base = KnowledgeBase()
     return _knowledge_base
-
-

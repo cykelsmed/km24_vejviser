@@ -1,5 +1,4 @@
-import asyncio
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 import pytest
 
@@ -54,24 +53,36 @@ async def test_knowledge_base_builds_profiles_from_basic():
     # Terms
     assert {"forbud", "strakspåbud", "asbest"}.issubset(at.extracted_terms)
     # Mappings
-    reaction_terms = {m.term for m in at.term_mappings if m.part_name and "reaktion" in m.part_name}
+    reaction_terms = {
+        m.term for m in at.term_mappings if m.part_name and "reaktion" in m.part_name
+    }
     assert {"forbud", "strakspåbud"}.issubset(reaction_terms)
-    problem_terms = {m.term for m in at.term_mappings if m.part_name and "problem" in m.part_name}
+    problem_terms = {
+        m.term for m in at.term_mappings if m.part_name and "problem" in m.part_name
+    }
     assert "asbest" in problem_terms
 
     ting = kb.get_profile_by_title("Tinglysning")
     assert ting is not None
-    assert {"samlehandel", "beløbsgrænse", "erhvervsejendom"}.issubset(ting.extracted_terms)
-    has_amount_map = any(m.term == "samlehandel" and m.part_id == 5101 for m in ting.term_mappings)
+    assert {"samlehandel", "beløbsgrænse", "erhvervsejendom"}.issubset(
+        ting.extracted_terms
+    )
+    has_amount_map = any(
+        m.term == "samlehandel" and m.part_id == 5101 for m in ting.term_mappings
+    )
     assert has_amount_map
-    has_property_map = any(m.term == "erhvervsejendom" and m.part_id == 5102 for m in ting.term_mappings)
+    has_property_map = any(
+        m.term == "erhvervsejendom" and m.part_id == 5102 for m in ting.term_mappings
+    )
     assert has_property_map
 
 
 def test_extract_terms_from_text_basic():
     text = "Asbest kan føre til Forbud eller Strakspåbud. Samlehandel og beløbsgrænser nævnes også."
     terms = extract_terms_from_text(text)
-    assert {"asbest", "forbud", "strakspåbud", "samlehandel", "beløbsgrænse"}.issubset(terms)
+    assert {"asbest", "forbud", "strakspåbud", "samlehandel", "beløbsgrænse"}.issubset(
+        terms
+    )
 
 
 def test_map_terms_to_parts_by_names():
@@ -87,5 +98,3 @@ def test_map_terms_to_parts_by_names():
     assert any(m.term == "asbest" and m.part_id == 2 for m in mappings)
     assert any(m.term == "samlehandel" and m.part_id == 3 for m in mappings)
     assert any(m.term == "erhvervsejendom" and m.part_id == 4 for m in mappings)
-
-

@@ -11,7 +11,6 @@ ensure consistent, high-quality educational content through hardcoded knowledge.
 import logging
 from typing import Dict, List, Optional, Any
 from km24_vejviser.content_library import ContentLibrary
-from km24_vejviser.models.usecase_response import StepEducational, EducationalContent
 
 logger = logging.getLogger(__name__)
 
@@ -103,10 +102,12 @@ class RecipeEnricher:
             "red_flags": red_flags,
             "action_plan": action_plan,
             "example_hit": example_hit,
-            "pedagogical_guide": pedagogical_guide
+            "pedagogical_guide": pedagogical_guide,
         }
 
-    def _explain_filters(self, filters: Dict[str, Any], module_name: str) -> Dict[str, str]:
+    def _explain_filters(
+        self, filters: Dict[str, Any], module_name: str
+    ) -> Dict[str, str]:
         """
         Generate human-readable explanations for each filter.
 
@@ -128,7 +129,7 @@ class RecipeEnricher:
             explanation = self.content_lib.explain_filter(
                 filter_name=filter_name,
                 filter_values=filter_values,
-                module_name=module_name
+                module_name=module_name,
             )
             explanations[filter_name] = explanation
 
@@ -146,7 +147,9 @@ class RecipeEnricher:
             Principle key (cvr_first, hitlogik, notification_strategy) or None
         """
         # Use ContentLibrary's heuristic to determine relevant principle
-        principle_key = self.content_lib.get_relevant_principle_for_goal(goal, module_name)
+        principle_key = self.content_lib.get_relevant_principle_for_goal(
+            goal, module_name
+        )
 
         if principle_key:
             # Return the full principle text
@@ -175,13 +178,13 @@ class RecipeEnricher:
         mistakes = []
 
         # Parse numbered mistakes from pitfalls text
-        lines = pitfalls_text.split('\n')
+        lines = pitfalls_text.split("\n")
         for line in lines:
             line = line.strip()
             # Match lines starting with numbers (1. 2. etc.)
-            if line and line[0].isdigit() and '.' in line[:3]:
+            if line and line[0].isdigit() and "." in line[:3]:
                 # Extract mistake title (before the colon or newline)
-                mistake = line.split(':', 1)[0].strip()
+                mistake = line.split(":", 1)[0].strip()
                 if mistake:
                     mistakes.append(mistake)
 
@@ -203,33 +206,53 @@ class RecipeEnricher:
 
         # Module-specific red flags
         if module_name == "Arbejdstilsyn":
-            if "Forbud" in filters.get("Reaktion", []) or "Strakspåbud" in filters.get("Reaktion", []):
-                red_flags.append("🚨 Alvorlige arbejdsmiljø-overtrædelser der kræver øjeblikkelig handling")
-                red_flags.append("🚨 Gentagne kritikpunkter af samme virksomhed indikerer systematiske problemer")
+            if "Forbud" in filters.get("Reaktion", []) or "Strakspåbud" in filters.get(
+                "Reaktion", []
+            ):
+                red_flags.append(
+                    "🚨 Alvorlige arbejdsmiljø-overtrædelser der kræver øjeblikkelig handling"
+                )
+                red_flags.append(
+                    "🚨 Gentagne kritikpunkter af samme virksomhed indikerer systematiske problemer"
+                )
 
         elif module_name == "Status":
             if "Konkurs" in filters.get("Statustype", []):
-                red_flags.append("🚨 Konkurs inden for 6 måneder efter Arbejdstilsyn-kritik")
-                red_flags.append("🚨 Samme personer bag flere konkurser (konkursryttere)")
+                red_flags.append(
+                    "🚨 Konkurs inden for 6 måneder efter Arbejdstilsyn-kritik"
+                )
+                red_flags.append(
+                    "🚨 Samme personer bag flere konkurser (konkursryttere)"
+                )
 
         elif module_name == "Tinglysning":
             # Tinglysning filters are arrays, not dicts with min_amount
             # Just provide generic high-value transaction red flags
-            red_flags.append("🚨 Uventede købere (politikere, embedsmænd) kan indikere interessekonflikter")
+            red_flags.append(
+                "🚨 Uventede købere (politikere, embedsmænd) kan indikere interessekonflikter"
+            )
             red_flags.append("🚨 Udenlandske selskaber med uklare ejere")
             red_flags.append("🚨 Transaktioner med usædvanlige beløb eller timing")
 
         elif module_name == "Personbogen":
-            red_flags.append("🚨 Pant i løsøre eller virksomhedspant indikerer økonomiske problemer")
+            red_flags.append(
+                "🚨 Pant i løsøre eller virksomhedspant indikerer økonomiske problemer"
+            )
             red_flags.append("🚨 Gentagne panteindførsler over kort periode")
 
         elif module_name == "Lokalpolitik":
-            red_flags.append("🚨 Habilitetserklæringer eller inhabilitet ved afstemninger")
-            red_flags.append("🚨 Hastemøder eller ekstraordinære beslutninger uden normal høring")
+            red_flags.append(
+                "🚨 Habilitetserklæringer eller inhabilitet ved afstemninger"
+            )
+            red_flags.append(
+                "🚨 Hastemøder eller ekstraordinære beslutninger uden normal høring"
+            )
 
         # Generic fallback
         if not red_flags:
-            red_flags.append(f"⚠️  Overvåg {module_name}-hits for uventede mønstre eller outliers")
+            red_flags.append(
+                f"⚠️  Overvåg {module_name}-hits for uventede mønstre eller outliers"
+            )
 
         return red_flags
 
@@ -274,7 +297,9 @@ class RecipeEnricher:
             action_plan += "4. **Sammenlign med lokalpolitik** - Er der politiske beslutninger relateret til ejendommen?\n"
 
         elif module_name == "Lokalpolitik":
-            action_plan += "3. **Deltag i møder** - Overvej at møde op til politiske møder\n"
+            action_plan += (
+                "3. **Deltag i møder** - Overvej at møde op til politiske møder\n"
+            )
             action_plan += "4. **Interview politikere** - Få baggrundshistorien og modsatrettede synspunkter\n"
 
         action_plan += "5. **Dokumentér alt** - Gem PDFer, screenshots, og notater til senere reference\n"
@@ -296,7 +321,11 @@ class RecipeEnricher:
 
         # Module-specific examples
         if module_name == "Arbejdstilsyn":
-            problem = filters.get("Problem", ["Asbest"])[0] if filters.get("Problem") else "Asbest"
+            problem = (
+                filters.get("Problem", ["Asbest"])[0]
+                if filters.get("Problem")
+                else "Asbest"
+            )
             return f"""**Eksempel på {module_name}-hit:**
 
 📋 Virksomhed: Byggeentreprenør ApS (CVR: 12345678)
@@ -330,7 +359,11 @@ class RecipeEnricher:
 """
 
         elif module_name == "Registrering":
-            branch_code = filters.get("Branche", ["41.20"])[0] if filters.get("Branche") else "41.20"
+            branch_code = (
+                filters.get("Branche", ["41.20"])[0]
+                if filters.get("Branche")
+                else "41.20"
+            )
             return f"""**Eksempel på {module_name}-hit:**
 
 🆕 Ny virksomhed registreret
@@ -365,9 +398,10 @@ class RecipeEnricher:
         """
         return {
             "syntax_guide": self.content_lib.get_syntax_guide(),
-            "common_pitfalls": self.content_lib.get_static_section("common_pitfalls") or "",
+            "common_pitfalls": self.content_lib.get_static_section("common_pitfalls")
+            or "",
             "troubleshooting": self.content_lib.get_troubleshooting(),
-            "km24_principles": self._format_principles_for_output()
+            "km24_principles": self._format_principles_for_output(),
         }
 
     def _format_principles_for_output(self) -> Dict[str, str]:
@@ -382,6 +416,8 @@ class RecipeEnricher:
 
         for key, principle in all_principles.items():
             # Format as "Title: Description"
-            formatted[key] = f"{principle['title']}\n\n{principle['description']}\n\nAnvend når: {principle['when_to_apply']}"
+            formatted[key] = (
+                f"{principle['title']}\n\n{principle['description']}\n\nAnvend når: {principle['when_to_apply']}"
+            )
 
         return formatted

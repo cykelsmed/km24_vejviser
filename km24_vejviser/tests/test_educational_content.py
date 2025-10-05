@@ -6,14 +6,19 @@ backward compatibility.
 """
 
 import pytest
-from km24_vejviser.content_library import ContentLibrary, STATIC_SECTIONS, KM24_PRINCIPLES, QUALITY_CHECKLISTS
+from km24_vejviser.content_library import (
+    ContentLibrary,
+    STATIC_SECTIONS,
+    KM24_PRINCIPLES,
+    QUALITY_CHECKLISTS,
+)
 from km24_vejviser.enrichment import RecipeEnricher
 from km24_vejviser.models.usecase_response import (
     StepEducational,
     EducationalContent,
     Step,
     ModuleRef,
-    UseCaseResponse
+    UseCaseResponse,
 )
 
 
@@ -58,21 +63,24 @@ class TestContentLibrary:
 
     def test_explain_filter_kommune(self):
         """Test filter explanation for Kommune."""
-        explanation = ContentLibrary.explain_filter("Kommune", ["Aarhus"], "Registrering")
+        explanation = ContentLibrary.explain_filter(
+            "Kommune", ["Aarhus"], "Registrering"
+        )
         assert "Geografisk fokus" in explanation
         assert "Aarhus" in explanation
 
     def test_explain_filter_branche(self):
         """Test filter explanation for Branche."""
-        explanation = ContentLibrary.explain_filter("Branche", ["41.20"], "Registrering")
+        explanation = ContentLibrary.explain_filter(
+            "Branche", ["41.20"], "Registrering"
+        )
         assert "Branchekoder" in explanation
         assert "41.20" in explanation
 
     def test_get_relevant_principle_for_registrering(self):
         """Test principle selection for Registrering module."""
         principle_key = ContentLibrary.get_relevant_principle_for_goal(
-            "Overvåg byggevirksomheder",
-            "Registrering"
+            "Overvåg byggevirksomheder", "Registrering"
         )
         assert principle_key == "cvr_first"
 
@@ -89,7 +97,7 @@ class TestPydanticModels:
             common_mistakes=["Mistake 1"],
             red_flags=["Red flag 1"],
             action_plan="Take action",
-            example_hit="Example hit"
+            example_hit="Example hit",
         )
         assert edu.principle == "CVR-først"
         assert len(edu.quality_checklist) == 2
@@ -101,7 +109,7 @@ class TestPydanticModels:
             syntax_guide="Syntax here",
             common_pitfalls="Pitfalls here",
             troubleshooting="Troubleshooting here",
-            km24_principles={"cvr_first": "Description"}
+            km24_principles={"cvr_first": "Description"},
         )
         assert edu_content.syntax_guide == "Syntax here"
         assert len(edu_content.km24_principles) == 1
@@ -113,7 +121,7 @@ class TestPydanticModels:
             title="Test Step",
             type="monitoring",
             module=ModuleRef(id="1", name="Registrering"),
-            rationale="Test rationale"
+            rationale="Test rationale",
         )
         assert step.educational is None
 
@@ -126,7 +134,7 @@ class TestPydanticModels:
             common_mistakes=[],
             red_flags=[],
             action_plan="Test action",
-            example_hit="Test hit"
+            example_hit="Test hit",
         )
         step = Step(
             step_number=1,
@@ -134,7 +142,7 @@ class TestPydanticModels:
             type="monitoring",
             module=ModuleRef(id="1", name="Registrering"),
             rationale="Test rationale",
-            educational=edu
+            educational=edu,
         )
         assert step.educational is not None
         assert step.educational.principle == "Test principle"
@@ -158,7 +166,7 @@ class TestRecipeEnricher:
                 {
                     "module": {"name": "Registrering", "id": "1"},
                     "filters": {"Branche": ["41.20"], "Kommune": ["Aarhus"]},
-                    "notification": "interval"
+                    "notification": "interval",
                 }
             ]
         }
@@ -182,13 +190,13 @@ class TestRecipeEnricher:
                 {
                     "module": {"name": "Registrering", "id": "1"},
                     "filters": {"Branche": ["41.20"]},
-                    "notification": "interval"
+                    "notification": "interval",
                 },
                 {
                     "module": {"name": "Arbejdstilsyn", "id": "2"},
                     "filters": {"Problem": ["Asbest"]},
-                    "notification": "instant"
-                }
+                    "notification": "instant",
+                },
             ]
         }
 
@@ -224,9 +232,9 @@ class TestRecipeEnricher:
                     "filters": {
                         "Problem": ["Asbest"],
                         "Kommune": ["Aarhus"],
-                        "Reaktion": ["Forbud"]
+                        "Reaktion": ["Forbud"],
                     },
-                    "notification": "instant"
+                    "notification": "instant",
                 }
             ]
         }
@@ -248,7 +256,7 @@ class TestRecipeEnricher:
                 {
                     "module": {"name": "Arbejdstilsyn", "id": "1"},
                     "filters": {"Reaktion": ["Forbud"]},
-                    "notification": "instant"
+                    "notification": "instant",
                 }
             ]
         }
@@ -263,7 +271,7 @@ class TestRecipeEnricher:
                 {
                     "module": {"name": "Status", "id": "1"},
                     "filters": {"Statustype": ["Konkurs"]},
-                    "notification": "instant"
+                    "notification": "instant",
                 }
             ]
         }
@@ -281,7 +289,7 @@ class TestRecipeEnricher:
                 {
                     "module": {"name": "Registrering", "id": "1"},
                     "filters": {},
-                    "notification": "interval"
+                    "notification": "interval",
                 }
             ]
         }
@@ -302,7 +310,7 @@ class TestRecipeEnricher:
                 {
                     "module": {"name": "Arbejdstilsyn", "id": "1"},
                     "filters": {"Problem": ["Asbest"]},
-                    "notification": "instant"
+                    "notification": "instant",
                 }
             ]
         }
@@ -320,35 +328,19 @@ class TestBackwardCompatibility:
 
     def test_old_recipe_without_educational_validates(self):
         """Test that recipes without educational fields still validate."""
-        from km24_vejviser.models.usecase_response import (
-            UseCaseResponse, Overview, Scope, Monitoring, HitBudget,
-            Notifications, ParallelProfile, SyntaxGuide, Quality, Artifacts
-        )
 
         # Minimal recipe without educational fields
         recipe_dict = {
             "overview": {
                 "title": "Test Investigation",
                 "strategy_summary": "Test strategy",
-                "creative_approach": "Test approach"
+                "creative_approach": "Test approach",
             },
-            "scope": {
-                "primary_focus": "Test focus"
-            },
-            "monitoring": {
-                "type": "keywords",
-                "frequency": "daily"
-            },
-            "hit_budget": {
-                "expected_hits": "moderate"
-            },
-            "notifications": {
-                "primary": "daily",
-                "channels": ["email"]
-            },
-            "parallel_profile": {
-                "max_concurrent": 3
-            },
+            "scope": {"primary_focus": "Test focus"},
+            "monitoring": {"type": "keywords", "frequency": "daily"},
+            "hit_budget": {"expected_hits": "moderate"},
+            "notifications": {"primary": "daily", "channels": ["email"]},
+            "parallel_profile": {"max_concurrent": 3},
             "steps": [
                 {
                     "step_number": 1,
@@ -357,27 +349,15 @@ class TestBackwardCompatibility:
                     "module": {
                         "id": "1",
                         "name": "Registrering",
-                        "is_web_source": False
+                        "is_web_source": False,
                     },
                     "rationale": "Test rationale",
-                    "filters": {}
+                    "filters": {},
                 }
             ],
-            "syntax_guide": {
-                "basic_syntax": [],
-                "advanced_syntax": [],
-                "tips": []
-            },
-            "quality": {
-                "checks": [],
-                "warnings": [],
-                "recommendations": []
-            },
-            "artifacts": {
-                "exports": [],
-                "reports": [],
-                "visualizations": []
-            }
+            "syntax_guide": {"basic_syntax": [], "advanced_syntax": [], "tips": []},
+            "quality": {"checks": [], "warnings": [], "recommendations": []},
+            "artifacts": {"exports": [], "reports": [], "visualizations": []},
         }
 
         # Should validate without educational_content field

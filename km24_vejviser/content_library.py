@@ -41,7 +41,6 @@ STATIC_SECTIONS: Dict[str, str] = {
 - Lokalplaner: `vindmølle;vindenergi AND ~VVM-redegørelse~ OR miljøgodkendelse`
 - Politiske sager: `interessekonflikt;habilitet AND borgmester;rådmand`
 """,
-
     "common_pitfalls": """
 **Typiske fejl ved opsætning af KM24-overvågning:**
 
@@ -70,7 +69,6 @@ STATIC_SECTIONS: Dict[str, str] = {
 8. **For brede søgeord**: ❌ `"virksomhed"` giver tusinder af irrelevante hits
    - Korrekt: Kombiner med specifikke termer: `konkurs;betalingsstandsning AND revisor;regnskab`
 """,
-
     "troubleshooting": """
 **Fejlfinding når overvågningen ikke virker som forventet:**
 
@@ -97,7 +95,7 @@ STATIC_SECTIONS: Dict[str, str] = {
 - Løsning 2: Opret flere steps med forskellige filtervinkler
 - Løsning 3: Brug bredere geografiske filtre (region i stedet for enkelt kommune)
 - Løsning 4: Kombiner automatisk overvågning med periodiske manuelle søgninger
-"""
+""",
 }
 
 
@@ -126,9 +124,8 @@ før du overvåger dem i andre moduler (Arbejdstilsyn, Status, Tinglysning).
 - ❌ Forkert: Arbejdstilsyn med Søgeord: "byggeri" (matcher tekster, ikke virksomheder)
 - ✅ Korrekt: Step 1 = Registrering (Branche: 41.20), Step 2 = Arbejdstilsyn (Virksomhed: CVR fra step 1)
 """,
-        "when_to_apply": "Når målet involverer virksomheder (byggeri, fødevarer, transport, etc.)"
+        "when_to_apply": "Når målet involverer virksomheder (byggeri, fødevarer, transport, etc.)",
     },
-
     "hitlogik": {
         "title": "Hitlogik - Kombiner filtre intelligent",
         "description": """
@@ -151,9 +148,8 @@ Hitlogik-filteret styrer hvordan KM24 kombinerer dine filtre:
 - Kombiner altid geografiske og tematiske filtre for fokuseret overvågning
 - Brug separate steps hvis logikken bliver for kompleks
 """,
-        "when_to_apply": "Når du kombinerer flere filtre og skal styre matchningslogik"
+        "when_to_apply": "Når du kombinerer flere filtre og skal styre matchningslogik",
     },
-
     "notification_strategy": {
         "title": "Notifikationsstrategi - Løbende vs. Interval",
         "description": """
@@ -183,8 +179,8 @@ Vælg notifikationsfrekvens baseret på hitvolumen og tidskritikalitet:
 - 10-50 hits/måned → Interval (dagligt)
 - >50 hits/måned → Interval (ugentligt) eller stram filtrene
 """,
-        "when_to_apply": "Ved ALLE steps - kritisk for brugervenlighed"
-    }
+        "when_to_apply": "Ved ALLE steps - kritisk for brugervenlighed",
+    },
 }
 
 
@@ -198,81 +194,72 @@ QUALITY_CHECKLISTS: Dict[str, List[str]] = {
         "✓ Kommune-filter er sat hvis geografisk fokus",
         "✓ Notifikation er sat til 'interval' (Registrering giver mange hits)",
         "✓ CVR-numre fra dette step kan genbruges i andre moduler",
-        "✓ Branchekoder matcher faktisk målgruppen (tjek Danmarks Statistiks database)"
+        "✓ Branchekoder matcher faktisk målgruppen (tjek Danmarks Statistiks database)",
     ],
-
     "Status": [
         "✓ Statustype er specificeret (Konkurs, Likvidation, Opløst, etc.)",
         "✓ Virksomhed-filter er sat (fra Registrering-step) eller Branche er specificeret",
         "✓ Notifikation er 'løbende' hvis konkurs/likvidation (tidskritisk)",
         "✓ Notifikation er 'interval' hvis mindre kritiske statusændringer",
-        "✓ Overvej om Person-filter skal tilføjes (track personer på tværs af virksomheder)"
+        "✓ Overvej om Person-filter skal tilføjes (track personer på tværs af virksomheder)",
     ],
-
     "Arbejdstilsyn": [
         "✓ Problem-filter er sat (Asbest, Stilladser, Psykisk arbejdsmiljø, etc.)",
         "✓ Reaktion-filter er sat hvis kun kritiske sager (Forbud, Strakspåbud)",
         "✓ Kommune eller Branche er specificeret (undgå for brede søgninger)",
         "✓ Notifikation er 'løbende' hvis Forbud/Strakspåbud (meget alvorligt)",
-        "✓ Virksomhed-filter fra Registrering er sat hvis CVR-først strategi"
+        "✓ Virksomhed-filter fra Registrering er sat hvis CVR-først strategi",
     ],
-
     "Lokalpolitik": [
         "✓ Kommune/Region er specificeret (konkrete navne, ikke generiske begreber)",
         "✓ Søgeord er sat hvis tematisk fokus (brug semikolon for synonymer)",
         "✓ Udvalg-filter overvejes hvis kun visse politikområder er relevante",
         "✓ Dokumenttype er overvejet (Dagsorden vs. Referat)",
-        "✓ Notifikation er 'interval' (Lokalpolitik giver mange hits)"
+        "✓ Notifikation er 'interval' (Lokalpolitik giver mange hits)",
     ],
-
     "Tinglysning": [
         "✓ Beløbsgrænse er sat (Ejendomshandel eller Samlehandel filter)",
         "✓ Ejendomstype er overvejet (Ejerlejlighed, Enfamiliehus, Erhvervsejendom, etc.)",
         "✓ Kommune eller BFE-nummer er sat hvis geografisk fokus",
         "✓ Person eller Virksomhed filter er sat hvis specifik overvågning",
         "✓ Notifikation er 'løbende' hvis høj beløbsgrænse (>50 mio., meget relevant)",
-        "✓ Notifikation er 'interval' hvis lavere beløbsgrænse (mange hits)"
+        "✓ Notifikation er 'interval' hvis lavere beløbsgrænse (mange hits)",
     ],
-
     "Personbogen": [
         "✓ Person-filter er sat hvis track specifik person",
         "✓ Virksomhed-filter er sat hvis track virksomhedens ejere",
         "✓ Kommune-filter overvejes hvis geografisk fokus",
         "✓ Søgeord er sat hvis tematisk (fx 'virksomhedspant', 'løsørepant')",
-        "✓ Notifikation typisk 'løbende' (pant indikerer økonomiske problemer)"
+        "✓ Notifikation typisk 'løbende' (pant indikerer økonomiske problemer)",
     ],
-
     "Domme": [
         "✓ Gerningskode er overvejet hvis specifik kriminalitet",
         "✓ Ret-filter er sat hvis kun visse domstole (Højesteret, Landsret, etc.)",
         "✓ Virksomhed eller Person filter er sat hvis specifik overvågning",
         "✓ Søgeord er sat hvis tematisk (kombiner med Gerningskode)",
-        "✓ Notifikation typisk 'interval' (domme er ikke akut tidskritiske)"
+        "✓ Notifikation typisk 'interval' (domme er ikke akut tidskritiske)",
     ],
-
     "Retslister": [
         "✓ Gerningskode er sat hvis specifik kriminalitet",
         "✓ Ret-filter er sat hvis kun visse geografiske områder",
         "✓ Søgeord kombinerer gerningstype med kontekst",
         "✓ Person eller Virksomhed filter overvejes",
-        "✓ Notifikation typisk 'interval' (retslister kommer løbende)"
+        "✓ Notifikation typisk 'interval' (retslister kommer løbende)",
     ],
-
     "Danske medier": [
         "✓ Medie-filter er sat (konkrete medienavne fra dropdown)",
         "✓ Søgeord bruger semikolon for synonymer og AND for kombination",
         "✓ Boolean operatorer er i STORE bogstaver (AND, OR, NOT)",
         "✓ Virksomhed-filter overvejes hvis track specifik virksomhed",
-        "✓ Notifikation er 'interval' (medier producerer meget indhold)"
+        "✓ Notifikation er 'interval' (medier producerer meget indhold)",
     ],
-
     "Børsmeddelelser": [
         "✓ Marked-filter er sat (Nasdaq Copenhagen, First North, etc.)",
         "✓ Virksomhed-filter er sat hvis specifik virksomhed",
         "✓ Søgeord er sat hvis tematisk (fx 'kapitaludvidelse', 'direktion')",
         "✓ Notifikation typisk 'løbende' (børsmeddelelser er tidskritiske)",
-        "✓ Branche-filter overvejes hvis track hele sektor"
-    ]
+        "✓ Branche-filter overvejes hvis track hele sektor",
+    ],
 }
 
 
@@ -297,7 +284,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 - 01.41: Mælkeproduktion
 
 **Pro tip:** Eksportér CVR-numre fra dette step og brug dem som filter i andre moduler (Arbejdstilsyn, Status, Tinglysning) for præcis tracking.""",
-
     "Status": """**Forstå status-typerne:**
 
 📊 **Under konkurs:** Konkursbegæring er indgivet, kurator er udpeget. Processen er startet.
@@ -309,7 +295,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 📊 **Under konkurs efter rekonstruktion:** Rekonstruktionsforsøg mislykkedes, nu konkurs.
 
 **Pro tip:** Sammenlign konkurs-datoer med Arbejdstilsyn-kritik. Konkurs kort efter alvorlig kritik kan indikere årsagssammenhæng.""",
-
     "Arbejdstilsyn": """**Reaktionstyper - hvor alvorligt er det?**
 
 🚨 **Forbud (mest alvorligt):** Arbejde skal standses øjeblikkeligt. Overtrædelsen er så alvorlig at den udgør umiddelbar fare.
@@ -321,7 +306,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 📝 **Rådgivningspåbud:** Virksomheden skal købe ekstern rådgivning til at løse problemet.
 
 **Pro tip:** Filtrer på Forbud + Strakspåbud for de mest alvorlige sager. Track om virksomheder får gentagne påbud - indikerer systematiske problemer.""",
-
     "Tinglysning": """**Forstå beløbsgrænser:**
 
 🏠 **Under 10 mio.:** Standard boliger, mindre erhvervsejendomme
@@ -334,7 +318,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 - Selskaber med uklare ejerstrukturer → hvidvask?
 
 **Pro tip:** Sammenlign Tinglysning med Lokalpolitik - blev lokalplan ændret kort før salg? Blev værdien kunstigt øget?""",
-
     "Personbogen": """**Brug Personbogen til at finde skjulte forbindelser:**
 
 🔍 **Virksomhedspant:** Pant i virksomhedens aktiver. Indikerer økonomiske problemer eller stor gæld.
@@ -344,7 +327,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 🔍 **Ejerskifte:** Hvem er de nye ejere? Tidligere konkurser? Relationer til andre overvågede virksomheder?
 
 **Pro tip:** Når du får et hit, undersøg om personerne også optræder i dine andre overvågninger (Registrering, Status, Lokalpolitik). Find mønstre på tværs.""",
-
     "Lokalpolitik": """**Politiske dokumenter - hvad skal du kigge efter:**
 
 📋 **Lokalplaner:** Ændringer i byggeret, zonestatus - hvem profiterer?
@@ -356,7 +338,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 💰 **Store kontrakter:** Offentlige udbud over visse beløb - hvem vinder? Sammenhæng til donationer?
 
 **Pro tip:** Deltag i møderne! Politikere er mere tilbageholdende med tvivlsomme beslutninger når pressen er til stede.""",
-
     "Domme": """**Forstå domstolshierarkiet:**
 
 ⚖️  **Byret:** Førsteinstans - kan ankes til landsret
@@ -369,7 +350,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 - Arbejdsmiljø-ulykker med strafansvar
 
 **Pro tip:** Kombiner med Retslister - følg sagen fra anmeldelse til dom.""",
-
     "Retslister": """**Retslister viser hvem der er sigtet:**
 
 ⚠️  **Vigtigt:** Sigtet = IKKE dømt. Uskyldspræsumtion gælder.
@@ -381,7 +361,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 - 290-299: Økonomisk kriminalitet
 
 **Pro tip:** Brug Retslister til at finde sager tidligt, følg op med Domme-modulet når dommen falder. Interview forsvar + anklager for baggrundshistorien.""",
-
     "Danske medier": """**Medieovervågning - udnyt konkurrentanalyse:**
 
 📰 **Lokale medier** giver ofte tidligere signaler end landsdækkende - de er tættere på.
@@ -394,7 +373,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 - Filtrér støj: `byggeri NOT boligannoncer NOT stillingsannoncer`
 
 **Pro tip:** Når konkurrent har en historie, lav en bedre follow-up med dine data fra KM24-moduler.""",
-
     "Kommuner": """**Kommunale hjemmesider - hvad ligger her:**
 
 📢 **Pressemeddelelser:** Officiel kommunikation - hvad vil de fremhæve?
@@ -402,7 +380,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 📊 **Rapporter:** Tunge dokumenter med detaljer der ikke kommer i pressemeddelelser
 
 **Pro tip:** Sammenlign kommunens pressemeddelelser med faktiske data fra andre moduler - er der ting de ikke nævner?""",
-
     "Miljøsager": """**Miljøtilladelser og håndhævelser:**
 
 ✅ **Tilladelser:** Nye miljøgodkendelser - hvad får virksomheden lov til?
@@ -415,7 +392,6 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 - Store udledningsændringer (øget forurening?)
 
 **Pro tip:** Søg aktindsigt i fulde tilsynsrapporter - der står meget mere end i det offentliggjorte sammendrag.""",
-
     "Regnskaber": """**Årsrapporter - gravsignaler:**
 
 📊 **Revisorpåtegning:** "Forbehold" eller "supplerende oplysninger" = problemer
@@ -424,20 +400,20 @@ DYNAMIC_GUIDES: Dict[str, str] = {
 ⚠️  **Uden revisor:** Små virksomheder behøver ikke revisor, men det kan skjule problemer
 
 **Pro tip:** Sammenlign regnskaber over flere år - pludselig forværring kan forudsige konkurs.""",
-
     "Kapitalændring": """**Kapitalændringer - hvad sker der:**
 
 📈 **Kapitalforhøjelse:** Nye penge ind - expansion eller redningsaktion?
 📉 **Kapitalnedsættelse:** Betaling til ejere eller signaler om problemer?
 🔄 **Fusion/spaltning:** Virksomhedsstruktur ændres - hvorfor? skatteoptimering?
 
-**Pro tip:** Store kapitalændringer lige efter kritik (Arbejdstilsyn) eller før salg (Tinglysning) kan være interessante."""
+**Pro tip:** Store kapitalændringer lige efter kritik (Arbejdstilsyn) eller før salg (Tinglysning) kan være interessante.""",
 }
 
 
 # ============================================================================
 # ContentLibrary - Main interface for accessing educational content
 # ============================================================================
+
 
 class ContentLibrary:
     """
@@ -523,9 +499,7 @@ class ContentLibrary:
 
     @staticmethod
     def explain_filter(
-        filter_name: str,
-        filter_values: List[str],
-        module_name: str
+        filter_name: str, filter_values: List[str], module_name: str
     ) -> str:
         """
         Generate explanation for why a filter is set to specific values.
@@ -539,7 +513,9 @@ class ContentLibrary:
             Human-readable explanation of the filter
         """
         if not filter_values:
-            return f"{filter_name}-filteret er tomt (ingen filtrering på dette parameter)"
+            return (
+                f"{filter_name}-filteret er tomt (ingen filtrering på dette parameter)"
+            )
 
         # Generate contextual explanation based on filter type
         if filter_name == "Kommune":
@@ -600,7 +576,9 @@ class ContentLibrary:
             return "cvr_first"
 
         # Hitlogik is relevant when combining multiple filters
-        if any(term in goal_lower for term in ["kombiner", "både", "flere", "forskellige"]):
+        if any(
+            term in goal_lower for term in ["kombiner", "både", "flere", "forskellige"]
+        ):
             return "hitlogik"
 
         # Notification strategy is always relevant
@@ -610,10 +588,10 @@ class ContentLibrary:
     def get_dynamic_guide_for_module(module_name: str) -> Optional[str]:
         """
         Get dynamic pedagogical guide for a specific module.
-        
+
         Args:
             module_name: Name of KM24 module (e.g., "Registrering", "Status")
-        
+
         Returns:
             Module-specific pedagogical guide with concrete examples, or None if not found
         """

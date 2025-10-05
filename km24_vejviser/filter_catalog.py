@@ -7,8 +7,7 @@ fra KM24 API'et, samt intelligent matching mellem emner og relevante filtre.
 
 import logging
 import json
-import re
-from typing import Dict, List, Any, Optional, Tuple, Set
+from typing import Dict, List, Any, Optional, Set
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import asyncio
@@ -19,9 +18,11 @@ from .knowledge_base import extract_terms_from_text, map_terms_to_parts
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class FilterRecommendation:
     """En anbefaling af et specifikt filter baseret på relevans."""
+
     filter_type: str
     values: List[str]
     relevance_score: float
@@ -30,29 +31,34 @@ class FilterRecommendation:
     module_part_id: Optional[int] = None
     part_name: Optional[str] = None
 
+
 @dataclass
 class Municipality:
     """Repræsentation af en dansk kommune."""
+
     id: int
     name: str
     region: str
     population: Optional[int] = None
     area_km2: Optional[float] = None
 
+
 @dataclass
 class BranchCode:
     """Repræsentation af en branchekode."""
+
     code: str
     description: str
     category: str
     level: int  # 1-5 (hvor 1 er mest generel)
 
+
 class FilterCatalog:
     """Intelligent katalog over alle KM24 filtre med caching og relevans-scoring."""
-    
+
     def __init__(self):
         self.client: KM24APIClient = get_km24_client()
-        
+
         # Cache for filter-data
         self._municipalities: Dict[int, Municipality] = {}
         self._branch_codes: Dict[str, BranchCode] = {}
@@ -65,23 +71,44 @@ class FilterCatalog:
         self._parts_by_module_id: Dict[int, List[Dict[str, Any]]] = {}
         # Knowledge extracted from modules/basic longDescription
         self._module_knowledge_base: Dict[str, Dict[str, Any]] = {}
-        
+
         # Cache timestamps
         self._cache_timestamps: Dict[str, datetime] = {}
         self._cache_duration = timedelta(hours=24)  # 24 timer cache
-        
+
         # Relevans keywords
         self._relevans_keywords = {
-            'byggeri': ['bygge', 'byggeri', 'construction', 'ejendom', 'bolig', 'hus', 'bygning'],
-            'detailhandel': ['detail', 'retail', 'butik', 'shop', 'handel', 'salg'],
-            'sundhed': ['sundhed', 'health', 'hospital', 'læge', 'medicin', 'sygdom'],
-            'transport': ['transport', 'logistik', 'fragt', 'shipping', 'bil', 'tog'],
-            'finans': ['bank', 'finans', 'penge', 'kredit', 'lån', 'investering'],
-            'landbrug': ['landbrug', 'agriculture', 'bonde', 'mark', 'dyr', 'korn'],
-            'energi': ['energi', 'energy', 'strøm', 'vind', 'sol', 'gas', 'olie'],
-            'miljø': ['miljø', 'environment', 'klima', 'forurening', 'natur'],
-            'uddannelse': ['skole', 'education', 'universitet', 'læring', 'undervisning'],
-            'politik': ['politik', 'politisk', 'valg', 'parti', 'regering', 'folketing']
+            "byggeri": [
+                "bygge",
+                "byggeri",
+                "construction",
+                "ejendom",
+                "bolig",
+                "hus",
+                "bygning",
+            ],
+            "detailhandel": ["detail", "retail", "butik", "shop", "handel", "salg"],
+            "sundhed": ["sundhed", "health", "hospital", "læge", "medicin", "sygdom"],
+            "transport": ["transport", "logistik", "fragt", "shipping", "bil", "tog"],
+            "finans": ["bank", "finans", "penge", "kredit", "lån", "investering"],
+            "landbrug": ["landbrug", "agriculture", "bonde", "mark", "dyr", "korn"],
+            "energi": ["energi", "energy", "strøm", "vind", "sol", "gas", "olie"],
+            "miljø": ["miljø", "environment", "klima", "forurening", "natur"],
+            "uddannelse": [
+                "skole",
+                "education",
+                "universitet",
+                "læring",
+                "undervisning",
+            ],
+            "politik": [
+                "politik",
+                "politisk",
+                "valg",
+                "parti",
+                "regering",
+                "folketing",
+            ],
         }
 
         # Build internal knowledge base from cached modules/basic
@@ -90,32 +117,32 @@ class FilterCatalog:
         #     self._extract_knowledge_from_modules()
         # except Exception as e:
         #     logger.warning(f"Kunne ikke opbygge intern videnbase fra modules/basic: {e}")
-    
+
     async def load_all_filters(self, force_refresh: bool = False) -> Dict[str, Any]:
         """Hent alle filter-data fra KM24 API."""
         logger.info("Indlæser alle filter-data fra KM24 API")
-        
+
         # Also pre-load modules basic to build id/title map for module-specific parts
         tasks = [
             self._load_municipalities(force_refresh),
             self._load_branch_codes(force_refresh),
             self._load_regions(force_refresh),
             self._load_court_districts(force_refresh),
-            self._load_modules_basic(force_refresh)
+            self._load_modules_basic(force_refresh),
         ]
-        
+
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         success_count = sum(1 for r in results if not isinstance(r, Exception))
         logger.info(f"Indlæst {success_count}/{len(tasks)} filter-kategorier")
-        
+
         return {
             "municipalities": len(self._municipalities),
             "branch_codes": len(self._branch_codes),
             "regions": len(self._regions),
             "court_districts": len(self._court_districts),
             "modules": len(self._module_id_by_title),
-            "cache_age": self._get_cache_age()
+            "cache_age": self._get_cache_age(),
         }
 
     def _extract_knowledge_from_modules(self) -> None:
@@ -134,7 +161,11 @@ class FilterCatalog:
             with open(cache_path, "r", encoding="utf-8") as f:
                 cached = json.load(f)
             # Cache format fra klienten: {'cached_at': ..., 'data': {...}}
-            data = cached.get("data") if isinstance(cached, dict) and "data" in cached else cached
+            data = (
+                cached.get("data")
+                if isinstance(cached, dict) and "data" in cached
+                else cached
+            )
             items = data.get("items", []) if isinstance(data, dict) else []
         except Exception as e:
             logger.warning(f"Kunne ikke læse modules/basic cache: {e}")
@@ -186,44 +217,50 @@ class FilterCatalog:
                     self._parts_by_module_id[module_id] = parts
 
         self._module_knowledge_base = knowledge
-        logger.info(f"Opbygget intern videnbase for {len(self._module_knowledge_base)} moduler")
+        logger.info(
+            f"Opbygget intern videnbase for {len(self._module_knowledge_base)} moduler"
+        )
 
     async def _load_modules_basic(self, force_refresh: bool = False) -> None:
         """Indlæs moduler (basic) og bygg opslags-tabeller for parts."""
         try:
             resp = await self.client.get_modules_basic(force_refresh)
             if resp.success and resp.data:
-                items = resp.data.get('items', [])
-                self._module_id_by_title = {item.get('title', ''): int(item.get('id')) for item in items if item.get('id') is not None}
+                items = resp.data.get("items", [])
+                self._module_id_by_title = {
+                    item.get("title", ""): int(item.get("id"))
+                    for item in items
+                    if item.get("id") is not None
+                }
                 # Prime parts cache with whatever basic response includes
                 for item in items:
-                    mid = int(item.get('id')) if item.get('id') is not None else None
+                    mid = int(item.get("id")) if item.get("id") is not None else None
                     if mid is None:
                         continue
-                    if 'parts' in item:
-                        self._parts_by_module_id[mid] = item.get('parts', [])
+                    if "parts" in item:
+                        self._parts_by_module_id[mid] = item.get("parts", [])
         except Exception as e:
             logger.warning(f"Kunne ikke indlæse modules basic i filter catalog: {e}")
-    
+
     async def _load_municipalities(self, force_refresh: bool = False) -> None:
         """Indlæs kommuner fra API."""
         if not force_refresh and self._is_cache_valid("municipalities"):
             return
-        
+
         try:
             response = await self.client.get_municipalities(force_refresh)
             if response.success and response.data:
                 self._municipalities.clear()
-                for item in response.data.get('items', []):
+                for item in response.data.get("items", []):
                     municipality = Municipality(
-                        id=item.get('id'),
-                        name=item.get('name'),
-                        region=item.get('region', 'Ukendt'),
-                        population=item.get('population'),
-                        area_km2=item.get('area_km2')
+                        id=item.get("id"),
+                        name=item.get("name"),
+                        region=item.get("region", "Ukendt"),
+                        population=item.get("population"),
+                        area_km2=item.get("area_km2"),
                     )
                     self._municipalities[municipality.id] = municipality
-                
+
                 self._cache_timestamps["municipalities"] = datetime.now()
                 logger.info(f"Indlæst {len(self._municipalities)} kommuner")
             else:
@@ -234,7 +271,7 @@ class FilterCatalog:
             logger.error(f"Fejl ved indlæsning af kommuner: {e}")
             # Fallback til test-data
             self._load_test_municipalities()
-    
+
     def _load_test_municipalities(self) -> None:
         """Indlæs test-kommuner når API ikke er tilgængelig."""
         test_municipalities = [
@@ -249,32 +286,32 @@ class FilterCatalog:
             Municipality(9, "Vejle", "syddanmark", 55000, 1066.3),
             Municipality(10, "Herning", "midtjylland", 50000, 1321.1),
         ]
-        
+
         self._municipalities.clear()
         for muni in test_municipalities:
             self._municipalities[muni.id] = muni
-        
+
         self._cache_timestamps["municipalities"] = datetime.now()
         logger.info(f"Indlæst {len(self._municipalities)} test-kommuner")
-    
+
     async def _load_branch_codes(self, force_refresh: bool = False) -> None:
         """Indlæs branchekoder fra API."""
         if not force_refresh and self._is_cache_valid("branch_codes"):
             return
-        
+
         try:
             response = await self.client.get_branch_codes_detailed(force_refresh)
             if response.success and response.data:
                 self._branch_codes.clear()
-                for item in response.data.get('items', []):
+                for item in response.data.get("items", []):
                     branch_code = BranchCode(
-                        code=item.get('code'),
-                        description=item.get('description'),
-                        category=item.get('category', 'Ukendt'),
-                        level=item.get('level', 1)
+                        code=item.get("code"),
+                        description=item.get("description"),
+                        category=item.get("category", "Ukendt"),
+                        level=item.get("level", 1),
                     )
                     self._branch_codes[branch_code.code] = branch_code
-                
+
                 self._cache_timestamps["branch_codes"] = datetime.now()
                 logger.info(f"Indlæst {len(self._branch_codes)} branchekoder")
             else:
@@ -285,7 +322,7 @@ class FilterCatalog:
             logger.error(f"Fejl ved indlæsning af branchekoder: {e}")
             # Fallback til test-data
             self._load_test_branch_codes()
-    
+
     def _load_test_branch_codes(self) -> None:
         """Indlæs test-branchekoder når API ikke er tilgængelig."""
         test_branch_codes = [
@@ -299,10 +336,14 @@ class FilterCatalog:
             BranchCode("43.3", "Installation af bygningsinstallationer", "byggeri", 4),
             BranchCode("68.2", "Udlejning og drift af ejendomme", "ejendom", 3),
             BranchCode("68.3", "Ejendomsadministration", "ejendom", 3),
-            BranchCode("47.1", "Detailhandel med ikke-specialiseret handel", "detailhandel", 3),
+            BranchCode(
+                "47.1", "Detailhandel med ikke-specialiseret handel", "detailhandel", 3
+            ),
             BranchCode("47.2", "Detailhandel med fødevarer", "detailhandel", 3),
             BranchCode("86.1", "Sundhedsydelser", "sundhed", 3),
-            BranchCode("86.2", "Praktiserende lægers og tandlægers virksomhed", "sundhed", 3),
+            BranchCode(
+                "86.2", "Praktiserende lægers og tandlægers virksomhed", "sundhed", 3
+            ),
             BranchCode("49.1", "Jernbanetransport", "transport", 3),
             BranchCode("49.2", "Anden landtransport", "transport", 3),
             BranchCode("64.1", "Geldinstitut", "finans", 3),
@@ -310,26 +351,26 @@ class FilterCatalog:
             BranchCode("01.1", "Dyrkning af enårige afgrøder", "landbrug", 3),
             BranchCode("01.2", "Dyrkning af flerårige afgrøder", "landbrug", 3),
         ]
-        
+
         self._branch_codes.clear()
         for code in test_branch_codes:
             self._branch_codes[code.code] = code
-        
+
         self._cache_timestamps["branch_codes"] = datetime.now()
         logger.info(f"Indlæst {len(self._branch_codes)} test-branchekoder")
-    
+
     async def _load_regions(self, force_refresh: bool = False) -> None:
         """Indlæs regioner fra API."""
         if not force_refresh and self._is_cache_valid("regions"):
             return
-        
+
         try:
             response = await self.client.get_regions(force_refresh)
             if response.success and response.data:
                 self._regions.clear()
-                for item in response.data.get('items', []):
-                    self._regions[item.get('id')] = item
-                
+                for item in response.data.get("items", []):
+                    self._regions[item.get("id")] = item
+
                 self._cache_timestamps["regions"] = datetime.now()
                 logger.info(f"Indlæst {len(self._regions)} regioner")
             else:
@@ -340,7 +381,7 @@ class FilterCatalog:
             logger.error(f"Fejl ved indlæsning af regioner: {e}")
             # Fallback til test-data
             self._load_test_regions()
-    
+
     def _load_test_regions(self) -> None:
         """Indlæs test-regioner når API ikke er tilgængelig."""
         test_regions = {
@@ -350,25 +391,25 @@ class FilterCatalog:
             4: {"id": 4, "name": "nordjylland", "description": "Region Nordjylland"},
             5: {"id": 5, "name": "sjælland", "description": "Region Sjælland"},
         }
-        
+
         self._regions.clear()
         self._regions.update(test_regions)
-        
+
         self._cache_timestamps["regions"] = datetime.now()
         logger.info(f"Indlæst {len(self._regions)} test-regioner")
-    
+
     async def _load_court_districts(self, force_refresh: bool = False) -> None:
         """Indlæs retskredse fra API."""
         if not force_refresh and self._is_cache_valid("court_districts"):
             return
-        
+
         try:
             response = await self.client.get_court_districts(force_refresh)
             if response.success and response.data:
                 self._court_districts.clear()
-                for item in response.data.get('items', []):
-                    self._court_districts[item.get('id')] = item
-                
+                for item in response.data.get("items", []):
+                    self._court_districts[item.get("id")] = item
+
                 self._cache_timestamps["court_districts"] = datetime.now()
                 logger.info(f"Indlæst {len(self._court_districts)} retskredse")
             else:
@@ -379,7 +420,7 @@ class FilterCatalog:
             logger.error(f"Fejl ved indlæsning af retskredse: {e}")
             # Fallback til test-data
             self._load_test_court_districts()
-    
+
     def _load_test_court_districts(self) -> None:
         """Indlæs test-retskredse når API ikke er tilgængelig."""
         test_court_districts = {
@@ -389,149 +430,185 @@ class FilterCatalog:
             4: {"id": 4, "name": "Aalborg Byret", "region": "nordjylland"},
             5: {"id": 5, "name": "Esbjerg Byret", "region": "syddanmark"},
         }
-        
+
         self._court_districts.clear()
         self._court_districts.update(test_court_districts)
-        
+
         self._cache_timestamps["court_districts"] = datetime.now()
         logger.info(f"Indlæst {len(self._court_districts)} test-retskredse")
-    
-    async def load_module_specific_filters(self, module_id: int, force_refresh: bool = False) -> Dict[str, Any]:
+
+    async def load_module_specific_filters(
+        self, module_id: int, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """Indlæs modulspecifikke filtre (generic_values og web_sources)."""
         logger.info(f"Indlæser modulspecifikke filtre for modul {module_id}")
-        
+
         try:
             # Hent modul detaljer for at få parts
-            module_response = await self.client.get_module_details(int(module_id), force_refresh)
+            module_response = await self.client.get_module_details(
+                int(module_id), force_refresh
+            )
             if not module_response.success:
                 return {"error": f"Kunne ikke hente modul {module_id}"}
-            
+
             module_data = module_response.data
-            parts = module_data.get('parts', [])
+            parts = module_data.get("parts", [])
             # Cache parts
             self._parts_by_module_id[int(module_id)] = parts
-            
+
             tasks = []
             for part in parts:
-                if part.get('part') == 'generic_value':
-                    part_id = part.get('id')
+                if part.get("part") == "generic_value":
+                    part_id = part.get("id")
                     tasks.append(self._load_generic_values(part_id, force_refresh))
-                elif part.get('part') == 'web_source':
+                elif part.get("part") == "web_source":
                     tasks.append(self._load_web_sources(module_id, force_refresh))
-            
+
             if tasks:
                 await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             return {
                 "module_id": module_id,
                 "parts_loaded": len(parts),
-                "generic_values_loaded": len([p for p in parts if p.get('part') == 'generic_value']),
-                "web_sources_loaded": len([p for p in parts if p.get('part') == 'web_source'])
+                "generic_values_loaded": len(
+                    [p for p in parts if p.get("part") == "generic_value"]
+                ),
+                "web_sources_loaded": len(
+                    [p for p in parts if p.get("part") == "web_source"]
+                ),
             }
-            
+
         except Exception as e:
             logger.error(f"Fejl ved indlæsning af modulspecifikke filtre: {e}")
             return {"error": str(e)}
-    
-    async def _load_generic_values(self, module_part_id: int, force_refresh: bool = False) -> None:
+
+    async def _load_generic_values(
+        self, module_part_id: int, force_refresh: bool = False
+    ) -> None:
         """Indlæs generic_values for en specifik modulpart."""
         cache_key = f"generic_values_{module_part_id}"
         if not force_refresh and self._is_cache_valid(cache_key):
             return
-        
+
         try:
-            response = await self.client.get_generic_values(module_part_id, force_refresh)
+            response = await self.client.get_generic_values(
+                module_part_id, force_refresh
+            )
             if response.success and response.data:
-                self._generic_values[module_part_id] = response.data.get('items', [])
+                self._generic_values[module_part_id] = response.data.get("items", [])
                 self._cache_timestamps[cache_key] = datetime.now()
-                logger.info(f"Indlæst {len(self._generic_values[module_part_id])} generic_values for part {module_part_id}")
+                logger.info(
+                    f"Indlæst {len(self._generic_values[module_part_id])} generic_values for part {module_part_id}"
+                )
             else:
-                logger.warning(f"Kunne ikke indlæse generic_values for part {module_part_id}: {response.error}")
+                logger.warning(
+                    f"Kunne ikke indlæse generic_values for part {module_part_id}: {response.error}"
+                )
         except Exception as e:
             logger.error(f"Fejl ved indlæsning af generic_values: {e}")
-    
-    async def _load_web_sources(self, module_id: int, force_refresh: bool = False) -> None:
+
+    async def _load_web_sources(
+        self, module_id: int, force_refresh: bool = False
+    ) -> None:
         """Indlæs web_sources for et specifikt modul."""
         cache_key = f"web_sources_{module_id}"
         if not force_refresh and self._is_cache_valid(cache_key):
             return
-        
+
         try:
             response = await self.client.get_web_sources(module_id, force_refresh)
             if response.success and response.data:
-                self._web_sources[module_id] = response.data.get('items', [])
+                self._web_sources[module_id] = response.data.get("items", [])
                 self._cache_timestamps[cache_key] = datetime.now()
-                logger.info(f"Indlæst {len(self._web_sources[module_id])} web_sources for modul {module_id}")
+                logger.info(
+                    f"Indlæst {len(self._web_sources[module_id])} web_sources for modul {module_id}"
+                )
             else:
-                logger.warning(f"Kunne ikke indlæse web_sources for modul {module_id}: {response.error}")
+                logger.warning(
+                    f"Kunne ikke indlæse web_sources for modul {module_id}: {response.error}"
+                )
         except Exception as e:
             logger.error(f"Fejl ved indlæsning af web_sources: {e}")
-    
+
     def _is_cache_valid(self, cache_key: str) -> bool:
         """Tjek om cache er gyldig."""
         if cache_key not in self._cache_timestamps:
             return False
-        
+
         cache_age = datetime.now() - self._cache_timestamps[cache_key]
         return cache_age < self._cache_duration
-    
+
     def _get_cache_age(self) -> Optional[str]:
         """Hent alder af ældste cache."""
         if not self._cache_timestamps:
             return None
-        
+
         oldest_timestamp = min(self._cache_timestamps.values())
         age = datetime.now() - oldest_timestamp
         return str(age)
-    
+
     def get_municipalities_by_region(self, region: str) -> List[Municipality]:
         """Hent kommuner i en specifik region."""
-        return [m for m in self._municipalities.values() if region.lower() in m.region.lower()]
-    
+        return [
+            m
+            for m in self._municipalities.values()
+            if region.lower() in m.region.lower()
+        ]
+
     def get_branch_codes_by_category(self, category: str) -> List[BranchCode]:
         """Hent branchekoder i en specifik kategori."""
-        return [bc for bc in self._branch_codes.values() if category.lower() in bc.category.lower()]
-    
-    def get_generic_values_for_module_part(self, module_part_id: int) -> List[Dict[str, Any]]:
+        return [
+            bc
+            for bc in self._branch_codes.values()
+            if category.lower() in bc.category.lower()
+        ]
+
+    def get_generic_values_for_module_part(
+        self, module_part_id: int
+    ) -> List[Dict[str, Any]]:
         """Hent generic_values for en specifik modulpart."""
         return self._generic_values.get(module_part_id, [])
-    
+
     def get_web_sources_for_module(self, module_id: int) -> List[Dict[str, Any]]:
         """Hent web_sources for et specifikt modul."""
         return self._web_sources.get(module_id, [])
-    
+
     def get_all_municipality_names(self) -> Set[str]:
         """Returns case-insensitive set of all valid municipality names."""
         return {m.name.lower() for m in self._municipalities.values()}
-    
+
     def get_all_branch_codes(self) -> Set[str]:
         """Returns set of all valid branch codes."""
         return set(self._branch_codes.keys())
-    
+
     def get_all_region_names(self) -> Set[str]:
         """Returns case-insensitive set of all valid region names."""
-        return {r.get('name', '').lower() for r in self._regions.values() if r.get('name')}
-    
+        return {
+            r.get("name", "").lower() for r in self._regions.values() if r.get("name")
+        }
+
     def get_valid_generic_values_for_part(self, module_part_id: int) -> Set[str]:
         """Returns set of valid name values for a generic_value part ID."""
         items = self._generic_values.get(module_part_id, [])
-        return {item.get('name', '').strip() for item in items if item.get('name')}
+        return {item.get("name", "").strip() for item in items if item.get("name")}
 
-    def _normalized_filter_type_from_part_name(self, part_name: Optional[str]) -> Optional[str]:
+    def _normalized_filter_type_from_part_name(
+        self, part_name: Optional[str]
+    ) -> Optional[str]:
         if not part_name:
             return None
         n = part_name.lower()
         # Common normalizations across modules
-        if 'gernings' in n or 'crime' in n:
-            return 'crime_codes'
-        if 'branche' in n or 'industry' in n:
-            return 'branch_codes'
-        if 'problem' in n:
-            return 'problem'
-        if 'reaktion' in n or 'reaction' in n:
-            return 'reaction'
-        if 'ejendom' in n or 'property' in n:
-            return 'property_types'
+        if "gernings" in n or "crime" in n:
+            return "crime_codes"
+        if "branche" in n or "industry" in n:
+            return "branch_codes"
+        if "problem" in n:
+            return "problem"
+        if "reaktion" in n or "reaction" in n:
+            return "reaction"
+        if "ejendom" in n or "property" in n:
+            return "property_types"
         return None
 
     def _semantic_match_score(self, goal_lower: str, text: str) -> float:
@@ -542,13 +619,27 @@ class FilterCatalog:
         score = 0.0
         # Domain term buckets
         buckets = {
-            'corruption': ['korruption', 'bestikkelse', 'bestikk', 'habilitet', 'inhabil', 'smørelse'],
-            'fraud': ['bedrageri', 'svig', 'falsk', 'økonomisk kriminalitet'],
-            'environment': ['miljø', 'forurening', 'udledning', 'tilladelse', 'asbest', 'klima'],
-            'labour': ['arbejdstilsyn', 'forbud', 'strakspåbud', 'ulykke', 'sikkerhed'],
-            'construction': ['bygge', 'byggeri', 'entrepren', 'udvikling', 'ejendom'],
-            'procurement': ['udbud', 'kontrakt', 'tildeling', 'offentlig'],
-            'media': ['medie', 'avis', 'ugeavis', 'nyhed']
+            "corruption": [
+                "korruption",
+                "bestikkelse",
+                "bestikk",
+                "habilitet",
+                "inhabil",
+                "smørelse",
+            ],
+            "fraud": ["bedrageri", "svig", "falsk", "økonomisk kriminalitet"],
+            "environment": [
+                "miljø",
+                "forurening",
+                "udledning",
+                "tilladelse",
+                "asbest",
+                "klima",
+            ],
+            "labour": ["arbejdstilsyn", "forbud", "strakspåbud", "ulykke", "sikkerhed"],
+            "construction": ["bygge", "byggeri", "entrepren", "udvikling", "ejendom"],
+            "procurement": ["udbud", "kontrakt", "tildeling", "offentlig"],
+            "media": ["medie", "avis", "ugeavis", "nyhed"],
         }
         for key, terms in buckets.items():
             bucket_hits = 0
@@ -578,13 +669,15 @@ class FilterCatalog:
                 if title.lower() == module_name.lower():
                     return mid
         return None
-    
+
     def get_generic_values_for_module(self, module_name: str) -> List[str]:
         """Deprecated: Brug get_module_specific_recommendations i stedet."""
         return []
-    
+
+
 # Global filter catalog instance
 _filter_catalog: Optional[FilterCatalog] = None
+
 
 def get_filter_catalog() -> FilterCatalog:
     """Få global filter catalog instance."""
