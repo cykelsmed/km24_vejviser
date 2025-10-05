@@ -802,6 +802,237 @@
             overflow-x: auto;
         }
 
+        /* ==== INFORMATION BOXES ==== */
+        .info-box {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            border-left: 4px solid;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .info-box-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .info-icon {
+            font-size: 1.2rem;
+        }
+
+        .info-box-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #374151;
+        }
+
+        .hit-definition {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-color: #10b981;
+        }
+
+        .hit-definition .info-box-header {
+            color: #047857;
+        }
+
+        .rationale-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #f59e0b;
+        }
+
+        .rationale-box .info-box-header {
+            color: #d97706;
+        }
+
+        /* ==== NOTIFICATION BOX ==== */
+        .notification-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #3b82f6;
+            padding: 1rem;
+        }
+
+        .notification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .notification-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .notification-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e40af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .notification-value {
+            font-size: 0.95rem;
+            color: #374151;
+        }
+
+        /* ==== FILTERS SECTION ==== */
+        .filters-section {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .filters-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 1rem 0;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            border-left: 3px solid #6366f1;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6366f1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-value {
+            font-size: 0.9rem;
+            color: #374151;
+            line-height: 1.5;
+        }
+
+        /* ==== TEXT SUBSECTIONS (for markdown parsing) ==== */
+        .text-subsection {
+            background: white;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 6px;
+            border-left: 3px solid #a5b4fc;
+        }
+
+        .text-heading {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4338ca;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .text-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .text-list li {
+            padding: 0.4rem 0 0.4rem 1.5rem;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .text-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .info-box-content p {
+            margin: 0.75rem 0;
+            line-height: 1.7;
+        }
+
+        .info-box-content strong {
+            color: #4338ca;
+            font-weight: 600;
+        }
+
+        /* ==== PEDAGOGICAL GUIDE IMPROVEMENTS ==== */
+        .principle-content {
+            margin-top: 1rem;
+        }
+
+        /* ==== GENERAL TYPOGRAPHY IMPROVEMENTS ==== */
+        .step-rationale {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            border-left: 3px solid #94a3b8;
+            line-height: 1.7;
+        }
+
+        .search-string {
+            background: #f1f5f9;
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.25rem 0;
+            position: relative;
+            border-left: 3px solid #64748b;
+        }
+
+        .search-string code {
+            display: block;
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        /* ==== EDUCATIONAL CONTENT TYPOGRAPHY ==== */
+        .edu-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .edu-content h5 {
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .edu-content h6 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .edu-content ul {
+            margin: 0.5rem 0;
+        }
+
+        .edu-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
         .action-plan-text {
             line-height: 1.8;
             color: #1f2937;
@@ -1456,13 +1687,34 @@
                     const preferredOrder = ['geografi','branchekode','region','beløbsgrænse','periode'];
                     const keys = [...new Set([...preferredOrder, ...Object.keys(filters)])]
                         .filter(k => filters[k] !== undefined);
-                    html += `<div class="filters"><strong>Filtre:</strong><ul>`;
+                    
+                    html += `<div class="filters-section">
+                        <h6 class="filters-title">Filtre:</h6>
+                        <div class="filters-grid">`;
+                    
                     keys.forEach(k => {
                         const v = filters[k];
-                        const val = Array.isArray(v) ? v.join(', ') : String(v);
-                        html += `<li><span class="pill">${k}</span>: ${val}</li>`;
+                        let val;
+                        
+                        // Format branch codes WITH descriptions
+                        if (k === 'Branche' && Array.isArray(v)) {
+                            val = v.map(code => {
+                                const desc = getBranchCodeDescription(code);
+                                return desc !== 'Branchekode' ? `${code} (${desc})` : code;
+                            }).join(', ');
+                        } else {
+                            val = Array.isArray(v) ? v.join(', ') : String(v);
+                        }
+                        
+                        html += `
+                            <div class="filter-item">
+                                <span class="filter-label">${k}</span>
+                                <span class="filter-value">${val}</span>
+                            </div>
+                        `;
                     });
-                    html += `</ul></div>`;
+                    
+                    html += `</div></div>`;
                 }
 
                 // Source selection for web modules
@@ -1478,11 +1730,17 @@
                     const notificationStrategy = getNotificationStrategy(moduleName);
                     
                     html += `
-                        <div class="notification-info">
-                            <strong>Notifikation:</strong> ${notificationText}
-                        </div>
-                        <div class="notification-strategy">
-                            <strong>Strategi:</strong> ${notificationStrategy}
+                        <div class="info-box notification-box">
+                            <div class="notification-grid">
+                                <div class="notification-item">
+                                    <span class="notification-label">Notifikation</span>
+                                    <span class="notification-value">${notificationText}</span>
+                                </div>
+                                <div class="notification-item">
+                                    <span class="notification-label">Strategi</span>
+                                    <span class="notification-value">${notificationStrategy}</span>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }
@@ -1500,20 +1758,28 @@
 
                 // Hit definition (new!)
                 if (step.educational?.what_counts_as_hit) {
+                    const formatted = parseMarkdownText(step.educational.what_counts_as_hit);
                     html += `
-                        <div style="background: #e8f5e9; padding: 12px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #4caf50;">
-                            <strong style="color: #2e7d32;">🎯 Hvad tæller som hit:</strong>
-                            <div style="margin-top: 8px; font-size: 0.95em;">${step.educational.what_counts_as_hit}</div>
+                        <div class="info-box hit-definition">
+                            <div class="info-box-header">
+                                <span class="info-icon">🎯</span>
+                                <strong>Hvad tæller som hit</strong>
+                            </div>
+                            <div class="info-box-content">${formatted}</div>
                         </div>
                     `;
                 }
 
                 // Why this step (new!)
                 if (step.educational?.why_this_step) {
+                    const formatted = parseMarkdownText(step.educational.why_this_step);
                     html += `
-                        <div style="background: #fff3e0; padding: 12px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #ff9800;">
-                            <strong style="color: #e65100;">💡 Hvorfor dette trin:</strong>
-                            <div style="margin-top: 8px; font-size: 0.95em;">${step.educational.why_this_step}</div>
+                        <div class="info-box rationale-box">
+                            <div class="info-box-header">
+                                <span class="info-icon">💡</span>
+                                <strong>Hvorfor dette trin</strong>
+                            </div>
+                            <div class="info-box-content">${formatted}</div>
                         </div>
                     `;
                 }
@@ -1554,10 +1820,11 @@
                 html += `<div class="edu-tab-content active" data-tab="guide">`;
 
                 if (edu.principle) {
+                    const formattedPrinciple = parseMarkdownText(edu.principle);
                     html += `
                         <div class="edu-principle">
                             <h5>🎯 Relevant KM24 Princip</h5>
-                            <div class="principle-text">${edu.principle}</div>
+                            <div class="principle-content">${formattedPrinciple}</div>
                         </div>
                     `;
                 }
@@ -1828,6 +2095,131 @@
                 return html;
             }
 
+            function parseMarkdownText(text) {
+                if (!text) return '';
+                
+                let html = text;
+                
+                // Parse bold (**text**)
+                html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // Parse sections (lines ending with :)
+                html = html.split('\n\n').map(section => {
+                    const lines = section.trim().split('\n');
+                    if (lines.length === 0) return '';
+                    
+                    // Check if first line is a heading (ends with :)
+                    const firstLine = lines[0].trim();
+                    if (firstLine.endsWith(':') && firstLine.length < 80) {
+                        const heading = firstLine.slice(0, -1);
+                        const content = lines.slice(1);
+                        
+                        // Check if content has bullets
+                        const hasBullets = content.some(l => l.trim().startsWith('-'));
+                        
+                        if (hasBullets) {
+                            const bullets = content
+                                .filter(l => l.trim().startsWith('-'))
+                                .map(l => `<li>${l.trim().substring(1).trim()}</li>`)
+                                .join('');
+                            return `<div class="text-subsection">
+                                <h6 class="text-heading">${heading}</h6>
+                                <ul class="text-list">${bullets}</ul>
+                            </div>`;
+                        } else {
+                            const text = content.join(' ').trim();
+                            return `<div class="text-subsection">
+                                <h6 class="text-heading">${heading}</h6>
+                                <p>${text}</p>
+                            </div>`;
+                        }
+                    }
+                    
+                    // Regular paragraph
+                    return `<p>${section.trim()}</p>`;
+                }).join('');
+                
+                return html;
+            }
+
+            function getBranchCodeDescription(code) {
+                /**
+                 * Get Danish description for a branch code.
+                 * Common codes used in journalism investigations.
+                 */
+                const descriptions = {
+                    // Transport (49.x)
+                    "49.41": "Godstransport ad vej",
+                    "49.41.00": "Godstransport ad vej",
+                    "49.42": "Flytteforretninger",
+                    "49.42.00": "Flytteforretninger",
+                    "53.10": "Postbefordring",
+                    "53.20": "Andre post- og kurertjenester",
+                    "52.29": "Andre serviceydelser i forbindelse med transport",
+                    
+                    // Detail (47.x)
+                    "47.11": "Dagligvarebutikker",
+                    "47.11.10": "Supermarkeder",
+                    "47.19": "Øvrige detailhandel med bredt varesortiment",
+                    "47.71": "Detailhandel med beklædning",
+                    "47.72": "Detailhandel med fodtøj og lædervarer",
+                    "47.59": "Detailhandel med møbler og boligudstyr",
+                    
+                    // Byggeri (41.x, 43.x)
+                    "41.10": "Udvikling af byggeprojekter",
+                    "41.20": "Opførelse af bygninger",
+                    "43.11": "Nedrivning",
+                    "43.12": "Klargøring af byggegrunde",
+                    "43.99": "Anden specialiseret bygge- og anlægsvirksomhed",
+                    
+                    // Fødevare (10.x)
+                    "10.11": "Forarbejdning af kød",
+                    "10.13": "Forarbejdning af fjerkræ",
+                    "10.51": "Mejerier",
+                    "10.71": "Bagning af brød og kager",
+                    
+                    // Restaurant (56.x)
+                    "56.10": "Restauranter",
+                    "56.21": "Catering",
+                    "56.30": "Serveringssteder",
+                    
+                    // Landbrug (01.x)
+                    "01.11": "Dyrkning af korn",
+                    "01.21": "Dyrkning af druer",
+                    "01.41": "Mælkeproduktion",
+                    "01.50": "Blandet landbrug",
+                    
+                    // Ejendom (68.x)
+                    "68.10": "Køb og salg af egen fast ejendom",
+                    "68.20": "Udlejning af egen eller lejet fast ejendom",
+                    "68.31": "Ejendomsmægling",
+                    
+                    // Finans (64.x)
+                    "64.19": "Anden pengeinstitutvirksomhed",
+                    "64.20": "Holdingselskaber",
+                    
+                    // IT (62.x)
+                    "62.01": "Computerprogrammering",
+                    "62.02": "Konsulentbistand vedrørende informationsteknologi"
+                };
+                
+                // Try exact match first
+                if (descriptions[code]) {
+                    return descriptions[code];
+                }
+                
+                // Try parent code (first 4 chars for x.xx.yy format)
+                if (code.length >= 4) {
+                    const parent = code.substring(0, 4);
+                    if (descriptions[parent]) {
+                        return descriptions[parent];
+                    }
+                }
+                
+                // Fallback: return generic
+                return "Branchekode";
+            }
+            
             function getNotificationText(notification) {
                 const notificationMap = {
                     'instant': 'Løbende notifikation - få besked med det samme',

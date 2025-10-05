@@ -92,6 +92,9 @@ class RecipeEnricher:
         # Generate example hit
         example_hit = self._generate_example_hit(step)
 
+        # Get dynamic pedagogical guide for this module
+        pedagogical_guide = self.content_lib.get_dynamic_guide_for_module(module_name)
+
         return {
             "principle": principle,
             "filter_explanations": filter_explanations,
@@ -99,7 +102,8 @@ class RecipeEnricher:
             "common_mistakes": common_mistakes,
             "red_flags": red_flags,
             "action_plan": action_plan,
-            "example_hit": example_hit
+            "example_hit": example_hit,
+            "pedagogical_guide": pedagogical_guide
         }
 
     def _explain_filters(self, filters: Dict[str, Any], module_name: str) -> Dict[str, str]:

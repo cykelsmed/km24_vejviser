@@ -29,7 +29,7 @@ from datetime import datetime
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from typing import Any, List
+from typing import Any, List, Dict
 
 # KM24 API Integration
 from .km24_client import get_km24_client, KM24APIResponse, KM24APIClient
@@ -182,15 +182,61 @@ async def build_system_prompt(goal: str, modules_data: dict) -> str:
     # Combine: priority first, then others (total ~20 modules)
     selected_modules = priority_modules + other_modules[:12]
 
+    # Get KM24 client for fetching generic values
+    km24_client = get_km24_client()
+    
+    # Define critical modules that need generic values enrichment
+    critical_modules_for_values = {'Arbejdstilsyn', 'Status'}
+
     simplified_modules = []
     for module in selected_modules:
-        # Get actual filter names as a simple list - Claude uses these as JSON keys
-        filter_names = [part.get('name', '') for part in module.get('parts', []) if part.get('name')]
-
+        module_title = module.get('title', '')
+        module_id = module.get('id')
+        parts = module.get('parts', [])
+        
+        # Build available_filters list with values for critical modules
+        available_filters = []
+        
+        for part in parts:
+            part_name = part.get('name', '')
+            if not part_name:
+                continue
+            
+            part_type = part.get('part')
+            part_id = part.get('id')
+            
+            # For critical modules with generic_value parts, fetch actual values
+            if (module_title in critical_modules_for_values and 
+                part_type == 'generic_value' and 
+                part_id):
+                try:
+                    values_response = await km24_client.get_generic_values(part_id, force_refresh=False)
+                    if values_response.success:
+                        items = values_response.data.get('items', [])
+                        values = [item.get('name', '').strip() for item in items if item.get('name')]
+                        if values:
+                            # Include values for this filter
+                            available_filters.append({
+                                'name': part_name,
+                                'values': values[:20]  # Limit to 20 values to save tokens
+                            })
+                        else:
+                            # No values, just include name
+                            available_filters.append({'name': part_name})
+                    else:
+                        # API call failed, just include name
+                        available_filters.append({'name': part_name})
+                except Exception as e:
+                    logger.warning(f"Failed to fetch generic values for {module_title}.{part_name}: {e}")
+                    available_filters.append({'name': part_name})
+            else:
+                # For non-critical modules or non-generic_value parts, just include name
+                available_filters.append({'name': part_name})
+        
         simplified_modules.append({
-            'title': module.get('title', ''),
+            'title': module_title,
             'description': module.get('shortDescription', ''),
-            'available_filters': filter_names  # Simple list of filter names Claude can use
+            'available_filters': available_filters
         })
 
     # Format modules as compact JSON (still single line, but more informative)
@@ -212,10 +258,14 @@ async def build_system_prompt(goal: str, modules_data: dict) -> str:
 
 **VIGTIGE PRINCIPPER:**
 - KM24 er en OVERVÅGNINGSTJENESTE - brug formuleringer som "opsæt overvågning NÅR..." ikke "find sager"
-- Brug KUN filter-navne fra modulets "available_filters" liste (fx "Kommune", "Branche", "Problem")
-- For Kommune-filtre: brug konkrete kommuner (fx "Aarhus", "København")
-- For Branche-filtre: brug branchekoder (fx "41.20", "49.41")
-- For andre filtre: skriv logiske værdier, vi validerer dem bagefter via API
+- Brug KUN filter-navne fra modulets "available_filters" liste
+- KRITISK: For filtre med en 'values' liste, SKAL du bruge én eller flere af disse EKSAKTE værdier
+  Eksempel: Arbejdstilsyn Problem har values → brug "Asbest", "Støj", etc. (præcist som angivet)
+  Eksempel: Arbejdstilsyn Reaktion har values → brug "Forbud", "Påbud", etc. (præcist som angivet)
+- For filtre uden 'values' liste:
+  - Kommune-filtre: brug konkrete kommuner (fx "Aarhus", "København")
+  - Branche-filtre: brug branchekoder (fx "41.20", "49.41")
+  - Andre filtre: skriv logiske værdier, vi validerer dem bagefter via API
 - VIGTIGT: Brug ALDRIG engelske type-navne som "municipality", "industry", "generic_value" som filter-nøgler
 
 **SØGESTRENG SYNTAKS (når "Søgeord" filter er tilgængeligt):**
@@ -467,7 +517,11 @@ async def enrich_recipe_with_api(raw_recipe: dict) -> dict:
     This function:
     1. Validates module names exist in API
     2. Validates filter keys match module parts
-    3. For generic_value filters, fetches valid values from API and validates
+    3. Validates filter values against FilterCatalog:
+       - Municipality names (Kommune)
+       - Branch codes (Branche)
+       - Region names (Region)
+       - Generic values from module-specific parts
     4. Returns enriched recipe with validated filters
 
     Args:
@@ -520,6 +574,9 @@ async def enrich_recipe_with_api(raw_recipe: dict) -> dict:
         # Validate and enrich filters
         validated_filters = {}
         raw_filters = step.get('filters', {})
+        
+        # Get FilterCatalog for value validation
+        filter_catalog = get_filter_catalog()
 
         for filter_key, filter_values in raw_filters.items():
             # Find matching part (case-insensitive)
@@ -531,51 +588,82 @@ async def enrich_recipe_with_api(raw_recipe: dict) -> dict:
 
             part_type = matching_part.get('part')
             part_id = matching_part.get('id')
-
-            # Handle generic_value parts - fetch and validate against API
-            if part_type == 'generic_value' and part_id:
-                try:
-                    values_response = await km24_client.get_generic_values(part_id)
-                    if values_response.success:
-                        # Extract valid value names from API
-                        api_items = values_response.data.get('items', [])
-                        valid_value_names = {
-                            item.get('name', '').strip()
-                            for item in api_items
-                            if item.get('name')
-                        }
-
-                        # Validate Claude's suggestions against API values
-                        validated = [
-                            v for v in filter_values
-                            if v in valid_value_names
-                        ]
-
-                        if validated:
-                            validated_filters[filter_key] = validated
-                            logger.info(f"Validated {len(validated)}/{len(filter_values)} values for {filter_key} in {module_name}")
-                        else:
-                            logger.warning(f"No valid values found for {filter_key} in {module_name}, skipping filter")
+            
+            # Validate filter values against catalog
+            validated_values = []
+            
+            # Normalize filter_key for comparison
+            filter_key_lower = filter_key.lower()
+            
+            # Validate based on filter type
+            if filter_key_lower == 'kommune':
+                valid_municipalities = filter_catalog.get_all_municipality_names()
+                for value in filter_values:
+                    if value.lower() in valid_municipalities:
+                        validated_values.append(value)
                     else:
-                        # API call failed, accept Claude's values as-is
-                        validated_filters[filter_key] = filter_values
+                        logger.warning(f"Removed invalid municipality '{value}' for filter '{filter_key}' in module '{module_name}'")
+            
+            elif filter_key_lower == 'branche':
+                valid_branch_codes = filter_catalog.get_all_branch_codes()
+                for value in filter_values:
+                    if value in valid_branch_codes:
+                        validated_values.append(value)
+                    else:
+                        logger.warning(f"Removed invalid branch code '{value}' for filter '{filter_key}' in module '{module_name}'")
+            
+            elif filter_key_lower == 'region':
+                valid_regions = filter_catalog.get_all_region_names()
+                for value in filter_values:
+                    if value.lower() in valid_regions:
+                        validated_values.append(value)
+                    else:
+                        logger.warning(f"Removed invalid region '{value}' for filter '{filter_key}' in module '{module_name}'")
+            
+            # Handle generic_value parts - fetch and validate against API
+            elif part_type == 'generic_value' and part_id:
+                try:
+                    valid_values = filter_catalog.get_valid_generic_values_for_part(part_id)
+                    if not valid_values:
+                        # Fallback to API call if not cached
+                        values_response = await km24_client.get_generic_values(part_id)
+                        if values_response.success:
+                            valid_values = {
+                                item.get('name', '').strip()
+                                for item in values_response.data.get('items', [])
+                                if item.get('name')
+                            }
+                    
+                    if valid_values:
+                        for value in filter_values:
+                            if value in valid_values:
+                                validated_values.append(value)
+                            else:
+                                logger.warning(f"Removed invalid value '{value}' for filter '{filter_key}' in module '{module_name}'")
+                    else:
+                        validated_values = filter_values  # No validation data available
                 except Exception as e:
-                    logger.error(f"Error fetching generic values for {filter_key}: {e}")
-                    # On error, accept Claude's values
-                    validated_filters[filter_key] = filter_values
+                    logger.error(f"Error validating generic values for {filter_key}: {e}")
+                    validated_values = filter_values
 
             # Handle web_source parts - mark for manual selection
             elif part_type == 'web_source':
-                validated_filters[filter_key] = filter_values
+                validated_values = filter_values
                 # Add note that user must select sources manually
                 if 'details' not in step:
                     step['details'] = {}
                 if 'strategic_note' not in step['details']:
                     step['details']['strategic_note'] = f"PÅKRÆVET: Vælg konkrete kilder manuelt for {module_name}"
 
-            # Other filter types (municipality, industry, company, etc.) - accept as-is
+            # Other filter types - accept as-is
             else:
-                validated_filters[filter_key] = filter_values
+                validated_values = filter_values
+            
+            # Add validated filter if it has values
+            if validated_values:
+                validated_filters[filter_key] = validated_values
+            elif filter_values:
+                logger.warning(f"All values removed for filter '{filter_key}' in module '{module_name}', skipping filter")
 
         # Add enriched step with validated filters and module_id
         enriched_steps.append({
@@ -742,15 +830,23 @@ def _normalize_notification(notification: str) -> str:
         return "daily"  # Default fallback
 
 def _fix_operators_in_search_string(search_string: str) -> str:
-    """Fix lowercase operators to uppercase in search strings."""
+    """Fix lowercase and Danish operators to uppercase in search strings."""
     if not search_string:
         return search_string
     
-    # Replace lowercase operators with uppercase
     fixed = search_string
+    
+    # Fix English operators
     fixed = re.sub(r'\band\b', 'AND', fixed, flags=re.IGNORECASE)
     fixed = re.sub(r'\bor\b', 'OR', fixed, flags=re.IGNORECASE)
     fixed = re.sub(r'\bnot\b', 'NOT', fixed, flags=re.IGNORECASE)
+    
+    # Fix Danish operators
+    fixed = re.sub(r'\bog\b', 'AND', fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r'\beller\b', 'OR', fixed, flags=re.IGNORECASE)
+    
+    # Replace commas with semicolons (common variation syntax mistake)
+    fixed = fixed.replace(',', ';')
     
     return fixed
 
@@ -758,89 +854,24 @@ def _standardize_search_string(search_string: str, module_name: str) -> str:
     """
     Standardize search strings according to KM24 syntax standards.
     
+    Fixes syntax errors without replacing the semantic content.
+    
     Args:
         search_string: The raw search string from LLM
-        module_name: The module name to determine appropriate syntax
+        module_name: The module name (kept for backward compatibility)
     
     Returns:
-        Standardized search string following KM24 conventions
+        Corrected search string following KM24 conventions
     """
     if not search_string:
         return ""
     
-    module_lower = module_name.lower()
     search_string = search_string.strip()
     
-    # Standard search patterns for different modules
-    module_patterns = {
-        "registrering": {
-            "landbrug": "landbrug;landbrugsvirksomhed;agriculture",
-            "ejendom": "ejendomsselskab;ejendomsudvikling;real_estate",
-            "bygge": "byggefirma;byggevirksomhed;construction",
-            "detail": "detailhandel;retail;butik",
-            "restaurant": "restaurant;café;cafe;spisested",
-            "transport": "transport;logistik;spedition",
-            "finans": "finans;bank;kapitalfond",
-            "teknologi": "teknologi;tech;software;it"
-        },
-        "tinglysning": {
-            "landbrug": "~landbrugsejendom~",
-            "ejendom": "~ejendomshandel~",
-            "bygge": "~byggegrund~",
-            "erhverv": "~erhvervsejendom~",
-            "bolig": "~boligejendom~"
-        },
-        "kapitalændring": {
-            "landbrug": "kapitalfond;ejendomsselskab;landbrug",
-            "ejendom": "ejendomsselskab;kapitalfond;udvikling",
-            "bygge": "byggefirma;kapitalfond;udvikling",
-            "finans": "kapitalfond;finansselskab;investering"
-        },
-        "lokalpolitik": {
-            "default": "lokalplan;landzone;kommunal;politisk"
-        },
-        "miljøsager": {
-            "default": "miljøtilladelse;husdyrgodkendelse;udvidelse;miljø"
-        },
-        "regnskaber": {
-            "default": "regnskab;årsrapport;økonomi;finansiel"
-        }
-    }
-    
-    # Check if we have a pattern for this module
-    if module_lower in module_patterns:
-        patterns = module_patterns[module_lower]
-        
-        # For registrering, try to match content
-        if module_lower == "registrering":
-            for key, pattern in patterns.items():
-                if key in search_string.lower():
-                    return _fix_operators_in_search_string(pattern)
-        
-        # For tinglysning, use default pattern if it exists
-        elif module_lower == "tinglysning":
-            for key, pattern in patterns.items():
-                if key in search_string.lower():
-                    return _fix_operators_in_search_string(pattern)
-        
-        # For kapitalændring, use default pattern if it exists
-        elif module_lower == "kapitalændring":
-            for key, pattern in patterns.items():
-                if key in search_string.lower():
-                    return _fix_operators_in_search_string(pattern)
-            # If no specific match, return default landbrug pattern
-            if "landbrug" in search_string.lower():
-                return _fix_operators_in_search_string("kapitalfond;ejendomsselskab;landbrug")
-        
-        # For other modules, use default pattern
-        elif "default" in patterns:
-            pattern = patterns["default"]
-            return _fix_operators_in_search_string(pattern)
-    
-    # If no specific pattern found, apply general KM24 syntax improvements
+    # Apply general KM24 syntax improvements (phrase syntax, etc.)
     improved = _apply_km24_syntax_improvements(search_string)
     
-    # Fix operators to uppercase
+    # Fix operators to uppercase and handle Danish operators
     return _fix_operators_in_search_string(improved)
 
 def _apply_km24_syntax_improvements(search_string: str) -> str:
@@ -1499,6 +1530,125 @@ def final_cleanup_pass(recipe: dict) -> dict:
     return recipe
 
 
+def get_industry_branch_codes() -> Dict[str, List[str]]:
+    """
+    Map industry keywords to relevant branch codes.
+    
+    Returns:
+        Dictionary of industry keywords to lists of branch codes
+    """
+    return {
+        # Byggeri & Construction
+        "byggeri": ["41.20", "43.11", "43.12", "43.99"],
+        "bygge": ["41.20", "43.11", "43.12", "43.99"],
+        "byggeprojekt": ["41.20", "43.11", "43.12", "43.99"],
+        "entreprenør": ["41.20", "43.11", "43.99"],
+        "nedrivning": ["43.11"],
+        "construction": ["41.20", "43.11", "43.12", "43.99"],
+        
+        # Transport & Logistics
+        "transport": ["49.41", "49.42", "53.10", "53.20"],
+        "logistik": ["49.41", "52.29"],
+        "vognmand": ["49.41"],
+        "spedition": ["52.29"],
+        "godstransport": ["49.41"],
+        
+        # Landbrug & Agriculture
+        "landbrug": ["01.11", "01.21", "01.41", "01.50"],
+        "landbrugs": ["01.11", "01.21", "01.41", "01.50"],
+        "agriculture": ["01.11", "01.21", "01.41"],
+        "bonde": ["01.11", "01.50"],
+        "gård": ["01.11", "01.50"],
+        
+        # Fødevarer & Food
+        "fødevare": ["10.11", "10.51", "10.71"],
+        "bageri": ["10.71"],
+        "mejeri": ["10.51"],
+        "slagter": ["10.11", "10.13"],
+        "restaurant": ["56.10"],
+        "café": ["56.30"],
+        
+        # Detail & Retail
+        "detailhandel": ["47.11", "47.19", "47.71"],
+        "detail": ["47.11", "47.19", "47.71"],
+        "butik": ["47.11", "47.19"],
+        "retail": ["47.11", "47.19"],
+        
+        # Ejendom & Real Estate
+        "ejendom": ["68.10", "68.20", "68.31"],
+        "ejendomsselskab": ["68.10", "68.20"],
+        "udlejning": ["68.20"],
+        
+        # Finans & Finance
+        "finans": ["64.19", "64.20"],
+        "bank": ["64.19"],
+        "kapitalfond": ["64.20"],
+        "investering": ["64.20"],
+        
+        # Teknologi & Tech
+        "teknologi": ["62.01", "62.02"],
+        "software": ["62.01"],
+        "it": ["62.01", "62.02"],
+        "tech": ["62.01"]
+    }
+
+
+def ensure_critical_filters(recipe: dict, goal: str) -> dict:
+    """
+    Ensure critical filters (especially Branche for Registrering) are present.
+    
+    Auto-adds missing Branche filters to Registrering steps if the user's goal
+    clearly implies an industry.
+    
+    Args:
+        recipe: Recipe dict to check and modify
+        goal: User's original goal string
+    
+    Returns:
+        Modified recipe dict with added filters
+    """
+    if not goal:
+        return recipe
+    
+    goal_lower = goal.lower()
+    industry_mapping = get_industry_branch_codes()
+    
+    # Find industry matches in goal
+    matched_industries = []
+    for keyword, branch_codes in industry_mapping.items():
+        if keyword in goal_lower:
+            matched_industries.append((keyword, branch_codes))
+    
+    if not matched_industries:
+        logger.info("No industry keywords detected in goal - skipping auto-filter")
+        return recipe
+    
+    # Use the first matched industry (most specific)
+    detected_keyword, branch_codes = matched_industries[0]
+    logger.info(f"Detected industry keyword '{detected_keyword}' in goal → branch codes: {branch_codes}")
+    
+    # Iterate through steps and fix Registrering steps
+    for step in recipe.get("steps", []):
+        module_name = step.get("module", {}).get("name", "")
+        step_title = step.get("title", "").lower()
+        
+        # Check if this is a Registrering step about identifying companies
+        if module_name == "Registrering":
+            filters = step.get("filters", {})
+            
+            # Check if Branche filter is missing or empty
+            if not filters.get("Branche") or filters.get("Branche") == []:
+                # Auto-add branch codes
+                filters["Branche"] = branch_codes
+                logger.info(f"✓ Auto-added Branche filter {branch_codes} to Registrering step based on keyword '{detected_keyword}'")
+                
+                # Update rationale to mention auto-addition
+                if "rationale" in step:
+                    step["rationale"] += f" (Auto-tilføjet branchekoder for {detected_keyword})"
+    
+    return recipe
+
+
 async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
     """
     Complete recipe with deterministic output structure.
@@ -1571,6 +1721,10 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
     # NEW: Final cleanup pass
     logger.info("Trin 2.9: Final filter cleanup")
     recipe = final_cleanup_pass(recipe)
+    
+    # NEW: Ensure critical filters are present
+    logger.info("Trin 2.95: Sikrer kritiske filtre er til stede")
+    recipe = ensure_critical_filters(recipe, goal)
     
     # Step 3: Apply sensible defaults (after module validation)
     logger.info("Trin 3: Anvender defaults")
@@ -1942,19 +2096,46 @@ def generate_ai_assessment(recipe: dict, goal: str) -> dict:
             area = area_name
             break
 
-    # Infer focus from modules and keywords
-    focus = "Systematisk overvågning"
-    if "Status" in modules_used and "Registrering" in modules_used:
-        if any(w in goal_lower for w in ["konkurs", "ophør", "lukk", "rytter"]):
-            focus = "Konkursrytteri og virksomhedsgenstarter"
-        elif any(w in goal_lower for w in ["fusion", "opkøb", "sammenlægning"]):
-            focus = "Virksomhedskonsolidering og ejerskabsændringer"
-    elif "Arbejdstilsyn" in modules_used:
-        focus = "Arbejdsmiljø og myndighedsreaktioner"
-    elif "Tinglysning" in modules_used:
-        focus = "Ejendomshandler og økonomiske transaktioner"
-    elif "Lokalpolitik" in modules_used:
-        focus = "Politiske beslutninger og lokalplaner"
+    # Extract focus from goal keywords - be specific
+    focus = ""
+    
+    # Transport/arbejdsmiljø
+    if any(w in goal_lower for w in ["vognm", "transport", "social dumping"]) and "arbejdstilsyn" in goal_lower:
+        focus = "Social dumping og arbejdsmiljø i transportbranchen"
+    
+    # Detail/konkurs
+    elif any(w in goal_lower for w in ["butik", "detail"]) and any(w in goal_lower for w in ["konkurs", "lukk", "ophør"]):
+        focus = "Konkursrytteri i detailhandel"
+    
+    # Byggeri/arbejdsmiljø
+    elif "bygge" in goal_lower and "arbejdstilsyn" in goal_lower:
+        focus = "Arbejdsmiljø og sikkerhed i byggebranchen"
+    
+    # Ejendom/udvikling
+    elif any(w in goal_lower for w in ["havn", "udvikling", "ejendom", "lokalplan"]):
+        focus = "Ejendomsudvikling og kommunale beslutninger"
+    
+    # Fødevare/kontrol
+    elif any(w in goal_lower for w in ["fødevare", "smiley", "restaurant"]):
+        focus = "Fødevaresikkerhed og myndighedskontrol"
+    
+    # Fallback - use module combination if no keywords matched
+    else:
+        if "Status" in modules_used and "Registrering" in modules_used:
+            if any(w in goal_lower for w in ["konkurs", "ophør", "lukk", "rytter"]):
+                focus = "Konkursrytteri og virksomhedsgenstarter"
+            elif any(w in goal_lower for w in ["fusion", "opkøb", "sammenlægning"]):
+                focus = "Virksomhedskonsolidering og ejerskabsændringer"
+            else:
+                focus = "Virksomhedsmønstre og statusændringer"
+        elif "Arbejdstilsyn" in modules_used:
+            focus = "Myndighedskontrol og compliance"
+        elif "Tinglysning" in modules_used:
+            focus = "Ejendomshandler og økonomiske transaktioner"
+        elif "Lokalpolitik" in modules_used:
+            focus = "Politiske beslutninger og lokalplaner"
+        else:
+            focus = "Systematisk datadrevet overvågning"
 
     # Build concise summary
     summary = f"{len(steps)} monitorer i {area}. Fokus: {focus}."
@@ -2015,6 +2196,82 @@ def generate_ai_assessment(recipe: dict, goal: str) -> dict:
         "quality_checks": quality_checks
     }
 
+def get_branch_code_description(code: str) -> str:
+    """Get Danish description for a branch code.
+    
+    Common codes used in journalism investigations.
+    Full list: https://www.dst.dk/da/Statistik/dokumentation/nomenklaturer/db07
+    """
+    descriptions = {
+        # Transport (49.x)
+        "49.41": "Godstransport ad vej",
+        "49.41.00": "Godstransport ad vej",
+        "49.42": "Flytteforretninger",
+        "49.42.00": "Flytteforretninger",
+        "53.10": "Postbefordring",
+        "53.20": "Andre post- og kurertjenester",
+        "52.29": "Andre serviceydelser i forbindelse med transport",
+        
+        # Detail (47.x)
+        "47.11": "Dagligvarebutikker",
+        "47.11.10": "Supermarkeder",
+        "47.19": "Øvrige detailhandel med bredt varesortiment",
+        "47.71": "Detailhandel med beklædning",
+        "47.72": "Detailhandel med fodtøj og lædervarer",
+        "47.59": "Detailhandel med møbler og boligudstyr",
+        
+        # Byggeri (41.x, 43.x)
+        "41.10": "Udvikling af byggeprojekter",
+        "41.20": "Opførelse af bygninger",
+        "43.11": "Nedrivning",
+        "43.12": "Klargøring af byggegrunde",
+        "43.99": "Anden specialiseret bygge- og anlægsvirksomhed",
+        
+        # Fødevare (10.x)
+        "10.11": "Forarbejdning af kød",
+        "10.13": "Forarbejdning af fjerkræ",
+        "10.51": "Mejerier",
+        "10.71": "Bagning af brød og kager",
+        
+        # Restaurant (56.x)
+        "56.10": "Restauranter",
+        "56.21": "Catering",
+        "56.30": "Serveringssteder",
+        
+        # Landbrug (01.x)
+        "01.11": "Dyrkning af korn",
+        "01.21": "Dyrkning af druer",
+        "01.41": "Mælkeproduktion",
+        "01.50": "Blandet landbrug",
+        
+        # Ejendom (68.x)
+        "68.10": "Køb og salg af egen fast ejendom",
+        "68.20": "Udlejning af egen eller lejet fast ejendom",
+        "68.31": "Ejendomsmægling",
+        
+        # Finans (64.x)
+        "64.19": "Anden pengeinstitutvirksomhed",
+        "64.20": "Holdingselskaber",
+        
+        # IT (62.x)
+        "62.01": "Computerprogrammering",
+        "62.02": "Konsulentbistand vedrørende informationsteknologi",
+    }
+    
+    # Try exact match first
+    if code in descriptions:
+        return descriptions[code]
+    
+    # Try parent code (first 4 chars for x.xx.yy format)
+    if len(code) >= 4:
+        parent = code[:4]
+        if parent in descriptions:
+            return descriptions[parent]
+    
+    # Fallback: return generic
+    return "Branchekode"
+
+
 def generate_hit_definition(step: dict, module_info: dict) -> dict:
     """Generate hit definition for a specific step."""
     from km24_vejviser.models.usecase_response import HitDefinition
@@ -2027,11 +2284,33 @@ def generate_hit_definition(step: dict, module_info: dict) -> dict:
 
     # Module-specific hit definitions
     if module_name == "Registrering":
+        # Extract branchekoder from step filters
+        branch_codes = filters.get("Branche", [])
+        
+        # Format branch codes WITH descriptions
+        if branch_codes:
+            formatted_codes = []
+            for code in branch_codes[:3]:  # Max 3 to avoid clutter
+                desc = get_branch_code_description(code)
+                formatted_codes.append(f"{code} ({desc})")
+            
+            if len(branch_codes) > 3:
+                branch_str = ", ".join(formatted_codes) + f" (+{len(branch_codes)-3} flere)"
+            else:
+                branch_str = ", ".join(formatted_codes)
+        else:
+            branch_str = "relevante brancher"
+        
+        # Get kommune info
+        kommuner = filters.get("Kommune", [])
+        geo_str = ", ".join(kommuner) if kommuner else "Danmark"
+        
         hit_types.append("Ny virksomhed registreret i målområdet")
-        if "Branche" in filters:
-            indicators.append(f"Branchekode matcher: {', '.join(filters['Branche'][:3])}")
-        if "Kommune" in filters:
-            indicators.append(f"Geografisk område: {', '.join(filters['Kommune'][:3])}")
+        indicators.extend([
+            f"Branchekode: {branch_str}",
+            f"Geografisk område: {geo_str}",
+            "Aktiv status (ikke under konkurs/likvidation)"
+        ])
 
     elif module_name == "Arbejdstilsyn":
         hit_types.append("Arbejdstilsynsbesøg med kritikpunkter")
@@ -2083,15 +2362,23 @@ def generate_step_rationale(step: dict, goal: str, step_index: int) -> str:
         }
         return rationales.get(module_name, f"{module_name} danner fundamentet for analysen.")
 
-    # Later step rationales (building on previous)
+    # Later step rationales (building on previous) - CONTEXT-AWARE
     later_rationales = {
         "Status": "Statusændringer viser økonomiske konsekvenser. Kobl til CVR fra tidligere step for at spore systematiske mønstre.",
         "Registrering": "Nye registreringer på kendte adresser kan indikere genstarter. Sammenlign adresser med konkurser fra tidligere step.",
         "Personbogen": "Personbogen afslører økonomiske relationer og pantsætninger. Kobl personer fra konkurser til nye selskaber.",
         "Tinglysning": "Ejendomsdata knytter aktører sammen gennem adresser og transaktioner. Verificér ejerskabsforhold fra tidligere trin.",
-        "Arbejdstilsyn": "Tilsynsreaktioner kan forklare statusændringer set tidligere. Tjek om kritik forudgik konkurser.",
         "Lokalpolitik": "Politiske beslutninger giver kontekst til økonomiske bevægelser. Kan beslutninger forklare mønstre fra tidligere step?"
     }
+    
+    # Special handling for Arbejdstilsyn - depends on position
+    if module_name == "Arbejdstilsyn":
+        if step_index <= 1:  # Early in pipeline
+            return ("Tilsynsreaktioner kan forklare efterfølgende statusændringer. "
+                   "Dokumentér tidspunkter for at spore kausal rækkefølge.")
+        else:  # Later in pipeline
+            return ("Tilsynsreaktioner kan forklare statusændringer set tidligere. "
+                   "Tjek om kritik forudgik konkurser.")
 
     return later_rationales.get(module_name, f"{module_name} tilføjer kontekst og verifikation til tidligere fund.")
 
@@ -2305,24 +2592,44 @@ async def get_filter_recommendations(request: Request):
 # --- Inspiration Prompts ---
 inspiration_prompts = [
     {
-        "title": "🛍️ Overvåg butiksdød i Esbjerg",
-        "prompt": "Jeg vil opsætte en overvågning, der fanger HVIS/NÅR detailbutikker i Esbjerg centrum lukker (konkurs/ophør/tvangsopløsning), og følger om samme ejere genopstår i nye selskaber på samme adresser."
+        "title": "🏗️ Konkursryttere i byggebranchen",
+        "prompt": "Jeg har en mistanke om, at de samme personer står bag en række konkurser i byggebranchen i og omkring København. Jeg vil lave en overvågning, der kan afdække, om konkursramte ejere eller direktører dukker op i nye selskaber inden for samme branche."
     },
     {
-        "title": "🚚 Overvåg social dumping i transportbranchen",
-        "prompt": "Opsæt en overvågning, der fanger NÅR vognmænd i Trekantsområdet får nye Arbejdstilsynsreaktioner eller sager, og KOBL det til fremtidige statusændringer (lukninger/rekonstruktion)."
+        "title": "🚧 Underleverandør-karrusel i offentligt byggeri",
+        "prompt": "Jeg vil undersøge store offentlige byggeprojekter i Jylland, som har vundet udbud. Opsæt en overvågning, der holder øje med, om hovedentreprenøren hyppigt skifter underleverandører, og om disse underleverandører pludselig går konkurs kort efter at have modtaget betaling."
     },
     {
-        "title": "🏙️ Overvåg udvikling ved Aarhus Havn",
-        "prompt": "Jeg vil overvåge NÅR der kommer nye lokalplansager, ejendomshandler og selskabsændringer, der involverer aktører omkring Aarhus Havn – som en fremadrettet radar."
+        "title": "🏙️ Interessekonflikter ved byudvikling",
+        "prompt": "Der er stor udvikling i gang på havneområdet i Aalborg. Jeg vil overvåge alle nye lokalplaner, større ejendomshandler (> 25 mio. kr) og nye byggetilladelser i området. Samtidig vil jeg se, om lokale byrådspolitikere har personlige økonomiske interesser i de selskaber, der bygger."
     },
     {
-        "title": "🥩 Overvåg fødevaresikkerhed og arbejdsmiljø",
-        "prompt": "Opsæt overvågninger, der fanger HVIS/NÅR slagterier i Nordjylland får nye sure smileys, og kryds med fremtidige Arbejdstilsynsreaktioner."
+        "title": "🌾 Landzone-dispensationer i Nordsjælland",
+        "prompt": "Jeg vil afdække, hvilke landbrugsejendomme i Nordsjælland der har fået dispensation til at udstykke grunde til byggeri. Overvågningen skal fange både de politiske beslutninger i kommunerne og de efterfølgende tinglysninger af ejendomssalg."
     },
     {
-        "title": "💼 Overvåg kapitalfonde i dansk software",
-        "prompt": "Jeg vil opsætte en overvågning, der fanger NÅR kapitalfonde gennemfører nye kapitalændringer, opkøb/fusioner og relevante børsmeddelelser i dansk software."
+        "title": "⚠️ Asbest og nedstyrtningsfare",
+        "prompt": "Jeg vil afdække et mønster af alvorlige arbejdsmiljøsager relateret til asbest og nedstyrtningsfare i nedrivningsbranchen (branchekode 43.11) på Fyn. Overvågningen skal fange de mest alvorlige påbud fra Arbejdstilsynet og efterfølgende følge med i, om sagerne omtales i lokale medier."
+    },
+    {
+        "title": "🌱 Bæredygtigt byggeri - fakta eller facade",
+        "prompt": "Jeg vil skrive en artikelserie om, hvilke byggevirksomheder der er førende inden for bæredygtigt byggeri. Opsæt en overvågning, der fanger omtale af 'bæredygtighed', 'DGNB-certificering' og 'træbyggeri' i fagmedier og på virksomhedernes egne hjemmesider. Krydsreference med virksomhedernes regnskabstal for at se, om der er økonomi i det."
+    },
+    {
+        "title": "💼 Kapitalfonde i dansk tech",
+        "prompt": "Jeg vil identificere og overvåge danske kapitalfondes investeringer i teknologivirksomheder. Opsæt en radar, der fanger kapitalændringer, fusioner og børsmeddelelser relateret til denne niche."
+    },
+    {
+        "title": "📊 Insiderhandel i C25-selskaber",
+        "prompt": "Overvåg handler med aktier foretaget af direktører og bestyrelsesmedlemmer (indberetninger om handler fra insidere) i alle C25-selskaber. Opret en alarm, der giver besked, når flere insidere i samme selskab sælger eller køber aktier inden for en kort periode (f.eks. en uge)."
+    },
+    {
+        "title": "🌍 Greenwashing i energisektoren",
+        "prompt": "Store energiselskaber markedsfører sig kraftigt på bæredygtighed. Jeg vil opsætte en overvågning, der sammenholder deres grønne udmeldinger i medierne med faktiske miljøsager eller kritik fra Miljøstyrelsen. Jeg vil fange søgeord som 'grøn omstilling', 'bæredygtig' og 'CO2-neutral' og krydsreferere med selskabernes CVR-numre i Miljøsager-modulet."
+    },
+    {
+        "title": "💳 Kviklån og gældsinddrivelse",
+        "prompt": "Jeg vil undersøge markedsføringen fra kviklånsvirksomheder. Overvåg deres omtale i sociale medier og landsdækkende medier. Samtidig vil jeg overvåge Retslister for at se, om disse firmaer optræder hyppigt i sager om gældsinddrivelse i fogedretten."
     }
 ]
 

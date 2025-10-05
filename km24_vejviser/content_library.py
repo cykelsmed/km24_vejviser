@@ -277,6 +277,165 @@ QUALITY_CHECKLISTS: Dict[str, List[str]] = {
 
 
 # ============================================================================
+# DYNAMIC GUIDES - Module-specific pedagogical content
+# ============================================================================
+
+DYNAMIC_GUIDES: Dict[str, str] = {
+    "Registrering": """**Sådan bruger du Registrering effektivt:**
+
+🎯 **Brug altid branchekoder** for at finde virksomheder - ALDRIG søgeord.
+
+**Byggeri-branchekoder:**
+- 41.20: Opførelse af bygninger
+- 43.11: Nedrivning
+- 43.12: Klargøring af byggegrunde
+- 43.99: Anden specialiseret bygge- og anlægsvirksomhed
+
+**Landbrug-branchekoder:**
+- 01.11: Dyrkning af korn (undtagen ris), bælgfrugter og olieholdige frø
+- 01.21: Dyrkning af druer
+- 01.41: Mælkeproduktion
+
+**Pro tip:** Eksportér CVR-numre fra dette step og brug dem som filter i andre moduler (Arbejdstilsyn, Status, Tinglysning) for præcis tracking.""",
+
+    "Status": """**Forstå status-typerne:**
+
+📊 **Under konkurs:** Konkursbegæring er indgivet, kurator er udpeget. Processen er startet.
+
+📊 **Tvangsopløst:** Ofte pga. manglende regnskab eller manglende revisor. Indikerer dårlig administration.
+
+📊 **Opløst efter konkurs:** Konkursbehandlingen er afsluttet. Virksomheden eksisterer ikke længere.
+
+📊 **Under konkurs efter rekonstruktion:** Rekonstruktionsforsøg mislykkedes, nu konkurs.
+
+**Pro tip:** Sammenlign konkurs-datoer med Arbejdstilsyn-kritik. Konkurs kort efter alvorlig kritik kan indikere årsagssammenhæng.""",
+
+    "Arbejdstilsyn": """**Reaktionstyper - hvor alvorligt er det?**
+
+🚨 **Forbud (mest alvorligt):** Arbejde skal standses øjeblikkeligt. Overtrædelsen er så alvorlig at den udgør umiddelbar fare.
+
+🚨 **Strakspåbud:** Skal efterkommes straks - typisk inden for få dage. Alvorlig overtrædelse.
+
+⚠️  **Påbud:** Skal efterkommes inden for fastsat frist (typisk uger/måneder). Mindre akut.
+
+📝 **Rådgivningspåbud:** Virksomheden skal købe ekstern rådgivning til at løse problemet.
+
+**Pro tip:** Filtrer på Forbud + Strakspåbud for de mest alvorlige sager. Track om virksomheder får gentagne påbud - indikerer systematiske problemer.""",
+
+    "Tinglysning": """**Forstå beløbsgrænser:**
+
+🏠 **Under 10 mio.:** Standard boliger, mindre erhvervsejendomme
+🏢 **10-50 mio.:** Større erhvervsejendomme, ejendomskomplekser
+🏗️  **Over 50 mio.:** Meget store handler - ofte interessante for historier
+
+**Interessante købere:**
+- Udenlandske selskaber (Malta, Luxembourg, Panama) → hvem står bag?
+- Politikere eller embedsmænd → interessekonflikter?
+- Selskaber med uklare ejerstrukturer → hvidvask?
+
+**Pro tip:** Sammenlign Tinglysning med Lokalpolitik - blev lokalplan ændret kort før salg? Blev værdien kunstigt øget?""",
+
+    "Personbogen": """**Brug Personbogen til at finde skjulte forbindelser:**
+
+🔍 **Virksomhedspant:** Pant i virksomhedens aktiver. Indikerer økonomiske problemer eller stor gæld.
+
+🔍 **Løsørepant:** Pant i maskiner, varelager, etc. Ofte sidste udvej før konkurs.
+
+🔍 **Ejerskifte:** Hvem er de nye ejere? Tidligere konkurser? Relationer til andre overvågede virksomheder?
+
+**Pro tip:** Når du får et hit, undersøg om personerne også optræder i dine andre overvågninger (Registrering, Status, Lokalpolitik). Find mønstre på tværs.""",
+
+    "Lokalpolitik": """**Politiske dokumenter - hvad skal du kigge efter:**
+
+📋 **Lokalplaner:** Ændringer i byggeret, zonestatus - hvem profiterer?
+
+⚖️  **Habilitetserklæringer:** Politiker erklærer interessekonflikt - grænseoverskridende eller korrekt håndteret?
+
+🚨 **Hastemøder:** Ekstraordinære beslutninger uden normal høring - hvorfor hastværket?
+
+💰 **Store kontrakter:** Offentlige udbud over visse beløb - hvem vinder? Sammenhæng til donationer?
+
+**Pro tip:** Deltag i møderne! Politikere er mere tilbageholdende med tvivlsomme beslutninger når pressen er til stede.""",
+
+    "Domme": """**Forstå domstolshierarkiet:**
+
+⚖️  **Byret:** Førsteinstans - kan ankes til landsret
+⚖️  **Landsret:** Ankeinstans - kan ankes til Højesteret (kræver tilladelse)
+⚖️  **Højesteret:** Sidste instans - skaber præcedens
+
+**Interessante domme:**
+- Frifindelser i miljøsager (virksomhed vs. myndighed)
+- Økonomisk kriminalitet (bedrageri, momssvig, skattefusk)
+- Arbejdsmiljø-ulykker med strafansvar
+
+**Pro tip:** Kombiner med Retslister - følg sagen fra anmeldelse til dom.""",
+
+    "Retslister": """**Retslister viser hvem der er sigtet:**
+
+⚠️  **Vigtigt:** Sigtet = IKKE dømt. Uskyldspræsumtion gælder.
+
+🔍 **Gerningskoder:**
+- 100-199: Forbrydelser mod person (vold, drab)
+- 200-299: Sædelighedsforbrydelser
+- 280-289: Miljøkriminalitet
+- 290-299: Økonomisk kriminalitet
+
+**Pro tip:** Brug Retslister til at finde sager tidligt, følg op med Domme-modulet når dommen falder. Interview forsvar + anklager for baggrundshistorien.""",
+
+    "Danske medier": """**Medieovervågning - udnyt konkurrentanalyse:**
+
+📰 **Lokale medier** giver ofte tidligere signaler end landsdækkende - de er tættere på.
+
+📡 **Fagmedier** (Byggebladet, Ingeniøren, etc.) rapporterer tekniske detaljer som landsdækkende springer over.
+
+**Søgestreng best practices:**
+- Brug semikolon for synonymer: `vindmølle;vindenergi;windmill`
+- Kombiner tema + geografi: `asbest;asbestsag AND aarhus;østjylland`
+- Filtrér støj: `byggeri NOT boligannoncer NOT stillingsannoncer`
+
+**Pro tip:** Når konkurrent har en historie, lav en bedre follow-up med dine data fra KM24-moduler.""",
+
+    "Kommuner": """**Kommunale hjemmesider - hvad ligger her:**
+
+📢 **Pressemeddelelser:** Officiel kommunikation - hvad vil de fremhæve?
+📋 **Politiske referater:** Faktiske beslutninger (se også Lokalpolitik-modul)
+📊 **Rapporter:** Tunge dokumenter med detaljer der ikke kommer i pressemeddelelser
+
+**Pro tip:** Sammenlign kommunens pressemeddelelser med faktiske data fra andre moduler - er der ting de ikke nævner?""",
+
+    "Miljøsager": """**Miljøtilladelser og håndhævelser:**
+
+✅ **Tilladelser:** Nye miljøgodkendelser - hvad får virksomheden lov til?
+⚠️  **Tilsyn:** Myndigheden tjekker om virksomheden overholder reglerne
+🚨 **Påbud/Forbud:** Virksomheden overtræder regler - skal rette op
+
+**Interessante sager:**
+- Afslag på miljøtilladelse (hvorfor? lokal modstand?)
+- Gentagne påbud til samme virksomhed (systematiske problemer)
+- Store udledningsændringer (øget forurening?)
+
+**Pro tip:** Søg aktindsigt i fulde tilsynsrapporter - der står meget mere end i det offentliggjorte sammendrag.""",
+
+    "Regnskaber": """**Årsrapporter - gravsignaler:**
+
+📊 **Revisorpåtegning:** "Forbehold" eller "supplerende oplysninger" = problemer
+💰 **Negativ egenkapital:** Virksomheden skylder mere end den ejer
+📉 **Stor gæld til SKAT:** Indikerer betalingsproblemer
+⚠️  **Uden revisor:** Små virksomheder behøver ikke revisor, men det kan skjule problemer
+
+**Pro tip:** Sammenlign regnskaber over flere år - pludselig forværring kan forudsige konkurs.""",
+
+    "Kapitalændring": """**Kapitalændringer - hvad sker der:**
+
+📈 **Kapitalforhøjelse:** Nye penge ind - expansion eller redningsaktion?
+📉 **Kapitalnedsættelse:** Betaling til ejere eller signaler om problemer?
+🔄 **Fusion/spaltning:** Virksomhedsstruktur ændres - hvorfor? skatteoptimering?
+
+**Pro tip:** Store kapitalændringer lige efter kritik (Arbejdstilsyn) eller før salg (Tinglysning) kan være interessante."""
+}
+
+
+# ============================================================================
 # ContentLibrary - Main interface for accessing educational content
 # ============================================================================
 
@@ -446,3 +605,16 @@ class ContentLibrary:
 
         # Notification strategy is always relevant
         return "notification_strategy"
+
+    @staticmethod
+    def get_dynamic_guide_for_module(module_name: str) -> Optional[str]:
+        """
+        Get dynamic pedagogical guide for a specific module.
+        
+        Args:
+            module_name: Name of KM24 module (e.g., "Registrering", "Status")
+        
+        Returns:
+            Module-specific pedagogical guide with concrete examples, or None if not found
+        """
+        return DYNAMIC_GUIDES.get(module_name)
