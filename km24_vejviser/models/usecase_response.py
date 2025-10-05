@@ -36,6 +36,24 @@ class Guardrails(BaseModel):
     required_filters: List[str] = Field(default_factory=list, description="Required filters")
     warnings: List[str] = Field(default_factory=list, description="Safety warnings")
 
+class HitDefinition(BaseModel):
+    """What counts as a hit for this step."""
+    hit_types: List[str] = Field(default_factory=list, description="Types of hits to watch for")
+    indicators: List[str] = Field(default_factory=list, description="Specific indicators/patterns")
+
+class ContextBlock(BaseModel):
+    """Investigative context and expectations."""
+    background: str = Field(..., description="Domain background and why this matters")
+    what_to_expect: str = Field(..., description="What kind of hits to expect")
+    caveats: List[str] = Field(default_factory=list, description="Limitations and caveats")
+    coverage: str = Field(default="", description="Geographic/temporal coverage")
+
+class AIAssessment(BaseModel):
+    """LLM's strategic assessment of the monitoring plan."""
+    search_plan_summary: str = Field(..., description="High-level search strategy")
+    likely_signals: List[str] = Field(default_factory=list, description="Expected signals/patterns")
+    quality_checks: List[str] = Field(default_factory=list, description="Pre-activation quality checks")
+
 class StepEducational(BaseModel):
     """Educational content enrichment for a single step."""
     principle: Optional[str] = Field(None, description="Relevant KM24 principle for this step")
@@ -45,6 +63,8 @@ class StepEducational(BaseModel):
     red_flags: List[str] = Field(default_factory=list, description="What to watch for in hits")
     action_plan: Optional[str] = Field(None, description="What to do when hits arrive")
     example_hit: Optional[str] = Field(None, description="Example of what a hit might look like")
+    what_counts_as_hit: Optional[str] = Field(None, description="What patterns/indicators count as hits")
+    why_this_step: Optional[str] = Field(None, description="Strategic rationale for this step")
 
 class Step(BaseModel):
     """Individual investigation step with complete configuration."""
@@ -166,6 +186,8 @@ class UseCaseResponse(BaseModel):
     potential_story_angles: List[str] = Field(default_factory=list, description="Potential story angles")
     creative_cross_references: List[str] = Field(default_factory=list, description="Creative cross-references")
     educational_content: Optional[EducationalContent] = Field(None, description="Universal educational content")
+    context: Optional[ContextBlock] = Field(None, description="Investigative context and expectations")
+    ai_assessment: Optional[AIAssessment] = Field(None, description="LLM's strategic assessment")
 
     @model_validator(mode="after")
     def validate_structure(self):

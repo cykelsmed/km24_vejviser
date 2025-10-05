@@ -1582,6 +1582,30 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
     enricher = RecipeEnricher()
     recipe = await enricher.enrich(recipe, goal)
 
+    # Step 3.6: Generate context block and AI assessment
+    logger.info("Trin 3.6: Genererer kontekst og AI vurdering")
+
+    # Generate context block
+    modules_list = [step.get("module", {}) for step in recipe.get("steps", [])]
+    scope = recipe.get("scope", {})
+    recipe["context"] = generate_context_block(goal, modules_list, scope)
+
+    # Generate AI assessment
+    recipe["ai_assessment"] = generate_ai_assessment(recipe, goal)
+
+    # Add hit definitions and rationales to each step's educational content
+    for idx, step in enumerate(recipe.get("steps", [])):
+        if "educational" not in step:
+            step["educational"] = {}
+
+        # Generate hit definition
+        module_info = step.get("module", {})
+        hit_def = generate_hit_definition(step, module_info)
+        step["educational"]["what_counts_as_hit"] = f"**Hit types:** {', '.join(hit_def['hit_types'])}\n\n**Indicators:** {'; '.join(hit_def['indicators'])}"
+
+        # Generate step rationale
+        step["educational"]["why_this_step"] = generate_step_rationale(step, goal, idx)
+
     # Step 4: Parse to UseCaseResponse and return dict
     logger.info("Trin 4: Parser til UseCaseResponse")
     
@@ -1798,9 +1822,278 @@ def format_validation_error(errors: list[str]) -> str:
     """Format validation errors as UGYLDIG OPSKRIFT message."""
     if not errors:
         return ""
-    
+
     error_list = "\n".join([f"• {error}" for error in errors])
     return f"UGYLDIG OPSKRIFT – RET FØLGENDE:\n{error_list}"
+
+# --- Helper Functions for Context and Assessment ---
+
+def generate_context_block(goal: str, modules: list[dict], scope: dict) -> dict:
+    """Generate intelligent context based on modules and domain."""
+    from km24_vejviser.models.usecase_response import ContextBlock
+
+    modules_used = [m.get("name", "") for m in modules if isinstance(m, dict)]
+    goal_lower = goal.lower()
+
+    # Domain detection and background facts
+    background = []
+
+    if any(m in modules_used for m in ["Registrering", "Status"]):
+        if any(w in goal_lower for w in ["detail", "butik", "forretning", "shop"]):
+            background.extend([
+                "Detailhandlen i danske bymidter er under pres fra e-handel og huslejestigninger",
+                "Konkursrytteri opstår når samme personer systematisk starter nye selskaber efter konkurser",
+                "CVR-data gør det muligt at spore adresse-overlap og ejerskabsmønstre"
+            ])
+        elif any(w in goal_lower for w in ["transport", "vognm", "lastbil", "fragt"]):
+            background.extend([
+                "Transportsektoren har høj myndighedsaktivitet pga. arbejdsmiljø og sociale forhold",
+                "Reaktioner fra Arbejdstilsynet kan forudgå økonomiske problemer",
+                "Serielle mønstre kan identificeres ved at følge personer på tværs af selskaber"
+            ])
+        elif any(w in goal_lower for w in ["bygge", "entrepren", "håndværk", "asbest"]):
+            background.extend([
+                "Byggebranchen har høj omsætning af virksomheder og hyppige myndighedsreaktioner",
+                "Asbest, stilladser og nedstyrtning er hyppige kritikpunkter fra Arbejdstilsynet",
+                "Statusændringer efter påbud kan indikere systematiske problemer"
+            ])
+
+    if "Arbejdstilsyn" in modules_used:
+        background.append("Arbejdstilsynet registrerer over 15.000 reaktioner årligt på tværs af alle brancher")
+
+    if "Tinglysning" in modules_used:
+        background.append("Ejendomsdata kan afsløre økonomiske relationer og ejerskabsstrukturer")
+
+    # Specific expectations with numbers
+    what_to_expect = []
+    if "Registrering" in modules_used:
+        what_to_expect.append("5-20 nye virksomheder pr. måned i udvalgte brancher (afhænger af geografisk område)")
+    if "Status" in modules_used:
+        what_to_expect.append("1-5 statusændringer pr. måned i målgruppen")
+        what_to_expect.append("Mønstre udvikler sig typisk over 3-12 måneder, ikke dage eller uger")
+    if "Arbejdstilsyn" in modules_used:
+        what_to_expect.append("2-10 tilsynsreaktioner pr. måned afhængig af brancher og geografi")
+
+    # Module-specific caveats
+    caveats = [
+        "CVR-data opdateres dagligt, men kan have 1-2 dages forsinkelse",
+        "Offentlige registre dækker ikke interne virksomhedsbeslutninger eller -dokumenter"
+    ]
+
+    if "Arbejdstilsyn" in modules_used:
+        caveats.append("Myndighedskampagner kan skabe kunstige toppe - vurder tidslige mønstre kritisk")
+    if "Status" in modules_used:
+        caveats.append("Ikke alle sammenfald mellem reaktioner og statusændringer er kausale")
+    if any(m in modules_used for m in ["Registrering", "Personbogen"]):
+        caveats.append("Adressematch kræver manuel verifikation (forskellige formater i registre)")
+
+    # Coverage specifics
+    coverage_parts = []
+    coverage_parts.append(f"Kombinerer: {', '.join(m for m in modules_used if m)}")
+    coverage_parts.append("Dækker kun offentligt tilgængelige kilder via KM24")
+
+    if "Registrering" in modules_used:
+        coverage_parts.append("CVR-data: Historik tilbage til 2010, opdateres dagligt")
+    if "Arbejdstilsyn" in modules_used:
+        coverage_parts.append("Arbejdstilsynsdata: Fra 2015 og frem, inkl. påbud og vejledninger")
+
+    # Fallbacks if no domain detected
+    if not background:
+        background = [
+            "Denne overvågning kombinerer offentlige registre for at spore mønstre",
+            f"Pipeline med {len(modules_used)} moduler giver cross-reference mellem kilder"
+        ]
+
+    if not what_to_expect:
+        what_to_expect = [
+            "Hitvolumen afhænger af filtre og geografisk område",
+            "Mønstre bliver tydeligere over tid (uger til måneder)"
+        ]
+
+    return {
+        "background": "\n".join(f"• {b}" for b in background),
+        "what_to_expect": "\n".join(f"• {w}" for w in what_to_expect),
+        "caveats": caveats,
+        "coverage": "\n".join(coverage_parts)
+    }
+
+def generate_ai_assessment(recipe: dict, goal: str) -> dict:
+    """Generate concise AI assessment without repeating goal."""
+    from km24_vejviser.models.usecase_response import AIAssessment
+
+    steps = recipe.get("steps", [])
+    modules_used = [s.get("module", {}).get("name", "") for s in steps]
+    goal_lower = goal.lower()
+
+    # Extract geographic area
+    area = "Danmark"
+    area_keywords = {
+        "esbjerg": "Esbjerg",
+        "aarhus": "Aarhus",
+        "odense": "Odense",
+        "aalborg": "Aalborg",
+        "københavn": "København",
+        "syddanmark": "Syddanmark",
+        "midtjylland": "Midtjylland",
+        "trekant": "Trekantsområdet"
+    }
+    for keyword, area_name in area_keywords.items():
+        if keyword in goal_lower:
+            area = area_name
+            break
+
+    # Infer focus from modules and keywords
+    focus = "Systematisk overvågning"
+    if "Status" in modules_used and "Registrering" in modules_used:
+        if any(w in goal_lower for w in ["konkurs", "ophør", "lukk", "rytter"]):
+            focus = "Konkursrytteri og virksomhedsgenstarter"
+        elif any(w in goal_lower for w in ["fusion", "opkøb", "sammenlægning"]):
+            focus = "Virksomhedskonsolidering og ejerskabsændringer"
+    elif "Arbejdstilsyn" in modules_used:
+        focus = "Arbejdsmiljø og myndighedsreaktioner"
+    elif "Tinglysning" in modules_used:
+        focus = "Ejendomshandler og økonomiske transaktioner"
+    elif "Lokalpolitik" in modules_used:
+        focus = "Politiske beslutninger og lokalplaner"
+
+    # Build concise summary
+    summary = f"{len(steps)} monitorer i {area}. Fokus: {focus}."
+
+    # Add pipeline if 3+ steps
+    if len(steps) >= 3:
+        step_modules = " → ".join(modules_used[:3])
+        summary += f" Pipeline: {step_modules}."
+
+    # Generate specific signals based on module combinations
+    likely_signals = []
+
+    if "Registrering" in modules_used and "Status" in modules_used:
+        likely_signals.extend([
+            "Nye virksomheder på samme adresser som konkursramte (geografisk proximity)",
+            "Samme personer i ledelse på tværs af flere selskaber (seriel pattern)"
+        ])
+        if len([s for s in steps if s.get("module", {}).get("name") == "Registrering"]) > 1:
+            likely_signals.append("Tidslig klyngedannelse: flere registreringer/konkurser i samme periode")
+
+    if "Arbejdstilsyn" in modules_used and "Status" in modules_used:
+        likely_signals.append("Statusændringer 3-9 måneder efter alvorlige tilsynsreaktioner")
+
+    if "Arbejdstilsyn" in modules_used:
+        likely_signals.append("Geografiske klynger af påbud i specifikke brancher/kommuner")
+
+    if "Tinglysning" in modules_used and "Registrering" in modules_used:
+        likely_signals.append("Ejendomshandler forud for nye virksomhedsregistreringer")
+
+    if "Personbogen" in modules_used:
+        likely_signals.append("Eskalerende økonomiske problemer hos personer forud for konkurser")
+
+    # Fallback if no specific signals
+    if not likely_signals:
+        likely_signals = [
+            "Mønstre vil udvikle sig gradvist over tid",
+            "Gentagne hændelser hos samme aktører"
+        ]
+
+    # Module-specific quality checks
+    quality_checks = [
+        "Verificér nøglefund manuelt i primærkilder før publicering",
+        "Dokumentér søgekriterier og fravalg for reproducerbarhed"
+    ]
+
+    if "Registrering" in modules_used and "Status" in modules_used:
+        quality_checks.append("Tjek adressematch manuelt - CVR kan have forskellige formater (vej vs. gade)")
+
+    if "Personbogen" in modules_used or ("Registrering" in modules_used and "Status" in modules_used):
+        quality_checks.append("Verificér personidentitet via CPR hvis muligt - samme navn ≠ samme person")
+
+    if "Arbejdstilsyn" in modules_used:
+        quality_checks.append("Vær opmærksom på kampagneeffekter - tjek om toppe skyldes øget tilsyn i periode")
+
+    return {
+        "search_plan_summary": summary,
+        "likely_signals": likely_signals[:5],  # Limit to 5
+        "quality_checks": quality_checks
+    }
+
+def generate_hit_definition(step: dict, module_info: dict) -> dict:
+    """Generate hit definition for a specific step."""
+    from km24_vejviser.models.usecase_response import HitDefinition
+
+    module_name = step.get("module", {}).get("name", "")
+    filters = step.get("filters", {})
+
+    hit_types = []
+    indicators = []
+
+    # Module-specific hit definitions
+    if module_name == "Registrering":
+        hit_types.append("Ny virksomhed registreret i målområdet")
+        if "Branche" in filters:
+            indicators.append(f"Branchekode matcher: {', '.join(filters['Branche'][:3])}")
+        if "Kommune" in filters:
+            indicators.append(f"Geografisk område: {', '.join(filters['Kommune'][:3])}")
+
+    elif module_name == "Arbejdstilsyn":
+        hit_types.append("Arbejdstilsynsbesøg med kritikpunkter")
+        if "Problem" in filters:
+            indicators.append(f"Problem type: {', '.join(filters['Problem'][:3])}")
+        if "Reaktion" in filters:
+            indicators.append(f"Reaktion niveau: {', '.join(filters['Reaktion'][:3])}")
+
+    elif module_name == "Status":
+        hit_types.append("Virksomhedsstatusændring")
+        if "Statustype" in filters:
+            indicators.append(f"Status: {', '.join(filters['Statustype'][:3])}")
+        else:
+            indicators.append("Alle statusændringer (konkurs, likvidation, osv.)")
+
+    elif module_name == "Tinglysning":
+        hit_types.append("Ejendomstransaktion tinglyst")
+        indicators.append("Køber/sælger matcher overvågede aktører")
+        if any("min_amount" in str(v) for v in filters.values()):
+            indicators.append("Transaktionsbeløb over tærskel")
+
+    elif module_name == "Personbogen":
+        hit_types.append("Økonomisk ændring hos person")
+        indicators.append("Pant, gæld eller økonomiske dispositioner")
+
+    # Generic fallback
+    if not hit_types:
+        hit_types.append(f"{module_name}-begivenhed matcher filter")
+    if not indicators:
+        indicators.append("Se modulets filterkonfiguration")
+
+    return {
+        "hit_types": hit_types,
+        "indicators": indicators
+    }
+
+def generate_step_rationale(step: dict, goal: str, step_index: int) -> str:
+    """Generate brief, specific step rationale - max 2 sentences."""
+    module_name = step.get("module", {}).get("name", "")
+
+    # First step rationales (foundation)
+    if step_index == 0:
+        rationales = {
+            "Registrering": "CVR FØRST: Dette trin giver CVR-basis for hele undersøgelsen. Ved at starte med branchekoder får vi ALLE aktører, ikke kun problematiske.",
+            "Arbejdstilsyn": "Tilsynsreaktioner er ofte første synlige indikator på problemer. Start her giver tidlig varsling om systematiske udfordringer.",
+            "Status": "Statusændringer identificerer virksomheder i økonomisk krise. Dette giver udgangspunkt for at spore årsager og konsekvenser.",
+            "Tinglysning": "Ejendomstransaktioner afslører økonomiske bevægelser. Start her når penge- og ejerskabsstrømme er central fokus.",
+            "Lokalpolitik": "Politiske beslutninger kan både forudgå og følge økonomiske bevægelser. Start her giver strategisk overblik."
+        }
+        return rationales.get(module_name, f"{module_name} danner fundamentet for analysen.")
+
+    # Later step rationales (building on previous)
+    later_rationales = {
+        "Status": "Statusændringer viser økonomiske konsekvenser. Kobl til CVR fra tidligere step for at spore systematiske mønstre.",
+        "Registrering": "Nye registreringer på kendte adresser kan indikere genstarter. Sammenlign adresser med konkurser fra tidligere step.",
+        "Personbogen": "Personbogen afslører økonomiske relationer og pantsætninger. Kobl personer fra konkurser til nye selskaber.",
+        "Tinglysning": "Ejendomsdata knytter aktører sammen gennem adresser og transaktioner. Verificér ejerskabsforhold fra tidligere trin.",
+        "Arbejdstilsyn": "Tilsynsreaktioner kan forklare statusændringer set tidligere. Tjek om kritik forudgik konkurser.",
+        "Lokalpolitik": "Politiske beslutninger giver kontekst til økonomiske bevægelser. Kan beslutninger forklare mønstre fra tidligere step?"
+    }
+
+    return later_rationales.get(module_name, f"{module_name} tilføjer kontekst og verifikation til tidligere fund.")
 
 # --- API Endpoints ---
 @app.post(

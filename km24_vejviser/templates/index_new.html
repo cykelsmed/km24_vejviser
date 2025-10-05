@@ -1239,7 +1239,7 @@
 
             function renderRecipe(data) {
                 console.log('Rendering recipe with data:', data);
-                
+
                 if (!data || typeof data !== 'object') {
                     showError('Ugyldig data modtaget fra serveren.');
                     return;
@@ -1257,39 +1257,141 @@
                     html += `<div class="strategy-summary"><strong>Strategi:</strong> ${strategy}</div>`;
                 }
 
-                // Creative approach
-                const creativeApproach = data.creative_approach || data.overview?.creative_approach;
-                if (creativeApproach) {
-                    html += `
-                        <div class="creative-approach">
-                            <h4>🎨 Kreativ Tilgang</h4>
-                            <p>${creativeApproach}</p>
-                        </div>
-                    `;
+                // 1. CONTEXT BLOCK (NEW)
+                if (data.context) {
+                    html += renderContextBlock(data.context);
                 }
 
-                // Steps
+                // 2. PIPELINE VISUALIZATION (MOVED UP)
+                html += renderPipelineSummary();
+
+                // 3. AI ASSESSMENT (NEW)
+                if (data.ai_assessment) {
+                    html += renderAIAssessment(data.ai_assessment);
+                }
+
+                // 4. STEPS (with hit definitions)
                 const steps = data.steps || data.investigation_steps || [];
                 if (Array.isArray(steps) && steps.length > 0) {
                     html += '<div class="steps-container">';
-                    html += '<h4>Undersøgelses-trinn:</h4>';
-                    
+                    html += '<h4>📋 Undersøgelsessteps</h4>';
+
                     steps.forEach(function(step, index) {
                         html += renderStep(step, index + 1);
                     });
-                    
+
                     html += '</div>';
                 }
 
-                // Pipeline summary
-                html += renderPipelineSummary();
+                // 5. MONITORING SUMMARY (NEW)
+                html += renderMonitoringSummary(data);
 
-                // Additional sections
+                // Additional sections (story angles, cross-refs, educational)
                 html += renderAdditionalSections(data);
 
                 resultDiv.innerHTML = html;
                 setupCopyButtons();
                 setupEducationalTabs();
+            }
+
+            function renderContextBlock(context) {
+                return `
+                    <div class="context-block" style="background: linear-gradient(to right, #e3f2fd, #f3e5f5); padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1976d2;">
+                        <h4 style="margin-top: 0; color: #1565c0;">📚 Kontekst og Forventninger</h4>
+
+                        <div style="margin-bottom: 15px;">
+                            <strong>Baggrund:</strong>
+                            <p style="margin: 5px 0;">${context.background || ''}</p>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <strong>Forvent hits når:</strong>
+                            <p style="margin: 5px 0;">${context.what_to_expect || ''}</p>
+                        </div>
+
+                        ${context.caveats && context.caveats.length > 0 ? `
+                        <div style="margin-bottom: 15px;">
+                            <strong>⚠️  Begrænsninger:</strong>
+                            <ul style="margin: 5px 0 0 20px;">
+                                ${context.caveats.map(c => `<li>${c}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+
+                        <div>
+                            <strong>📍 Dækning:</strong>
+                            <span style="margin-left: 10px;">${context.coverage || 'Danmark'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderAIAssessment(assessment) {
+                return `
+                    <div class="ai-assessment" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h4 style="margin-top: 0; color: white;">🤖 AI Vurdering af Strategien</h4>
+
+                        <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                            <strong style="color: #e3f2fd;">Søgeplan:</strong>
+                            <p style="margin: 8px 0 0 0;">${assessment.search_plan_summary || ''}</p>
+                        </div>
+
+                        ${assessment.likely_signals && assessment.likely_signals.length > 0 ? `
+                        <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                            <strong style="color: #e3f2fd;">Forventede Signaler:</strong>
+                            <ul style="margin: 8px 0 0 20px; padding-left: 0;">
+                                ${assessment.likely_signals.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+
+                        ${assessment.quality_checks && assessment.quality_checks.length > 0 ? `
+                        <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 6px;">
+                            <strong style="color: #e3f2fd;">Kvalitetstjek:</strong>
+                            <ul style="margin: 8px 0 0 20px; padding-left: 0;">
+                                ${assessment.quality_checks.map(q => `<li>${q}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            function renderMonitoringSummary(data) {
+                const notifications = data.notifications || {};
+                const hitBudget = data.hit_budget || {};
+                const monitoring = data.monitoring || {};
+
+                return `
+                    <div class="monitoring-summary" style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h4 style="margin-top: 0;">📊 Overvågningsopsummering</h4>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50;">
+                                <strong>🔔 Notifikationer</strong>
+                                <p style="margin: 8px 0 0 0;">
+                                    Primær: <strong>${notifications.primary || 'daily'}</strong><br>
+                                    Kanaler: ${(notifications.channels || ['email']).join(', ')}
+                                </p>
+                            </div>
+
+                            <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ff9800;">
+                                <strong>📈 Hit Budget</strong>
+                                <p style="margin: 8px 0 0 0;">
+                                    Forventet: <strong>${hitBudget.expected_hits || 'moderate'}</strong>
+                                </p>
+                            </div>
+
+                            <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3;">
+                                <strong>⏱️  Frekvens</strong>
+                                <p style="margin: 8px 0 0 0;">
+                                    Type: <strong>${monitoring.type || 'keywords'}</strong><br>
+                                    Frekvens: ${monitoring.frequency || 'daily'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
 
             function renderStep(step, stepNumber) {
@@ -1396,7 +1498,27 @@
                     }
                 }
 
-                // Educational content (new!)
+                // Hit definition (new!)
+                if (step.educational?.what_counts_as_hit) {
+                    html += `
+                        <div style="background: #e8f5e9; padding: 12px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #4caf50;">
+                            <strong style="color: #2e7d32;">🎯 Hvad tæller som hit:</strong>
+                            <div style="margin-top: 8px; font-size: 0.95em;">${step.educational.what_counts_as_hit}</div>
+                        </div>
+                    `;
+                }
+
+                // Why this step (new!)
+                if (step.educational?.why_this_step) {
+                    html += `
+                        <div style="background: #fff3e0; padding: 12px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #ff9800;">
+                            <strong style="color: #e65100;">💡 Hvorfor dette trin:</strong>
+                            <div style="margin-top: 8px; font-size: 0.95em;">${step.educational.why_this_step}</div>
+                        </div>
+                    `;
+                }
+
+                // Educational content (collapsible)
                 if (step.educational) {
                     html += renderEducationalContent(step.educational, step.module?.name || '');
                 }
