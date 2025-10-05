@@ -76,7 +76,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- Intelligent pre-caching ved opstart ---
-from .filter_catalog import get_filter_catalog  # tilføj import tæt på toppen
+# NOTE: get_filter_catalog already imported at line 38
 from .knowledge_base import get_knowledge_base
 
 @app.on_event("startup")
