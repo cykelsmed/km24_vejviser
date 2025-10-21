@@ -1794,6 +1794,96 @@
                     html += renderEducationalContent(step.educational, step.module?.name || '');
                 }
 
+                // KM24 API Integration (NEW - Niveau 2 feature!)
+                if (step.km24_step_json || step.km24_curl_command || step.part_id_mapping) {
+                    html += `
+                        <details class="km24-api-section" style="background: #f0f8ff; border: 2px solid #1976d2; border-radius: 8px; padding: 15px; margin-top: 20px;">
+                            <summary style="cursor: pointer; font-weight: bold; color: #1565c0; font-size: 1.1em;">
+                                🔧 KM24 API Integration (Copy-Paste Klar)
+                            </summary>
+                            <div style="margin-top: 15px;">
+                    `;
+
+                    // Step JSON (primary output)
+                    if (step.km24_step_json) {
+                        const jsonStr = JSON.stringify(step.km24_step_json, null, 2);
+                        html += `
+                            <div style="margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <strong style="color: #1565c0;">📋 Step JSON (POST /api/steps/main)</strong>
+                                    <button class="copy-btn" data-copy-target="step-json-${stepNumber}" 
+                                            style="padding: 6px 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                        📋 Copy JSON
+                                    </button>
+                                </div>
+                                <pre id="step-json-${stepNumber}" style="background: #263238; color: #aed581; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5;">${jsonStr}</pre>
+                            </div>
+                        `;
+                    }
+
+                    // cURL command
+                    if (step.km24_curl_command) {
+                        html += `
+                            <div style="margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <strong style="color: #1565c0;">💻 cURL Command</strong>
+                                    <button class="copy-btn" data-copy-target="curl-cmd-${stepNumber}"
+                                            style="padding: 6px 12px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                        📋 Copy cURL
+                                    </button>
+                                </div>
+                                <pre id="curl-cmd-${stepNumber}" style="background: #263238; color: #ffcc80; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5;">${step.km24_curl_command}</pre>
+                            </div>
+                        `;
+                    }
+
+                    // Part ID Mapping Reference
+                    if (step.part_id_mapping && Object.keys(step.part_id_mapping).length > 0) {
+                        html += `
+                            <details style="margin-bottom: 15px;">
+                                <summary style="cursor: pointer; color: #1565c0; font-weight: 600;">
+                                    🔍 Part ID Mapping Reference
+                                </summary>
+                                <table style="width: 100%; margin-top: 10px; border-collapse: collapse;">
+                                    <tr style="background: #e3f2fd;">
+                                        <th style="padding: 8px; text-align: left; border: 1px solid #90caf9;">Filter Name</th>
+                                        <th style="padding: 8px; text-align: left; border: 1px solid #90caf9;">modulePartId</th>
+                                    </tr>
+                        `;
+                        
+                        Object.entries(step.part_id_mapping).forEach(([name, id]) => {
+                            html += `
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #90caf9;">${name}</td>
+                                    <td style="padding: 8px; border: 1px solid #90caf9; font-family: monospace;">${id}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        html += `
+                                </table>
+                            </details>
+                        `;
+                    }
+
+                    // Warnings (if any)
+                    if (step.km24_warnings && step.km24_warnings.length > 0) {
+                        html += `
+                            <div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px; border-radius: 4px;">
+                                <strong style="color: #ef6c00;">⚠️ Advarsler:</strong>
+                                <ul style="margin: 8px 0 0 20px;">
+                                    ${step.km24_warnings.map(w => `<li>${w}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+
+                    html += `
+                            </div>
+                        </details>
+                    `;
+                }
+
                 html += '</div>'; // step-details
                 html += '</div>'; // step
 
@@ -2238,16 +2328,39 @@
                 const copyButtons = document.querySelectorAll('.copy-btn');
                 copyButtons.forEach(function(button) {
                     button.addEventListener('click', function() {
-                        const text = this.getAttribute('data-text');
+                        // Support both data-text (legacy) and data-copy-target (new)
+                        let text = this.getAttribute('data-text');
+                        
+                        // If no data-text, check for data-copy-target
+                        if (!text) {
+                            const targetId = this.getAttribute('data-copy-target');
+                            if (targetId) {
+                                const targetElement = document.getElementById(targetId);
+                                if (targetElement) {
+                                    text = targetElement.textContent || targetElement.innerText;
+                                }
+                            }
+                        }
+                        
+                        if (!text) {
+                            console.error('No text found to copy');
+                            return;
+                        }
+                        
+                        const originalText = button.textContent;
                         navigator.clipboard.writeText(text).then(function() {
                             button.textContent = 'Kopieret!';
                             button.classList.add('copied');
                             setTimeout(function() {
-                                button.textContent = 'Kopiér';
+                                button.textContent = originalText;
                                 button.classList.remove('copied');
                             }, 2000);
                         }).catch(function(err) {
                             console.error('Failed to copy text: ', err);
+                            button.textContent = 'Fejl!';
+                            setTimeout(function() {
+                                button.textContent = originalText;
+                            }, 2000);
                         });
                     });
                 });

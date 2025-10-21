@@ -138,6 +138,18 @@ class Step(BaseModel):
     educational: Optional[StepEducational] = Field(
         None, description="Educational content for this step"
     )
+    km24_step_json: Optional[Dict[str, Any]] = Field(
+        None, description="Ready-to-use KM24 API step JSON for POST /api/steps/main"
+    )
+    km24_curl_command: Optional[str] = Field(
+        None, description="cURL command to create this step in KM24"
+    )
+    part_id_mapping: Optional[Dict[str, int]] = Field(
+        None, description="Filter name to modulePartId mapping for reference"
+    )
+    km24_warnings: Optional[List[str]] = Field(
+        None, description="Warnings from filter mapping or validation"
+    )
 
     @field_validator("source_selection", mode="before")
     @classmethod

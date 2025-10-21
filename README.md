@@ -10,6 +10,7 @@
 
 ## 📋 Indholdsfortegnelse
 
+- [Production Deployment](#-production-deployment)
 - [Oversigt](#-oversigt)
 - [Hovedfunktionalitet](#-hovedfunktionalitet)
 - [Arkitektur](#-arkitektur)
@@ -20,6 +21,26 @@
 - [Dokumentation](#-dokumentation)
 - [Udvikling](#-udvikling)
 - [Tests](#-tests)
+
+---
+
+## 🌐 Production Deployment
+
+**Live URL:** https://km24-vejviser.fly.dev
+
+The application is deployed to Fly.io and fully operational. For complete deployment documentation, see [PRODUCTION_DEPLOYMENT.md](../PRODUCTION_DEPLOYMENT.md).
+
+**Quick Commands:**
+```bash
+# Deploy updates
+fly deploy -a km24-vejviser
+
+# View logs
+fly logs -a km24-vejviser
+
+# Check status
+fly status -a km24-vejviser
+```
 
 ---
 
@@ -47,19 +68,27 @@ Systemet bruger **Anthropic Claude 3.5 Sonnet** til intelligent analyse og **Kno
   - Prioritets-boost (5 bonus point)
 - Reducerer prompt fra ~20 til 7 mest relevante moduler
 
-### 2. Live API-Validering
+### 2. **🆕 Automatisk Step JSON Generation (Niveau 2)**
+- **Automatisk mapping** af filter-navne til `modulePartId`
+- **Copy-paste klar** step JSON til KM24 API
+- **cURL commands** for hurtig testing
+- **Part ID mapping reference** for gennemsigtighed
+- **Spar 90%+ tid** på step-oprettelse
+- Se [KM24 API Integration Guide](docs/KM24_API_INTEGRATION.md)
+
+### 3. Live API-Validering
 - Validerer alle filtre mod KM24 API i realtid
 - Auto-retter ugyldige filterværdier
 - Tilføjer kritiske branchekoder automatisk
 - Intelligent cache-system (7 dages levetid)
 
-### 3. Pædagogisk Berigelse
+### 4. Pædagogisk Berigelse
 - Kontekst-aware vejledning for hvert trin
 - Module-specifikke tips og red flags
 - CVR-first pipeline principper
 - Forventede hit-volumener og kvalitetstjek
 
-### 4. Robust Fejlhåndtering
+### 5. Robust Fejlhåndtering
 - Fallback til cached data ved API-fejl
 - Retry-mekanisme med exponential backoff
 - Detaljeret fejl-logging og user-facing fejlmeddelelser

@@ -1,0 +1,480 @@
+# 🔗 KM24 API Integration Guide
+
+## Oversigt
+
+KM24 Vejviser genererer nu **API-klar step JSON** som kan copy-pastes direkte til KM24 API. Dette eliminerer den manuelle proces med at mappe filter-navne til `modulePartId` værdier.
+
+## Hvad er nyt? (Niveau 2 Feature)
+
+### Før (Manual Proces)
+```
+1. Læs opskrift med filter-navne: {"Kommune": ["Aarhus"]}
+2. Gå til KM24 API og hent modul-data
+3. Find Part ID for "Kommune" (fx id: 2)
+4. Map manuelt til: {"modulePartId": 2, "values": ["Aarhus"]}
+5. Byg step JSON manuelt
+6. Test i KM24 API
+= 15-30 minutter pr. step
+```
+
+### Nu (Automatisk)
+```
+1. Læs opskrift
+2. Copy færdig step JSON fra "🔧 KM24 API Integration" sektion
+3. POST til KM24 API
+= 1-2 minutter pr. step
+```
+
+**Tidsbesparing: 90%+**
+
+---
+
+## Hvordan Bruges Det?
+
+### 1. Generer Opskrift
+
+Indtast dit journalistiske mål i KM24 Vejviser som normalt:
+
+```
+"Overvåg byggevirksomheder i Aarhus med asbest-kritik fra Arbejdstilsynet"
+```
+
+### 2. Find KM24 API Integration Sektion
+
+For hvert step i opskriften finder du nu en **🔧 KM24 API Integration** sektion med:
+
+- **📋 Step JSON** - Færdigt JSON til POST /api/steps/main
+- **💻 cURL Command** - Copy-paste klar terminal-kommando
+- **🔍 Part ID Mapping Reference** - Oversigt over filter → ID mapping
+
+### 3. Copy Step JSON
+
+Klik på "📋 Copy JSON" knappen. Eksempel output:
+
+```json
+{
+  "name": "Asbest-kritik i Aarhus byggeri",
+  "moduleId": 110,
+  "lookbackDays": 30,
+  "onlyActive": false,
+  "onlySubscribed": false,
+  "parts": [
+    {
+      "modulePartId": 2,
+      "values": ["Aarhus"]
+    },
+    {
+      "modulePartId": 205,
+      "values": ["Asbest"]
+    }
+  ]
+}
+```
+
+### 4. POST til KM24 API
+
+#### Option A: Brug cURL (Terminal)
+
+Copy cURL kommandoen og erstat `YOUR_API_KEY`:
+
+```bash
+curl -X POST https://km24.dk/api/steps/main \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Asbest-kritik i Aarhus byggeri",
+    "moduleId": 110,
+    "lookbackDays": 30,
+    "parts": [...]
+  }'
+```
+
+#### Option B: Brug Python
+
+```python
+import requests
+
+API_KEY = "your_km24_api_key"
+headers = {"X-API-Key": API_KEY}
+
+step_data = {
+    "name": "Asbest-kritik i Aarhus byggeri",
+    "moduleId": 110,
+    "lookbackDays": 30,
+    "parts": [
+        {"modulePartId": 2, "values": ["Aarhus"]},
+        {"modulePartId": 205, "values": ["Asbest"]}
+    ]
+}
+
+response = requests.post(
+    "https://km24.dk/api/steps/main",
+    headers=headers,
+    json=step_data
+)
+
+if response.status_code == 201:
+    step = response.json()
+    print(f"Step created with ID: {step['id']}")
+else:
+    print(f"Error: {response.status_code} - {response.text}")
+```
+
+#### Option C: Brug Postman/Insomnia
+
+1. Import step JSON til Postman
+2. Add header: `X-API-Key: YOUR_API_KEY`
+3. POST to: `https://km24.dk/api/steps/main`
+4. Send request
+
+### 5. Verificer Step
+
+Efter oprettelse, verificer at step'et fungerer:
+
+```bash
+# Hent hits fra det nye step
+curl -H "X-API-Key: YOUR_API_KEY" \
+  https://km24.dk/api/steps/main/hits/{STEP_ID}
+```
+
+---
+
+## Forstå Part ID Mapping
+
+### Hvad er modulePartId?
+
+KM24 API kræver numeriske `modulePartId` i stedet for tekstnavn:
+
+| Filter Navn (Human) | modulePartId (API) | Modul |
+|---------------------|---------------------|-------|
+| Kommune | 2 | Arbejdstilsyn |
+| Problem | 205 | Arbejdstilsyn |
+| Branche | 5 | Arbejdstilsyn |
+| Kommune | 134 | Udbud |
+| Søgeord | 136 | Udbud |
+
+**Vigtigt:** Samme filter-navn kan have forskellige ID'er i forskellige moduler!
+
+### Part ID Mapping Reference Tabel
+
+Hver step har nu en reference-tabel der viser mapping for netop dette modul:
+
+```
+🔍 Part ID Mapping Reference
+┌─────────────┬──────────────┐
+│ Filter Name │ modulePartId │
+├─────────────┼──────────────┤
+│ Kommune     │ 2            │
+│ Problem     │ 205          │
+│ Branche     │ 5            │
+└─────────────┴──────────────┘
+```
+
+Dette gør det let at forstå hvordan mapping fungerer.
+
+---
+
+## Almindelige Use Cases
+
+### Use Case 1: Opret Enkelt Step
+
+Mest almindelig - opret ét step ad gangen:
+
+1. Copy step JSON fra opskrift
+2. POST til KM24 API
+3. Noter step ID
+4. Hent hits
+
+### Use Case 2: Batch Opret Alle Steps
+
+Opret alle steps fra opskriften på én gang:
+
+```python
+# Se batch script eksempel i næste sektion
+```
+
+### Use Case 3: Modificer og Test
+
+Start med vores JSON, tilpas og test:
+
+1. Copy step JSON
+2. Rediger værdier (fx kommune, lookbackDays)
+3. POST til KM24 API
+4. Sammenlign hits
+
+---
+
+## Advanced: Batch Script Generation
+
+KM24 Vejviser kan generere Python scripts til batch-oprettelse:
+
+```python
+# batch_create_steps.py (generated by KM24 Vejviser)
+
+import requests
+import time
+
+API_KEY = "YOUR_API_KEY"
+BASE_URL = "https://km24.dk/api"
+headers = {"X-API-Key": API_KEY}
+
+# Step definitions
+steps = [
+    {
+        "name": "Step 1: Identificer byggevirksomheder",
+        "moduleId": 1260,
+        "parts": [...]
+    },
+    {
+        "name": "Step 2: Overvåg asbest-kritik",
+        "moduleId": 110,
+        "parts": [...]
+    },
+    # ... more steps
+]
+
+# Create steps
+created_steps = []
+
+for i, step_data in enumerate(steps, 1):
+    print(f"Creating step {i}/{len(steps)}: {step_data['name']}")
+    
+    response = requests.post(
+        f"{BASE_URL}/steps/main",
+        headers=headers,
+        json=step_data
+    )
+    
+    if response.status_code == 201:
+        step = response.json()
+        created_steps.append(step)
+        print(f"  ✓ Created with ID: {step['id']}")
+    else:
+        print(f"  ✗ Error: {response.status_code} - {response.text}")
+    
+    # Rate limiting
+    if i < len(steps):
+        time.sleep(0.5)
+
+print(f"\nCreated {len(created_steps)}/{len(steps)} steps successfully")
+```
+
+---
+
+## Troubleshooting
+
+### Problem: "modulePartId not found in module"
+
+**Årsag:** Part ID er forkert for det modul.
+
+**Løsning:**
+1. Tjek Part ID Mapping Reference tabel i opskriften
+2. Verificer modul ID matcher
+3. Hent modul-data direkte: `GET /api/modules/basic/{module_id}`
+
+### Problem: "Invalid filter value"
+
+**Årsag:** Filter-værdien er ugyldig (fx forkert kommunenavn, branchekode).
+
+**Løsning:**
+1. Tjek warnings i KM24 API Integration sektion
+2. Verificer værdier mod KM24 API:
+   - Kommuner: `GET /api/municipalities`
+   - Branchekoder: `GET /api/branch-codes`
+   - Generic values: `GET /api/generic-values/{part_id}`
+
+### Problem: "No hits from step"
+
+**Årsag:** Filtre er for specifikke, eller data findes ikke.
+
+**Løsning:**
+1. Start bredere - fjern nogle filtre
+2. Øg `lookbackDays` (fx til 90)
+3. Tjek om modul har data for dine kriterier
+4. Verificer step er aktivt: `GET /api/steps/main/{step_id}`
+
+### Problem: Copy button virker ikke
+
+**Årsag:** Browser clipboard permissions.
+
+**Løsning:**
+1. Tillad clipboard access i browser
+2. Alternativt: Marker tekst manuelt og copy (Ctrl+C / Cmd+C)
+3. Tjek browser console for fejl
+
+---
+
+## Best Practices
+
+### 1. Gem Step IDs
+
+Når du opretter steps, gem deres IDs til senere reference:
+
+```python
+step_ids = {
+    "registrering": 12345,
+    "arbejdstilsyn": 12346,
+    "status": 12347
+}
+
+# Later: Hent hits
+for name, step_id in step_ids.items():
+    hits = get_hits(step_id)
+    print(f"{name}: {len(hits)} hits")
+```
+
+### 2. Test Enkeltvis
+
+Test hver step individuelt før batch-oprettelse:
+
+```
+1. Opret step 1
+2. Vent 5 minutter
+3. Tjek hits
+4. Hvis OK: Gå videre til step 2
+5. Hvis ingen hits: Debug step 1 først
+```
+
+### 3. Start Bredt, Indsnævr
+
+Første iteration - brede filtre:
+```json
+{
+  "name": "Test: Asbest i hele Danmark",
+  "parts": [{"modulePartId": 205, "values": ["Asbest"]}]
+}
+```
+
+Anden iteration - indsnævr efter hits:
+```json
+{
+  "name": "Asbest kun Aarhus",
+  "parts": [
+    {"modulePartId": 205, "values": ["Asbest"]},
+    {"modulePartId": 2, "values": ["Aarhus"]}
+  ]
+}
+```
+
+### 4. Dokumenter Din Mapping
+
+Gem Part ID mappings for senere reference:
+
+```python
+# my_module_mappings.py
+ARBEJDSTILSYN_PARTS = {
+    "Kommune": 2,
+    "Branche": 5,
+    "Problem": 205,
+    "Reaktion": 206
+}
+
+UDBUD_PARTS = {
+    "Kommune": 134,
+    "Virksomhed": 133,
+    "Søgeord": 136
+}
+```
+
+---
+
+## API Reference
+
+### POST /api/steps/main
+
+Opret nyt step (overvågning).
+
+**Headers:**
+```
+X-API-Key: YOUR_API_KEY
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "name": "Step navn",
+  "moduleId": 110,
+  "lookbackDays": 30,
+  "onlyActive": false,
+  "onlySubscribed": false,
+  "parts": [
+    {
+      "modulePartId": 2,
+      "values": ["Aarhus", "København"]
+    }
+  ]
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 12345,
+  "name": "Step navn",
+  "moduleId": 110,
+  "created": "2025-10-21T10:00:00Z"
+}
+```
+
+### GET /api/steps/main/hits/{stepId}
+
+Hent hits fra et step.
+
+**Headers:**
+```
+X-API-Key: YOUR_API_KEY
+```
+
+**Query Parameters:**
+- `page`: Side nummer (default: 1)
+- `pageSize`: Antal hits per side (default: 25, max: 200)
+- `ordering`: Sortering (fx `-hitDatetime` for nyeste først)
+
+**Response:**
+```json
+{
+  "page": 1,
+  "pageSize": 25,
+  "count": 42,
+  "items": [
+    {
+      "id": 789456,
+      "title": "Påbud til ABC ApS",
+      "hitDatetime": "2025-10-20T14:30:00Z",
+      "bodyHtml": "<p>...</p>",
+      "companies": [...]
+    }
+  ]
+}
+```
+
+---
+
+## Yderligere Ressourcer
+
+- **[KM24 API Dokumentation](https://km24.dk/api/docs/)** - Fuld API reference
+- **[Migration Guide](./MIGRATION_GUIDE.md)** - Detaljeret migration guide
+- **[Quick Reference](./KM24_QUICK_REFERENCE.md)** - Hurtig API reference
+- **[Project Architecture](./PROJECT_ARCHITECTURE.md)** - System arkitektur
+
+---
+
+## Konklusion
+
+Med Niveau 2 funktionalitet kan du nu:
+
+✅ Generere API-klar step JSON automatisk  
+✅ Copy-paste direkte til KM24 API  
+✅ Spare 90%+ tid på step oprettelse  
+✅ Forstå Part ID mapping visuelt  
+✅ Få advarsler om ugyldige filtre  
+
+**Næste steps:**
+1. Prøv at oprette dit første step fra en opskrift
+2. Verificer hits kommer ind
+3. Iterer og forbedre filtre
+4. Opret batch scripts for gentagne workflows
+
+Held og lykke med din datadrevne journalistik! 🚀
+

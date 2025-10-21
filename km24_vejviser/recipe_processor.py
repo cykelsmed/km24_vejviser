@@ -16,6 +16,8 @@ from .km24_client import get_km24_client, KM24APIClient
 from .module_validator import get_module_validator
 from .models.usecase_response import UseCaseResponse
 from .filter_catalog import get_filter_catalog
+from .part_id_mapper import get_part_id_mapper
+from .step_generator import get_step_generator
 
 logger = logging.getLogger("km24_vejviser.recipe_processor")
 
@@ -1202,6 +1204,108 @@ def generate_step_rationale(step: dict, goal: str, step_index: int) -> str:
 # ===== TRANSFORMATION AND MAIN FUNCTIONS =====
 
 
+async def enrich_recipe_with_step_json(recipe: dict) -> dict:
+    """
+    Enrich recipe with KM24 API-ready step JSON.
+    
+    For each step in the recipe:
+    1. Maps filter names to modulePartId using PartIdMapper
+    2. Generates complete step JSON for POST /api/steps/main
+    3. Generates cURL command for testing
+    4. Adds part_id_mapping for reference
+    
+    Args:
+        recipe: Recipe dict with investigation_steps
+        
+    Returns:
+        Enriched recipe with km24_step_json, km24_curl_command, and part_id_mapping
+    """
+    logger.info("Enriching recipe with API-ready step JSON")
+    
+    mapper = get_part_id_mapper()
+    generator = get_step_generator()
+    
+    enriched_steps = []
+    
+    # Use "steps" key (after normalization by coerce_raw_to_target_shape)
+    for step in recipe.get("steps", []):
+        try:
+            # Get module ID - try multiple ways
+            module_id = step.get("module_id")
+            if not module_id and isinstance(step.get("module"), dict):
+                # Try to get from module dict
+                module_id = step["module"].get("module_id") or step["module"].get("id")
+            
+            if not module_id:
+                logger.warning(f"Step '{step.get('title')}' missing module_id, skipping step JSON generation")
+                enriched_steps.append(step)
+                continue
+            
+            # Convert slug to numeric ID if needed
+            if isinstance(module_id, str):
+                # Need to lookup numeric ID from module name
+                module_name = step.get("module", {}).get("name") if isinstance(step.get("module"), dict) else None
+                if module_name:
+                    # Get module validator to lookup ID
+                    from .module_validator import get_module_validator
+                    validator = get_module_validator()
+                    module_card = await validator.get_enhanced_module_card(module_name)
+                    if module_card and module_card.km24_id:
+                        module_id = module_card.km24_id
+                    else:
+                        logger.warning(f"Could not resolve module ID for '{module_name}'")
+                        enriched_steps.append(step)
+                        continue
+            
+            # Get filters
+            filters = step.get("filters", {})
+            
+            # Map filters to parts
+            parts, warnings = await mapper.map_filters_to_parts(module_id, filters)
+            
+            if warnings:
+                logger.warning(f"Filter mapping warnings for '{step.get('title')}': {warnings}")
+                # Add warnings to step for user visibility
+                if "km24_warnings" not in step:
+                    step["km24_warnings"] = []
+                step["km24_warnings"].extend(warnings)
+            
+            # Get part_id_mapping for reference
+            part_mapping = await mapper.get_part_id_mapping(module_id)
+            
+            # Filter mapping to only include filters that were actually used
+            used_part_mapping = {
+                filter_name: part_mapping.get(filter_name) or part_mapping.get(filter_name.lower())
+                for filter_name in filters.keys()
+                if part_mapping.get(filter_name) or part_mapping.get(filter_name.lower())
+            }
+            
+            # Generate complete step JSON
+            step_json = await generator.generate_step_json(step, module_id, parts)
+            
+            # Generate cURL command
+            curl_command = generator.generate_curl_command(step_json)
+            
+            # Add to step
+            step["km24_step_json"] = step_json
+            step["km24_curl_command"] = curl_command
+            step["part_id_mapping"] = used_part_mapping
+            
+            logger.info(f"Generated step JSON for '{step.get('title')}' with {len(parts)} parts")
+            
+        except Exception as e:
+            logger.error(f"Error generating step JSON for '{step.get('title')}': {e}", exc_info=True)
+            # Don't fail entire recipe - just skip this step's JSON generation
+        
+        enriched_steps.append(step)
+    
+    # Update recipe with enriched steps
+    recipe["steps"] = enriched_steps
+    
+    logger.info(f"Step JSON enrichment complete for {len(enriched_steps)} steps")
+    return recipe
+
+
 async def enrich_recipe_with_api(raw_recipe: dict) -> dict:
     """
     Validate and enrich Claude's recipe using live KM24 API data.
@@ -1740,6 +1844,10 @@ async def complete_recipe(raw_recipe: dict, goal: str = "") -> dict:
 
     enricher = RecipeEnricher()
     recipe = await enricher.enrich(recipe, goal)
+
+    # Step 3.55: Generate KM24 API-ready step JSON
+    logger.info("Trin 3.55: Genererer KM24 API step JSON")
+    recipe = await enrich_recipe_with_step_json(recipe)
 
     # Step 3.6: Generate context block and AI assessment
     logger.info("Trin 3.6: Genererer kontekst og AI vurdering")

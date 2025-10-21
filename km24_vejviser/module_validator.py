@@ -51,6 +51,7 @@ class EnhancedModuleCard:
     requires_source_selection: bool
     total_filters: int
     complexity_level: str
+    km24_id: int = 0  # KM24 numeric module ID
 
 
 @dataclass
@@ -573,6 +574,7 @@ class ModuleValidator:
                     requires_source_selection=requires_source,
                     total_filters=total_filters,
                     complexity_level=complexity_level,
+                    km24_id=module.get("id", 0),
                 )
 
         logger.warning(f"Module not found: {module_title}")
