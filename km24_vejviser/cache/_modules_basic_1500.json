@@ -1,5 +1,5 @@
 {
-  "cached_at": "2025-10-02T18:16:47.750938",
+  "cached_at": "2025-10-21T22:24:52.662652",
   "data": {
     "parts": [
       {
@@ -46,15 +46,6 @@
         "slug": "virksomhed",
         "canSelectMultiple": true,
         "order": 5
-      },
-      {
-        "id": 153,
-        "part": "person",
-        "name": "Person",
-        "info": "",
-        "slug": "person",
-        "canSelectMultiple": true,
-        "order": 6
       },
       {
         "id": 154,

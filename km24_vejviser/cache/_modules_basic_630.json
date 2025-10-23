@@ -1,5 +1,5 @@
 {
-  "cached_at": "2025-10-02T18:16:44.026873",
+  "cached_at": "2025-10-24T00:24:03.121659",
   "data": {
     "parts": [
       {
@@ -37,15 +37,6 @@
         "slug": "kommune",
         "canSelectMultiple": true,
         "order": 4
-      },
-      {
-        "id": 183,
-        "part": "person",
-        "name": "Person",
-        "info": "",
-        "slug": "person",
-        "canSelectMultiple": true,
-        "order": 5
       },
       {
         "id": 184,
