@@ -485,16 +485,14 @@ async def get_anthropic_response(goal: str) -> dict:
 
     all_modules = modules_response.data.get("items", [])
 
-    # NEW: Intelligent module pre-selection using KnowledgeBase
-    kb = get_knowledge_base()
-    selected_modules = kb.select_candidate_modules(goal, all_modules, count=7)
-
+    # Send ALLE moduler til researcher-LLM (ubias'd selection)
+    selected_modules = all_modules
     logger.info(
-        f"Selected {len(selected_modules)} modules using intelligent pre-analysis"
+        f"Sending all {len(all_modules)} modules to researcher-LLM for unbiased selection"
     )
 
-    # Build focused system prompt with selected modules
-    logger.info("Building focused system prompt with pre-selected modules...")
+    # Build system prompt with ALL modules
+    logger.info("Building researcher prompt with all modules...")
     full_system_prompt = await build_system_prompt(goal, selected_modules)
     retries = 3
     delay = 2
@@ -502,7 +500,7 @@ async def get_anthropic_response(goal: str) -> dict:
     for attempt in range(retries):
         try:
             response = await client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-5-20250929",
                 max_tokens=4096,
                 system=full_system_prompt,
                 messages=[
