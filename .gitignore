@@ -132,4 +132,10 @@ dmypy.json
 .pytype/
 
 # Cython debug symbols
-cython_debug/ 
+cython_debug/
+
+# KM24 API cache files
+km24_vejviser/cache/*.json
+
+# macOS
+.DS_Store 
