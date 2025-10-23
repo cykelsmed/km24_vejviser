@@ -39,6 +39,9 @@ from .knowledge_base import get_knowledge_base
 # Recipe processing functions (moved to recipe_processor.py)
 from .recipe_processor import complete_recipe, enrich_recipe_with_api
 
+# Researcher response models
+from .models.researcher_response import ResearcherResponse, ResearcherStep
+
 # Load environment variables from .env file
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -501,6 +504,68 @@ async def get_anthropic_response(goal: str) -> dict:
     return {"error": "Ukendt fejl i get_anthropic_response."}
 
 
+def map_researcher_response_to_recipe(researcher_data: dict) -> dict:
+    """
+    Map ResearcherResponse format til det eksisterende investigation_steps format.
+
+    Konverterer den nye researcher-baserede structure tilbage til det format
+    som resten af pipelinen forventer.
+    """
+    logger.info("Mapper ResearcherResponse til legacy recipe format")
+
+    try:
+        # Parse til ResearcherResponse model for validation
+        researcher_response = ResearcherResponse(**researcher_data)
+
+        # Build investigation_steps fra monitoring_setups
+        investigation_steps = []
+        for setup in researcher_response.monitoring_setups:
+            step = {
+                "step": setup.step_number,
+                "title": setup.title,
+                "type": "search",
+                "module": setup.module.name,
+                "rationale": setup.module_rationale[:200] + "..." if len(setup.module_rationale) > 200 else setup.module_rationale,  # Shorten for compatibility
+                "explanation": setup.explanation if setup.explanation else setup.module_rationale[:150],
+                "details": {
+                    "filters": setup.filters,
+                    "search_string": "",  # Will be populated by normalization
+                    "recommended_notification": "løbende",  # Default
+                },
+                # Include researcher fields for potential frontend use
+                "researcher_context": {
+                    "module_rationale": setup.module_rationale,
+                    "filter_explanations": setup.filter_explanations,
+                    "monitoring_explanation": setup.monitoring_explanation.dict(),
+                    "journalistic_context": setup.journalistic_context.dict(),
+                }
+            }
+            investigation_steps.append(step)
+
+        # Build legacy recipe structure
+        legacy_recipe = {
+            "title": f"Researcher-genereret plan: {researcher_response.understanding[:50]}...",
+            "strategy_summary": researcher_response.understanding,
+            "investigation_steps": investigation_steps,
+            "overall_strategy": researcher_response.overall_strategy or "",
+            "important_context": researcher_response.important_context or "",
+            "next_level_questions": [],  # Kan udvides senere
+            "potential_story_angles": [
+                angle for setup in researcher_response.monitoring_setups
+                for angle in setup.journalistic_context.story_angles
+            ][:5],  # Tag top 5
+            "creative_cross_references": [],
+        }
+
+        logger.info(f"Mapped {len(investigation_steps)} researcher setups til investigation_steps")
+        return legacy_recipe
+
+    except Exception as e:
+        logger.error(f"Fejl i mapping af researcher response: {e}", exc_info=True)
+        # Return error structure
+        return {"error": f"Kunne ikke parse researcher response: {str(e)}"}
+
+
 # Note: enrich_recipe_with_api has been moved to recipe_processor.py
 async def generate_search_optimization(module_card, goal: str, step: dict) -> dict:
     """Generer optimal søgekonfiguration baseret på modul og mål."""
@@ -686,6 +751,11 @@ async def generate_recipe_api(request: Request, body: RecipeRequest):
                 content={"error": "ANTHROPIC_API_KEY er ikke konfigureret."},
             )
         raw_recipe = await get_anthropic_response(goal)
+
+        # Check if we got researcher response and map it to legacy format
+        if "monitoring_setups" in raw_recipe and "error" not in raw_recipe:
+            logger.info("Detected researcher response format - mapping to legacy format")
+            raw_recipe = map_researcher_response_to_recipe(raw_recipe)
 
         if "error" in raw_recipe:
             # Graceful fallback: synthesize minimal raw plan to keep UX/tests green
